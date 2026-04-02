@@ -1,6 +1,6 @@
 {
   "name": "agentbroker",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Multi-machine coding agent orchestrator using OneDrive for Business sync",
   "main": "dist/cli.js",
   "bin": {
