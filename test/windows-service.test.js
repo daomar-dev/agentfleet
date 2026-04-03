@@ -154,7 +154,7 @@ test('startService calls sc start', () => {
   });
   mgr.startService();
   assert.ok(calledCmd.includes('sc start'));
-  assert.ok(calledCmd.includes('Lattix'));
+  assert.ok(calledCmd.includes('lattix.exe'));
 });
 
 test('stopService calls sc stop', () => {
@@ -164,7 +164,7 @@ test('stopService calls sc stop', () => {
   });
   mgr.stopService();
   assert.ok(calledCmd.includes('sc stop'));
-  assert.ok(calledCmd.includes('Lattix'));
+  assert.ok(calledCmd.includes('lattix.exe'));
 });
 
 // --- getServiceName / getAppDir tests ---

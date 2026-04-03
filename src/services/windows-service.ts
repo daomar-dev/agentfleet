@@ -13,6 +13,7 @@ export interface WindowsServiceDependencies {
 export type ServiceState = 'running' | 'stopped' | 'not-installed';
 
 const SERVICE_NAME = 'Lattix';
+const SERVICE_ID = 'lattix.exe';
 
 export class WindowsServiceManager {
   private readonly lattixDir: string;
@@ -39,7 +40,7 @@ export class WindowsServiceManager {
   queryServiceState(): ServiceState {
     const execSyncFn = this.deps.execSyncFn ?? ((cmd: string) => execSync(cmd));
     try {
-      const output = execSyncFn(`sc query "${SERVICE_NAME}"`).toString();
+      const output = execSyncFn(`sc query "${SERVICE_ID}"`).toString();
       // Parse numeric state code (locale-independent)
       const match = output.match(/STATE\s+:\s+(\d+)/);
       if (match) {
@@ -148,12 +149,12 @@ export class WindowsServiceManager {
 
   startService(): void {
     const execSyncFn = this.deps.execSyncFn ?? ((cmd: string) => execSync(cmd));
-    execSyncFn(`sc start "${SERVICE_NAME}"`);
+    execSyncFn(`sc start "${SERVICE_ID}"`);
   }
 
   stopService(): void {
     const execSyncFn = this.deps.execSyncFn ?? ((cmd: string) => execSync(cmd));
-    execSyncFn(`sc stop "${SERVICE_NAME}"`);
+    execSyncFn(`sc stop "${SERVICE_ID}"`);
   }
 
   removePid(): void {
