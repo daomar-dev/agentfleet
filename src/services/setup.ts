@@ -1,7 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { LattixConfig, DEFAULT_CONFIG } from '../types';
+import { LattixConfig, OneDriveSelection } from '../types';
+import { normalizeConfig, selectionFromConfig, selectionsEqual } from './provider-selection';
 
 const LATTIX_DIR = '.lattix';
 const LEGACY_AGENTBROKER_DIR = '.agentbroker';
@@ -44,7 +45,9 @@ export class SetupService {
    * Run full setup: create directories, symlinks, and config.
    * Returns the loaded or created config.
    */
-  setup(onedrivePath: string): LattixConfig {
+  setup(selection: OneDriveSelection): LattixConfig {
+    const onedrivePath = selection.path;
+
     this.migrateLegacyPaths(onedrivePath);
 
     // 1. Create ~/.lattix if it doesn't exist
@@ -71,7 +74,7 @@ export class SetupService {
     }
 
     // 4. Create or load config
-    const config = this.ensureConfig(onedrivePath);
+    const config = this.ensureConfig(selection);
 
     // 5. Ensure processed.json exists
     if (!fs.existsSync(this.getProcessedPath())) {
@@ -117,7 +120,7 @@ export class SetupService {
       `Found both legacy and current ${label} directories.\n` +
       `Legacy: ${legacyPath}\n` +
       `Current: ${lattixPath}\n` +
-      'Please merge or remove one of them manually, then run "lattix init" again.'
+      'Please merge or remove one of them manually, then run "lattix run" again.'
     );
   }
 
@@ -187,31 +190,63 @@ export class SetupService {
     fs.rmSync(targetPath, { recursive: true, force: true });
   }
 
-  private ensureConfig(onedrivePath: string): LattixConfig {
+  loadConfig(): LattixConfig | null {
     const configPath = this.getConfigPath();
 
-    if (fs.existsSync(configPath)) {
-      try {
-        const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as LattixConfig;
-        // Update hostname in case machine name changed
-        existing.hostname = os.hostname();
-        if (existing.onedrivePath !== onedrivePath) {
-          console.log(`⟳ OneDrive path changed, updating config`);
-          existing.onedrivePath = onedrivePath;
-        }
-        fs.writeFileSync(configPath, JSON.stringify(existing, null, 2));
-        console.log(`✓ Config loaded: ${configPath}`);
-        return existing;
-      } catch {
-        console.warn(`⚠ Config file corrupt, recreating`);
-      }
+    if (!fs.existsSync(configPath)) {
+      return null;
     }
 
-    const config: LattixConfig = {
-      onedrivePath,
+    try {
+      const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as Partial<LattixConfig>;
+      if (typeof existing.onedrivePath !== 'string' || existing.onedrivePath.length === 0) {
+        console.warn(`⚠ Config file missing OneDrive path, recreating`);
+        return null;
+      }
+
+      return normalizeConfig({
+        ...existing,
+        onedrivePath: existing.onedrivePath,
+        hostname: existing.hostname ?? os.hostname(),
+      });
+    } catch {
+      console.warn(`⚠ Config file corrupt, recreating`);
+      return null;
+    }
+  }
+
+  private ensureConfig(selection: OneDriveSelection): LattixConfig {
+    const configPath = this.getConfigPath();
+    const existing = this.loadConfig();
+
+    if (existing) {
+      const nextConfig = normalizeConfig({
+        ...existing,
+        provider: selection.provider,
+        onedrivePath: selection.path,
+        onedriveAccountKey: selection.accountKey,
+        onedriveAccountName: selection.accountName,
+        onedriveAccountType: selection.accountType,
+        hostname: os.hostname(),
+      });
+
+      if (!selectionsEqual(selectionFromConfig(existing), selection)) {
+        console.log('⟳ OneDrive selection changed, updating config');
+      }
+
+      fs.writeFileSync(configPath, JSON.stringify(nextConfig, null, 2));
+      console.log(`✓ Config loaded: ${configPath}`);
+      return nextConfig;
+    }
+
+    const config = normalizeConfig({
+      provider: selection.provider,
+      onedrivePath: selection.path,
+      onedriveAccountKey: selection.accountKey,
+      onedriveAccountName: selection.accountName,
+      onedriveAccountType: selection.accountType,
       hostname: os.hostname(),
-      ...DEFAULT_CONFIG,
-    };
+    });
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
     console.log(`✓ Config created: ${configPath}`);

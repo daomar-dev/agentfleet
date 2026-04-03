@@ -34,6 +34,7 @@
   },
   "files": [
     "dist/**/*",
+    "!dist/**/*.map",
     "assets/**/*",
     "README.md"
   ],

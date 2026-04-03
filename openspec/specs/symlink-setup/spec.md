@@ -26,21 +26,25 @@ The system SHALL create a `~/.lattix` directory in the user's home directory if 
 - **THEN** the system SHALL validate the existing symlinks point to the correct OneDrive locations and proceed without re-creation
 
 ### Requirement: Create symlinks to OneDrive subdirectories
-The system SHALL create symbolic links inside `~/.lattix` that point to corresponding directories within the OneDrive sync folder. The symlink targets SHALL be:
+The system SHALL create symbolic links inside `~/.lattix` that point to corresponding directories within the selected OneDrive sync folder. The symlink targets SHALL be:
 - `~/.lattix/tasks` → `<OneDrivePath>\Lattix\tasks`
 - `~/.lattix/output` → `<OneDrivePath>\Lattix\output`
 
 #### Scenario: Successful symlink creation
-- **WHEN** the system has detected the OneDrive sync folder and has appropriate permissions
-- **THEN** the system SHALL create the `Lattix\tasks` and `Lattix\output` directories in OneDrive if they don't exist, and create symlinks from `~/.lattix/tasks` and `~/.lattix/output` pointing to those OneDrive directories
+- **WHEN** the system has resolved the selected OneDrive sync folder and has appropriate permissions
+- **THEN** the system SHALL create the `Lattix\tasks` and `Lattix\output` directories in the selected OneDrive folder if they do not exist, and create symlinks from `~/.lattix/tasks` and `~/.lattix/output` pointing to those directories
 
 #### Scenario: Symlinks already exist and are valid
-- **WHEN** symlinks already exist and point to the correct OneDrive directories
+- **WHEN** symlinks already exist and point to the selected OneDrive directories
 - **THEN** the system SHALL log that symlinks are valid and proceed without modification
 
-#### Scenario: Symlinks exist but point to wrong location
-- **WHEN** symlinks exist but point to a different OneDrive path (e.g., user switched accounts)
-- **THEN** the system SHALL remove the stale symlinks and create new ones pointing to the correct location
+#### Scenario: Symlinks would change because the selected target changed
+- **WHEN** symlinks exist but the selected provider or OneDrive account would point them to a different target
+- **THEN** the system SHALL warn the user before deleting and recreating those symlinks, and SHALL only replace them after the user confirms
+
+#### Scenario: User declines symlink replacement
+- **WHEN** the system warns that symlinks would be deleted and recreated and the user does not confirm
+- **THEN** the system SHALL stop re-initialization without modifying the existing symlinks
 
 ### Requirement: Handle symlink permission failure
 The system SHALL handle the case where symlink creation fails due to insufficient permissions on Windows.
@@ -50,8 +54,12 @@ The system SHALL handle the case where symlink creation fails due to insufficien
 - **THEN** the system SHALL attempt to create directory junctions as a fallback, and if that also fails, display a clear error message with instructions to enable Developer Mode in Windows Settings
 
 ### Requirement: Create local configuration file
-The system SHALL create a `~/.lattix/config.json` file to store local machine configuration including the detected OneDrive path and machine-specific settings.
+The system SHALL create a `~/.lattix/config.json` file to store local machine configuration including the selected provider, the selected OneDrive path, and machine-specific settings.
 
 #### Scenario: Config file creation on first run
 - **WHEN** the system sets up for the first time
-- **THEN** the system SHALL create `config.json` with the detected OneDrive path, machine hostname, and default settings (e.g., default agent command, polling interval)
+- **THEN** the system SHALL create `config.json` with the selected provider, the selected OneDrive path, machine hostname, and default settings (e.g., default agent command, polling interval)
+
+#### Scenario: Config file update on provider or account switch
+- **WHEN** re-initialization completes with a different selected provider or OneDrive account
+- **THEN** the system SHALL update `config.json` so the stored provider and selected OneDrive path match the new setup

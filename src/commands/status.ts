@@ -7,13 +7,15 @@ import { bootstrap } from '../services/bootstrap';
 
 interface StatusDependencies {
   daemonService?: DaemonService;
+  setup?: Pick<SetupService, 'loadConfig' | 'setup' | 'getTasksDir' | 'getOutputDir'>;
+  bootstrapFn?: (deps: { setup: Pick<SetupService, 'loadConfig' | 'setup'> }) => Promise<unknown>;
 }
 
 export async function statusCommand(taskId?: string, _cmdObj?: unknown, dependencies: StatusDependencies = {}): Promise<void> {
-  const setup = new SetupService();
+  const setup = dependencies.setup ?? new SetupService();
   const daemonService = dependencies.daemonService ?? new DaemonService();
 
-  await bootstrap({ setup });
+  await (dependencies.bootstrapFn ?? bootstrap)({ setup });
 
   const tasksDir = setup.getTasksDir();
   const outputDir = setup.getOutputDir();

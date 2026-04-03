@@ -1,20 +1,38 @@
 schema: spec-driven
+context: |
+  Project: Lattix
+  Scope: distributed agent orchestration without a control plane, focused on a CLI-driven workflow and file-based coordination.
+  Tech stack: TypeScript, Node.js, CommonJS.
+  Build command: npm run build
+  Test command: npm test
+  Architecture preferences:
+  - Prefer small, composable modules over broad abstractions.
+  - Reuse existing CLI, watcher, and file-system patterns before introducing new subsystems.
+  - Keep behavior aligned with the capabilities documented under openspec/specs.
+  - Prefer minimal runtime dependencies unless they clearly reduce complexity or risk.
+  Quality expectations:
+  - We prefer test-driven development for behavior changes.
+  - Add or update automated tests before implementation when practical.
+  - Every spec or behavior change should map to verifiable automated tests.
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
-
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+rules:
+  proposal:
+    - State the user-visible outcome and the problem being solved up front.
+    - Explicitly define scope boundaries and list non-goals.
+    - Name the affected capabilities or specs under openspec/specs.
+    - Call out testing impact when behavior changes are proposed.
+  design:
+    - Keep the design grounded in the current CLI-oriented, file-based architecture.
+    - Prefer extending existing modules and flows over introducing parallel systems.
+    - Include a mandatory test strategy section that explains how test-first development will be applied and how the change will be verified.
+    - Identify the failing or missing tests that must be added before implementation; test-first planning is required, not optional, for behavior changes.
+  tasks:
+    - Break work into small, verifiable steps tied to concrete code or spec changes.
+    - Start behavior changes by writing or updating automated tests first; test-first execution is required unless the task is documentation-only or otherwise non-code.
+    - Every task list must include an explicit check for user-facing documentation impact.
+    - When features, commands, parameters, configuration, or externally visible behavior change, add a dedicated README or other user documentation update task; documentation sync is required, not optional.
+    - Every task list must include dedicated self-test tasks that verify the change before completion, including npm run build and the relevant automated tests.
+  spec:
+    - Use SHALL language for requirements.
+    - Include at least one scenario per requirement.
+    - Keep requirements focused on externally observable behavior and verifiable outcomes.

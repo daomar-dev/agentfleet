@@ -9,5 +9,5 @@ test('CLI help shows the Lattix brand and slogan', () => {
 
   assert.match(output, /Usage: lattix/);
   assert.match(output, /Distributed agent orchestration, without a control plane\./);
-  assert.match(output, /Initialize Lattix: detect OneDrive, create symlinks,\s+generate config/);
+  assert.match(output, /Start Lattix: auto-initialize if needed, then watch for\s+tasks/);
 });

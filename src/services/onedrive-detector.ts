@@ -1,88 +1,102 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { execSync } from 'child_process';
+import { execSync, ExecSyncOptionsWithStringEncoding } from 'child_process';
+import { OneDriveSelection } from '../types';
+import { createOneDriveSelection, formatOneDriveSelection } from './provider-selection';
 
-export interface OneDriveAccount {
-  name: string;
-  path: string;
+export interface OneDriveAccount extends OneDriveSelection {
   isBusiness: boolean;
 }
 
+interface OneDriveDetectorOptions {
+  platform?: NodeJS.Platform;
+  homedir?: () => string;
+  execSyncImpl?: (command: string, options: ExecSyncOptionsWithStringEncoding) => string;
+  existsSync?: (filePath: string) => boolean;
+  readdirSyncImpl?: (dirPath: string) => string[];
+  statSyncImpl?: (filePath: string) => fs.Stats;
+}
+
 export class OneDriveDetector {
+  private readonly platform: NodeJS.Platform;
+  private readonly getHomedir: () => string;
+  private readonly execSyncImpl: (command: string, options: ExecSyncOptionsWithStringEncoding) => string;
+  private readonly existsSync: (filePath: string) => boolean;
+  private readonly readdirSyncImpl: (dirPath: string) => string[];
+  private readonly statSyncImpl: (filePath: string) => fs.Stats;
+
+  constructor(options: OneDriveDetectorOptions = {}) {
+    this.platform = options.platform ?? process.platform;
+    this.getHomedir = options.homedir ?? os.homedir;
+    this.execSyncImpl = options.execSyncImpl ?? execSync;
+    this.existsSync = options.existsSync ?? fs.existsSync;
+    this.readdirSyncImpl = options.readdirSyncImpl ?? fs.readdirSync;
+    this.statSyncImpl = options.statSyncImpl ?? fs.statSync;
+  }
+
   /**
    * Detect all OneDrive sync folders on this machine.
-   * Returns the OneDrive for Business folder path, or throws if not found.
+   * Returns the first usable folder path for compatibility with older call sites.
    */
   detect(): string {
-    const accounts = this.findAccounts();
+    const accounts = this.detectAccounts();
 
     if (accounts.length === 0) {
       throw new Error(
-        'OneDrive for Business is not installed or no sync folder was found.\n' +
-        'Please install OneDrive and sign in with your business account.\n' +
+        'No supported OneDrive account found.\n' +
+        'Please install OneDrive and sign in with either your personal or business account.\n' +
         'Download: https://www.microsoft.com/en-us/microsoft-365/onedrive/download'
       );
     }
 
-    const businessAccounts = accounts.filter(a => a.isBusiness);
-
-    if (businessAccounts.length === 0) {
-      throw new Error(
-        'No OneDrive for Business account found.\n' +
-        `Found ${accounts.length} personal OneDrive account(s), but a business account is required.\n` +
-        'Please sign in with your organization account in OneDrive.'
-      );
-    }
-
-    if (businessAccounts.length > 1) {
+    if (accounts.length > 1) {
       console.warn(
-        `Multiple OneDrive for Business accounts detected. Using the first one:\n` +
-        businessAccounts.map((a, i) => `  ${i + 1}. ${a.name} → ${a.path}`).join('\n')
+        `Multiple OneDrive accounts detected. Using the first one:\n` +
+        accounts.map((account, index) => `  ${index + 1}. ${formatOneDriveSelection(account)}`).join('\n')
       );
     }
 
-    const selected = businessAccounts[0];
+    const selected = accounts[0];
 
-    if (!fs.existsSync(selected.path)) {
-      throw new Error(
-        `OneDrive for Business folder detected at "${selected.path}" but it does not exist on disk.\n` +
-        'Please verify OneDrive is syncing correctly.'
-      );
-    }
-
-    console.log(`✓ OneDrive for Business detected: ${selected.path}`);
+    console.log(`✓ OneDrive detected: ${selected.path}`);
     return selected.path;
   }
 
-  private findAccounts(): OneDriveAccount[] {
-    const accounts: OneDriveAccount[] = [];
+  detectAccounts(): OneDriveAccount[] {
+    const accounts = [
+      ...this.findFromRegistry(),
+      ...this.findFromWellKnownPaths(),
+    ];
+    const dedupedAccounts = new Map<string, OneDriveAccount>();
 
-    // Method 1: Scan Windows Registry
-    if (process.platform === 'win32') {
-      accounts.push(...this.findFromRegistry());
+    for (const account of accounts) {
+      if (!this.existsSync(account.path)) {
+        continue;
+      }
+
+      const accountKey = account.path.toLowerCase();
+      if (!dedupedAccounts.has(accountKey)) {
+        dedupedAccounts.set(accountKey, account);
+      }
     }
 
-    // Method 2: Scan well-known paths
-    if (accounts.length === 0) {
-      accounts.push(...this.findFromWellKnownPaths());
-    }
-
-    return accounts;
+    return Array.from(dedupedAccounts.values());
   }
 
   private findFromRegistry(): OneDriveAccount[] {
     const accounts: OneDriveAccount[] = [];
 
+    if (this.platform !== 'win32') {
+      return accounts;
+    }
+
     try {
-      // Query registry for OneDrive accounts
-      const regOutput = execSync(
+      const regOutput = this.execSyncImpl(
         'reg query "HKCU\\Software\\Microsoft\\OneDrive\\Accounts" /s',
         { encoding: 'utf-8', timeout: 5000 }
       );
 
-      // Parse each account block
-      const blocks = regOutput.split(/\r?\n\r?\n/);
       let currentKey = '';
 
       for (const line of regOutput.split(/\r?\n/)) {
@@ -95,16 +109,14 @@ export class OneDriveDetector {
         const valueMatch = line.match(/^\s+UserFolder\s+REG_SZ\s+(.+)/i);
         if (valueMatch && currentKey) {
           const folderPath = valueMatch[1].trim();
-          const isBusiness = currentKey.toLowerCase().startsWith('business');
-          accounts.push({
-            name: currentKey,
-            path: folderPath,
-            isBusiness,
-          });
+          accounts.push(this.createAccount(folderPath, {
+            accountKey: currentKey,
+            accountName: currentKey.toLowerCase() === 'personal' ? 'Personal' : undefined,
+          }));
         }
       }
     } catch {
-      // Registry query failed, fall through to well-known paths
+      return [];
     }
 
     return accounts;
@@ -112,40 +124,44 @@ export class OneDriveDetector {
 
   private findFromWellKnownPaths(): OneDriveAccount[] {
     const accounts: OneDriveAccount[] = [];
-    const homeDir = os.homedir();
+    const homeDir = this.getHomedir();
 
     try {
-      const entries = fs.readdirSync(path.dirname(homeDir) === homeDir
-        ? homeDir
-        : path.dirname(homeDir));
-
-      // Also check the home directory itself for OneDrive folders
-      const homeDirEntries = fs.readdirSync(homeDir);
+      const homeDirEntries = this.readdirSyncImpl(homeDir);
 
       for (const entry of homeDirEntries) {
         const fullPath = path.join(homeDir, entry);
-        if (!fs.statSync(fullPath).isDirectory()) continue;
+        if (!this.statSyncImpl(fullPath).isDirectory()) {
+          continue;
+        }
 
         if (entry.startsWith('OneDrive - ')) {
-          // "OneDrive - CompanyName" pattern = Business account
-          accounts.push({
-            name: entry.replace('OneDrive - ', ''),
-            path: fullPath,
-            isBusiness: true,
-          });
+          accounts.push(this.createAccount(fullPath, {
+            accountKey: entry.replace('OneDrive - ', ''),
+            accountName: entry.replace('OneDrive - ', ''),
+            accountType: 'business',
+          }));
         } else if (entry === 'OneDrive') {
-          // Plain "OneDrive" = personal account
-          accounts.push({
-            name: 'Personal',
-            path: fullPath,
-            isBusiness: false,
-          });
+          accounts.push(this.createAccount(fullPath, {
+            accountKey: 'Personal',
+            accountName: 'Personal',
+            accountType: 'personal',
+          }));
         }
       }
     } catch {
-      // Failed to scan directories
+      return [];
     }
 
     return accounts;
+  }
+
+  private createAccount(folderPath: string, overrides: Partial<OneDriveSelection> = {}): OneDriveAccount {
+    const account = createOneDriveSelection(folderPath, overrides);
+
+    return {
+      ...account,
+      isBusiness: account.accountType === 'business',
+    };
   }
 }

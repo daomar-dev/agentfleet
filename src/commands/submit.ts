@@ -4,6 +4,7 @@ import * as os from 'os';
 import * as crypto from 'crypto';
 import { TaskFile } from '../types';
 import { SetupService } from '../services/setup';
+import { bootstrap } from '../services/bootstrap';
 
 interface SubmitOptions {
   prompt: string;
@@ -14,12 +15,10 @@ interface SubmitOptions {
 
 export async function submitCommand(options: SubmitOptions): Promise<void> {
   const setup = new SetupService();
-  const tasksDir = setup.getTasksDir();
 
-  if (!fs.existsSync(tasksDir)) {
-    console.error('❌ Lattix is not initialized. Run "lattix init" first.');
-    process.exit(1);
-  }
+  await bootstrap({ setup });
+
+  const tasksDir = setup.getTasksDir();
 
   // Generate unique task ID
   const timestamp = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 14);

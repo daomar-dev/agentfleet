@@ -1,9 +1,12 @@
-## Purpose
-Define how the system detects and validates supported OneDrive sync folders required for shared task exchange.
+## RENAMED Requirements
 
-## Requirements
+### Requirement: Detect OneDrive for Business sync folder
+FROM: Detect OneDrive for Business sync folder
+TO: Detect supported OneDrive sync folders
 
-### Requirement: Detect supported OneDrive sync folders
+## MODIFIED Requirements
+
+### Requirement: Detect OneDrive for Business sync folder
 The system SHALL automatically detect usable OneDrive sync folders on the local machine by scanning common locations and registry entries. Detection MUST include both OneDrive for Business folders (for example `C:\Users\<user>\OneDrive - <OrgName>`) and personal OneDrive folders (for example `C:\Users\<user>\OneDrive`).
 
 #### Scenario: Exactly one supported OneDrive account is available

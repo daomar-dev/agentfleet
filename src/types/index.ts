@@ -21,8 +21,24 @@ export interface ResultFile {
   error?: string;
 }
 
+export type SyncProvider = 'onedrive';
+
+export type OneDriveAccountType = 'personal' | 'business';
+
+export interface OneDriveSelection {
+  provider: SyncProvider;
+  accountKey: string;
+  accountName: string;
+  accountType: OneDriveAccountType;
+  path: string;
+}
+
 export interface LattixConfig {
+  provider: SyncProvider;
   onedrivePath: string;
+  onedriveAccountKey: string;
+  onedriveAccountName: string;
+  onedriveAccountType: OneDriveAccountType;
   hostname: string;
   defaultAgent: string;
   defaultAgentCommand: string;
@@ -36,7 +52,10 @@ export interface ProcessedTasks {
   processedIds: string[];
 }
 
-export const DEFAULT_CONFIG: Omit<LattixConfig, 'onedrivePath' | 'hostname'> = {
+export const DEFAULT_CONFIG: Omit<
+  LattixConfig,
+  'provider' | 'onedrivePath' | 'onedriveAccountKey' | 'onedriveAccountName' | 'onedriveAccountType' | 'hostname'
+> = {
   defaultAgent: 'claude-code',
   defaultAgentCommand: 'claude -p {prompt}',
   pollIntervalSeconds: 10,
