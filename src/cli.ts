@@ -20,7 +20,7 @@ program
   .description('Start Lattix: auto-initialize if needed, then watch for tasks')
   .option('--poll-interval <seconds>', 'Polling interval in seconds', '10')
   .option('--concurrency <number>', 'Maximum concurrent agent processes', '1')
-  .option('--daemon', 'Run as a background daemon process')
+  .option('-d, --daemon', 'Run as a background daemon process')
   .option('--log-file <path>', 'Log file path (used with --daemon)')
   .option('--_daemon-child', 'Internal flag: this process is the daemon child')
   .action(runCommand);
