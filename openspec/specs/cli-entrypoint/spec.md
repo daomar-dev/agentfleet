@@ -7,38 +7,8 @@ Define the supported Lattix CLI entrypoint, commands, and user-facing invocation
 The system SHALL provide a CLI entrypoint that can be invoked via `npx lattix <command>`. The package.json MUST define a `bin` field mapping `lattix` to the compiled CLI script.
 
 #### Scenario: Running via npx
-- **WHEN** a user runs `npx lattix watch`
-- **THEN** the system SHALL start the task watcher after performing OneDrive detection and symlink setup
-
-### Requirement: Watch command
-The system SHALL provide a `watch` command that starts the task watcher in the foreground. This is the primary operating mode of Lattix.
-
-#### Scenario: Starting watch mode
-- **WHEN** the user runs `lattix watch`
-- **THEN** the system SHALL perform OneDrive detection, validate/create symlinks, scan for pending tasks, and begin watching for new tasks. The process SHALL log its status to stdout.
-
-#### Scenario: Watch mode with custom polling interval
-- **WHEN** the user runs `lattix watch --poll-interval 30`
-- **THEN** the system SHALL use a 30-second polling interval instead of the default 10 seconds
-
-#### Scenario: Watch mode with custom concurrency
-- **WHEN** the user runs `lattix watch --concurrency 3`
-- **THEN** the system SHALL allow up to 3 agent processes to run simultaneously
-
-### Requirement: Init command
-The system SHALL provide an `init` command that performs provider-aware initial setup without starting the watcher. The command SHALL accept `--provider <name>`, default to `onedrive`, detect or load the selected sync target for that provider, create or recreate symlinks as needed, generate `config.json`, and report the setup status.
-
-#### Scenario: Running init with the default provider
-- **WHEN** the user runs `lattix init`
-- **THEN** the system SHALL execute the `onedrive` provider flow, select a sync target according to the configured account-selection rules, create or validate symlinks, generate or update `config.json`, and report the setup status without starting the watcher
-
-#### Scenario: Running init when multiple OneDrive accounts are available
-- **WHEN** the user runs `lattix init --provider onedrive` and more than one usable OneDrive account is detected
-- **THEN** the system SHALL prompt the user to choose the account to use before setup continues
-
-#### Scenario: Re-running init for a different provider or OneDrive account
-- **WHEN** the user reruns `lattix init` and the chosen provider or selected sync target differs from the saved configuration
-- **THEN** the system SHALL warn that the existing Lattix symlinks will be deleted and recreated, require confirmation, and only then continue setup
+- **WHEN** a user runs `npx lattix run`
+- **THEN** the system SHALL auto-initialize if needed and start the task watcher
 
 ### Requirement: Submit command
 The system SHALL provide a `submit` command that creates a new task file in the tasks directory.
@@ -56,7 +26,7 @@ The system SHALL provide a `submit` command that creates a new task file in the 
 - **THEN** the system SHALL store the agent command template in the task file's `command` field, where `{prompt}` indicates the position for prompt insertion
 
 ### Requirement: Status command
-The system SHALL provide a `status` command that displays the current state of all known tasks.
+The system SHALL provide a `status` command that displays the current state of all known tasks. It SHALL also display the running Lattix process information (PID, mode, log file) before listing tasks.
 
 #### Scenario: Listing all tasks
 - **WHEN** the user runs `lattix status`
@@ -65,6 +35,17 @@ The system SHALL provide a `status` command that displays the current state of a
 #### Scenario: Checking a specific task
 - **WHEN** the user runs `lattix status <task-id>`
 - **THEN** the system SHALL display detailed information about the task including execution results from all machines and output files in the output directory
+
+#### Scenario: Status output includes process info
+- **WHEN** the user runs `lattix status`
+- **THEN** the system SHALL show whether Lattix is running, its PID, run mode, and log file location (if daemon)
+
+### Requirement: Stop command
+The system SHALL provide a `stop` command that terminates the running Lattix instance.
+
+#### Scenario: Stopping Lattix
+- **WHEN** the user runs `lattix stop`
+- **THEN** the system SHALL terminate the running Lattix process and clean up the PID file
 
 ### Requirement: Version and help
 The system SHALL provide `--version` and `--help` flags following standard CLI conventions.
@@ -75,4 +56,4 @@ The system SHALL provide `--version` and `--help` flags following standard CLI c
 
 #### Scenario: Showing help
 - **WHEN** the user runs `lattix --help`
-- **THEN** the system SHALL display usage information listing all available commands and their options
+- **THEN** the system SHALL display usage information listing all available commands (`run`, `submit`, `status`, `stop`) and their options
