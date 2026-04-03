@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define how the system detects and validates the OneDrive for Business sync folder required for shared task exchange.
+
+## Requirements
 
 ### Requirement: Detect OneDrive for Business sync folder
 The system SHALL automatically detect the OneDrive for Business sync folder on the local machine by scanning common locations and registry entries. The detection MUST identify the organization-specific folder (e.g., `C:\Users\<user>\OneDrive - <OrgName>`).

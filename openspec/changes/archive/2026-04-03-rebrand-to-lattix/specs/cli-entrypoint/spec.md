@@ -1,7 +1,4 @@
-## Purpose
-Define the supported Lattix CLI entrypoint, commands, and user-facing invocation behavior.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: npx-compatible CLI entrypoint
 The system SHALL provide a CLI entrypoint that can be invoked via `npx lattix <command>`. The package.json MUST define a `bin` field mapping `lattix` to the compiled CLI script.

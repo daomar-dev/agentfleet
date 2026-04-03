@@ -1,20 +1,22 @@
 {
-  "name": "agentbroker",
-  "version": "1.0.8",
-  "description": "Multi-machine coding agent orchestrator using OneDrive for Business sync",
+  "name": "lattix",
+  "version": "1.0.10",
+  "description": "Distributed agent orchestration, without a control plane.",
   "main": "dist/cli.js",
   "bin": {
-    "agentbroker": "dist/cli.js"
+    "lattix": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "node dist/cli.js",
     "dev": "tsc --watch",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "npm run build && node --test"
   },
   "keywords": [
     "agent",
-    "broker",
+    "orchestration",
+    "distributed",
+    "decentralized",
     "onedrive",
     "multi-machine",
     "coding-agent"
@@ -23,14 +25,16 @@
   "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/chenxizhang/agentbroker"
+    "url": "git+https://github.com/chenxizhang/lattix.git"
   },
+  "homepage": "https://github.com/chenxizhang/lattix#readme",
   "type": "commonjs",
   "engines": {
     "node": ">=18.0.0"
   },
   "files": [
     "dist/**/*",
+    "assets/**/*",
     "README.md"
   ],
   "dependencies": {

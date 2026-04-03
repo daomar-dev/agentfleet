@@ -9,7 +9,7 @@ export async function statusCommand(taskId?: string): Promise<void> {
   const outputDir = setup.getOutputDir();
 
   if (!fs.existsSync(tasksDir)) {
-    console.error('❌ AgentBroker is not initialized. Run "agentbroker init" first.');
+    console.error('❌ Lattix is not initialized. Run "lattix init" first.');
     process.exit(1);
   }
 

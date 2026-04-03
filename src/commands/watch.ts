@@ -3,7 +3,7 @@ import { SetupService } from '../services/setup';
 import { TaskWatcher } from '../services/task-watcher';
 import { AgentExecutor } from '../services/agent-executor';
 import { ResultWriter } from '../services/result-writer';
-import { AgentBrokerConfig } from '../types';
+import { LattixConfig } from '../types';
 
 interface WatchOptions {
   pollInterval: string;
@@ -11,7 +11,7 @@ interface WatchOptions {
 }
 
 export async function watchCommand(options: WatchOptions): Promise<void> {
-  console.log('🤖 AgentBroker - Starting watch mode\n');
+  console.log('🕸️ Lattix - Starting watch mode\n');
 
   // 1. Detect OneDrive
   const detector = new OneDriveDetector();
@@ -25,7 +25,7 @@ export async function watchCommand(options: WatchOptions): Promise<void> {
 
   // 2. Setup symlinks and config
   const setup = new SetupService();
-  let config: AgentBrokerConfig;
+  let config: LattixConfig;
   try {
     config = setup.setup(onedrivePath);
   } catch (err) {
@@ -61,7 +61,7 @@ export async function watchCommand(options: WatchOptions): Promise<void> {
   // 5. Start watching
   await watcher.start();
 
-  console.log(`\n🟢 AgentBroker is running on ${config.hostname}`);
+  console.log(`\n🟢 Lattix is running on ${config.hostname}`);
   console.log(`   Concurrency: ${config.maxConcurrency}`);
   console.log(`   Poll interval: ${config.pollIntervalSeconds}s`);
   console.log(`   Press Ctrl+C to stop\n`);

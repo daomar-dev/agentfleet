@@ -21,7 +21,7 @@ export interface ResultFile {
   error?: string;
 }
 
-export interface AgentBrokerConfig {
+export interface LattixConfig {
   onedrivePath: string;
   hostname: string;
   defaultAgent: string;
@@ -36,7 +36,7 @@ export interface ProcessedTasks {
   processedIds: string[];
 }
 
-export const DEFAULT_CONFIG: Omit<AgentBrokerConfig, 'onedrivePath' | 'hostname'> = {
+export const DEFAULT_CONFIG: Omit<LattixConfig, 'onedrivePath' | 'hostname'> = {
   defaultAgent: 'claude-code',
   defaultAgentCommand: 'claude -p {prompt}',
   pollIntervalSeconds: 10,

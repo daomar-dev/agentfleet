@@ -1,102 +1,109 @@
-# AgentBroker
+<p align="center">
+  <img src="assets/icon.svg" alt="Lattix icon" width="160" />
+</p>
 
-Multi-machine coding agent orchestrator using OneDrive for Business sync.
+# Lattix
+
+> Distributed agent orchestration, without a control plane.
+
+Lattix is a decentralized, multi-machine coding agent fabric built on top of OneDrive sync. Any enrolled machine can dispatch work. Every machine can execute it. There is no central scheduler, broker, or control plane to keep alive.
 
 ## Overview
 
-AgentBroker enables you to fan out coding tasks across all your corporate machines simultaneously. Submit a task on any machine, and every machine running AgentBroker will pick it up and execute it using a coding agent CLI.
+Lattix lets you fan out coding tasks across all of your machines simultaneously. Submit a task from any machine, and every machine running Lattix will see the same task, execute it locally with its installed coding agent, and write back machine-scoped results.
 
 **How it works:**
-1. All your machines sync via **OneDrive for Business**
-2. AgentBroker watches a shared `tasks/` folder for new task files
-3. When a task appears, every machine independently executes it using a coding agent
-4. Results are written to a shared `output/` folder with machine-name prefixes to avoid collisions
+1. Your machines share a synced OneDrive workspace.
+2. Lattix exposes stable local paths under `~/.lattix/`.
+3. Any machine can create a task in the shared `tasks/` directory.
+4. Every machine running `lattix watch` picks up that task independently.
+5. Results land in a shared `output/` directory with hostname-prefixed files to avoid collisions.
 
-No servers, no databases, no infrastructure — just OneDrive sync.
+No servers, no databases, no control plane — just distributed coordination through sync.
 
 ## Prerequisites
 
 - **Windows** with PowerShell
 - **Node.js** >= 18
-- **OneDrive for Business** installed and syncing
-- A coding agent CLI (e.g., GitHub Copilot CLI, Claude Code)
+- **OneDrive** installed and syncing
+- A coding agent CLI (for example GitHub Copilot CLI or Claude Code)
 
 ## Installation
 
 ```bash
-npx agentbroker init
+npx lattix init
 ```
 
 Or install globally:
 
 ```bash
-npm install -g agentbroker
-agentbroker init
+npm install -g lattix
+lattix init
 ```
 
 ## Usage
 
 ### Initialize
 
-Detect OneDrive, create symlinks, and generate config:
+Detect OneDrive, create symlinks, and generate local config:
 
 ```bash
-agentbroker init
+lattix init
 ```
 
-This creates `~/.agentbroker/` with symlinks to your OneDrive for Business folder.
+This creates `~/.lattix/` and points its `tasks/` and `output/` directories at your synced OneDrive workspace under `Lattix/`.
 
 ### Watch for Tasks
 
-Start listening for tasks on this machine:
+Start listening for distributed tasks on this machine:
 
 ```bash
-agentbroker watch
+lattix watch
 ```
 
 Options:
-- `--poll-interval <seconds>` — Polling interval (default: 10)
-- `--concurrency <number>` — Max concurrent agents (default: 1)
+- `--poll-interval <seconds>` — Polling interval (default: `10`)
+- `--concurrency <number>` — Maximum concurrent agent processes (default: `1`)
 
 ### Submit a Task
 
-Create a task that all machines will execute:
+Create a task that every enrolled machine will execute:
 
 ```bash
-agentbroker submit --prompt "Add error handling to all API endpoints" --title "Error handling" --working-dir "C:\work\myproject"
+lattix submit --prompt "Add error handling to all API endpoints" --title "Error handling" --working-dir "C:\work\myproject"
 ```
 
 Options:
 - `--prompt <text>` — The instruction for the coding agent (required)
-- `--title <text>` — Short title for the task
-- `--working-dir <path>` — Working directory for the agent (default: current dir)
-- `--agent <command>` — Override the default agent command
+- `--title <text>` — Short task title
+- `--working-dir <path>` — Working directory for the agent (default: current directory)
+- `--agent <command>` — Override the default agent command template
 
 ### Check Status
 
-List all tasks and their results:
+List all tasks and their machine results:
 
 ```bash
-agentbroker status
+lattix status
 ```
 
 View details for a specific task:
 
 ```bash
-agentbroker status task-20260402120000-abc123
+lattix status task-20260402120000-abc123
 ```
 
 ## Architecture
 
-```
-~/.agentbroker/
+```text
+~/.lattix/
 ├── config.json          # Local machine config (not synced)
-├── processed.json       # IDs of tasks already executed (not synced)
-├── tasks/ → OneDrive    # Symlink to OneDrive for Business
-│   ├── task-001.json    #   Task files (synced across machines)
+├── processed.json       # IDs of tasks already executed on this machine
+├── tasks/ → OneDrive    # Symlink to <OneDrive>\Lattix\tasks
+│   ├── task-001.json
 │   └── task-002.json
-└── output/ → OneDrive   # Symlink to OneDrive for Business
-    ├── task-001/        #   Results grouped by task
+└── output/ → OneDrive   # Symlink to <OneDrive>\Lattix\output
+    ├── task-001/
     │   ├── DESKTOP-A-result.json
     │   ├── DESKTOP-A-stdout.log
     │   ├── LAPTOP-B-result.json
@@ -118,7 +125,40 @@ agentbroker status task-20260402120000-abc123
 }
 ```
 
-Task files are **immutable** — once written, they are never modified. Each broker uses a local `processed.json` to track which tasks it has already executed.
+Task files are immutable once written. Each machine keeps its own local `processed.json` record so restarts do not cause duplicate execution.
+
+## Migration from AgentBroker
+
+Lattix is the direct rename of AgentBroker.
+
+- The npm package name changes from `agentbroker` to `lattix`.
+- The CLI command changes from `agentbroker` to `lattix`.
+- The local workspace moves from `~/.agentbroker` to `~/.lattix`.
+- The synced OneDrive workspace moves from `<OneDrive>\AgentBroker` to `<OneDrive>\Lattix`.
+
+Running `lattix init` will migrate the legacy local and OneDrive directories automatically when it is safe to do so. If both old and new paths already exist with real content, Lattix will stop and ask you to merge them manually before continuing.
+
+If you rename the GitHub repository from `agentbroker` to `lattix`, existing clones should update their remote URL:
+
+```bash
+git remote set-url origin https://github.com/chenxizhang/lattix.git
+```
+
+## Development
+
+Build the CLI:
+
+```bash
+npm run build
+```
+
+Run the automated test suite:
+
+```bash
+npm test
+```
+
+The current tests cover the highest-risk rebrand behaviors, including legacy workspace migration, Lattix path setup, CLI branding, and result artifact writing.
 
 ## License
 

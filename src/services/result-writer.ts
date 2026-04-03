@@ -15,7 +15,7 @@ export class ResultWriter {
 
   /**
    * Write execution results to the output directory.
-   * Creates output/<task-id>/<HOSTNAME>-result.json, <HOSTNAME>-stdout.log, <HOSTNAME>-stderr.log
+   * Creates output/<task-id>/<HOSTNAME>-result.json, <HOSTNAME>-stdout.log, and <HOSTNAME>-stderr.log.
    */
   write(result: ExecutionResult): string {
     const taskOutputDir = path.join(this.outputDir, result.taskId);

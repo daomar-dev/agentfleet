@@ -1,4 +1,7 @@
-## ADDED Requirements
+## Purpose
+Define how Lattix executes agent commands for tasks, captures process output, and enforces runtime limits.
+
+## Requirements
 
 ### Requirement: Spawn coding agent CLI process
 The system SHALL spawn an independent child process for each detected task, executing the configured coding agent CLI command with the task's prompt. The agent process MUST run in the specified working directory.

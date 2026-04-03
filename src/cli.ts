@@ -11,8 +11,8 @@ const packageJson = require('../package.json');
 const program = new Command();
 
 program
-  .name('agentbroker')
-  .description('Multi-machine coding agent orchestrator using OneDrive for Business sync')
+  .name('lattix')
+  .description('Distributed agent orchestration, without a control plane.')
   .version(packageJson.version);
 
 program
@@ -24,7 +24,7 @@ program
 
 program
   .command('init')
-  .description('Initialize agentbroker: detect OneDrive, create symlinks, generate config')
+  .description('Initialize Lattix: detect OneDrive, create symlinks, generate config')
   .action(initCommand);
 
 program

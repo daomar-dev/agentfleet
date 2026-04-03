@@ -17,7 +17,7 @@ export async function submitCommand(options: SubmitOptions): Promise<void> {
   const tasksDir = setup.getTasksDir();
 
   if (!fs.existsSync(tasksDir)) {
-    console.error('❌ AgentBroker is not initialized. Run "agentbroker init" first.');
+    console.error('❌ Lattix is not initialized. Run "lattix init" first.');
     process.exit(1);
   }
 

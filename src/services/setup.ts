@@ -1,50 +1,56 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { AgentBrokerConfig, DEFAULT_CONFIG } from '../types';
+import { LattixConfig, DEFAULT_CONFIG } from '../types';
 
-const AGENTBROKER_DIR = '.agentbroker';
-const ONEDRIVE_SUBDIR = 'AgentBroker';
+const LATTIX_DIR = '.lattix';
+const LEGACY_AGENTBROKER_DIR = '.agentbroker';
+const ONEDRIVE_SUBDIR = 'Lattix';
+const LEGACY_ONEDRIVE_SUBDIR = 'AgentBroker';
 const SYMLINK_TARGETS = ['tasks', 'output'] as const;
 
 export class SetupService {
   private readonly homeDir: string;
-  private readonly brokerDir: string;
+  private readonly lattixDir: string;
+  private readonly legacyDir: string;
 
-  constructor() {
-    this.homeDir = os.homedir();
-    this.brokerDir = path.join(this.homeDir, AGENTBROKER_DIR);
+  constructor(homeDir: string = os.homedir()) {
+    this.homeDir = homeDir;
+    this.lattixDir = path.join(this.homeDir, LATTIX_DIR);
+    this.legacyDir = path.join(this.homeDir, LEGACY_AGENTBROKER_DIR);
   }
 
-  getBrokerDir(): string {
-    return this.brokerDir;
+  getLattixDir(): string {
+    return this.lattixDir;
   }
 
   getTasksDir(): string {
-    return path.join(this.brokerDir, 'tasks');
+    return path.join(this.lattixDir, 'tasks');
   }
 
   getOutputDir(): string {
-    return path.join(this.brokerDir, 'output');
+    return path.join(this.lattixDir, 'output');
   }
 
   getConfigPath(): string {
-    return path.join(this.brokerDir, 'config.json');
+    return path.join(this.lattixDir, 'config.json');
   }
 
   getProcessedPath(): string {
-    return path.join(this.brokerDir, 'processed.json');
+    return path.join(this.lattixDir, 'processed.json');
   }
 
   /**
    * Run full setup: create directories, symlinks, and config.
    * Returns the loaded or created config.
    */
-  setup(onedrivePath: string): AgentBrokerConfig {
-    // 1. Create ~/.agentbroker if it doesn't exist
-    if (!fs.existsSync(this.brokerDir)) {
-      fs.mkdirSync(this.brokerDir, { recursive: true });
-      console.log(`✓ Created ${this.brokerDir}`);
+  setup(onedrivePath: string): LattixConfig {
+    this.migrateLegacyPaths(onedrivePath);
+
+    // 1. Create ~/.lattix if it doesn't exist
+    if (!fs.existsSync(this.lattixDir)) {
+      fs.mkdirSync(this.lattixDir, { recursive: true });
+      console.log(`✓ Created ${this.lattixDir}`);
     }
 
     // 2. Create OneDrive subdirectories
@@ -59,7 +65,7 @@ export class SetupService {
 
     // 3. Create or validate symlinks
     for (const subdir of SYMLINK_TARGETS) {
-      const linkPath = path.join(this.brokerDir, subdir);
+      const linkPath = path.join(this.lattixDir, subdir);
       const targetPath = path.join(onedriveBase, subdir);
       this.ensureSymlink(linkPath, targetPath);
     }
@@ -75,8 +81,52 @@ export class SetupService {
     return config;
   }
 
+  private migrateLegacyPaths(onedrivePath: string): void {
+    this.migrateDirectory(
+      this.legacyDir,
+      this.lattixDir,
+      'local Lattix workspace'
+    );
+
+    this.migrateDirectory(
+      path.join(onedrivePath, LEGACY_ONEDRIVE_SUBDIR),
+      path.join(onedrivePath, ONEDRIVE_SUBDIR),
+      'OneDrive Lattix workspace'
+    );
+  }
+
+  private migrateDirectory(legacyPath: string, lattixPath: string, label: string): void {
+    if (!fs.existsSync(legacyPath)) {
+      return;
+    }
+
+    if (!fs.existsSync(lattixPath)) {
+      fs.renameSync(legacyPath, lattixPath);
+      console.log(`⟳ Migrated ${label}: ${legacyPath} → ${lattixPath}`);
+      return;
+    }
+
+    if (this.isDirectoryEmpty(lattixPath)) {
+      fs.rmSync(lattixPath, { recursive: true, force: true });
+      fs.renameSync(legacyPath, lattixPath);
+      console.log(`⟳ Reused legacy ${label}: ${legacyPath} → ${lattixPath}`);
+      return;
+    }
+
+    throw new Error(
+      `Found both legacy and current ${label} directories.\n` +
+      `Legacy: ${legacyPath}\n` +
+      `Current: ${lattixPath}\n` +
+      'Please merge or remove one of them manually, then run "lattix init" again.'
+    );
+  }
+
+  private isDirectoryEmpty(dirPath: string): boolean {
+    return fs.readdirSync(dirPath).length === 0;
+  }
+
   private ensureSymlink(linkPath: string, targetPath: string): void {
-    if (fs.existsSync(linkPath)) {
+    if (this.pathEntryExists(linkPath)) {
       // Check if it's a symlink/junction pointing to the right place
       try {
         const stats = fs.lstatSync(linkPath);
@@ -88,7 +138,7 @@ export class SetupService {
           }
           // Stale symlink — remove and recreate
           console.log(`⟳ Symlink stale, recreating: ${linkPath}`);
-          fs.unlinkSync(linkPath);
+          this.removePathEntry(linkPath);
         } else {
           // It's a real directory, not a symlink — skip
           console.warn(`⚠ ${linkPath} exists as a regular directory, not a symlink. Skipping.`);
@@ -96,7 +146,11 @@ export class SetupService {
         }
       } catch {
         // If we can't read the symlink, remove and recreate
-        try { fs.unlinkSync(linkPath); } catch { /* ignore */ }
+        try {
+          this.removePathEntry(linkPath);
+        } catch {
+          /* ignore */
+        }
       }
     }
 
@@ -120,12 +174,25 @@ export class SetupService {
     }
   }
 
-  private ensureConfig(onedrivePath: string): AgentBrokerConfig {
+  private pathEntryExists(targetPath: string): boolean {
+    try {
+      fs.lstatSync(targetPath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private removePathEntry(targetPath: string): void {
+    fs.rmSync(targetPath, { recursive: true, force: true });
+  }
+
+  private ensureConfig(onedrivePath: string): LattixConfig {
     const configPath = this.getConfigPath();
 
     if (fs.existsSync(configPath)) {
       try {
-        const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as AgentBrokerConfig;
+        const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as LattixConfig;
         // Update hostname in case machine name changed
         existing.hostname = os.hostname();
         if (existing.onedrivePath !== onedrivePath) {
@@ -140,7 +207,7 @@ export class SetupService {
       }
     }
 
-    const config: AgentBrokerConfig = {
+    const config: LattixConfig = {
       onedrivePath,
       hostname: os.hostname(),
       ...DEFAULT_CONFIG,

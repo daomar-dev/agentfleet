@@ -1,10 +1,13 @@
-## ADDED Requirements
+## Purpose
+Define how Lattix discovers, validates, deduplicates, and continuously watches shared task files.
+
+## Requirements
 
 ### Requirement: Watch tasks directory for new task files
-The system SHALL continuously watch the `~/.agentbroker/tasks` directory for new `.json` files using a file system watcher. The watcher MUST detect newly created files and trigger task processing.
+The system SHALL continuously watch the `~/.lattix/tasks` directory for new `.json` files using a file system watcher. The watcher MUST detect newly created files and trigger task processing.
 
 #### Scenario: New task file appears
-- **WHEN** a new `.json` file is created in the `~/.agentbroker/tasks` directory
+- **WHEN** a new `.json` file is created in the `~/.lattix/tasks` directory
 - **THEN** the system SHALL read the file, validate it as a valid task descriptor, and initiate task processing within 2 seconds of file detection
 
 #### Scenario: Non-JSON file appears in tasks directory
@@ -27,7 +30,7 @@ The system SHALL validate that each task file contains at minimum the following 
 - **THEN** the system SHALL reject the task and log the missing fields
 
 ### Requirement: Local deduplication via processed record
-The system SHALL maintain a local (non-synced) file at `~/.agentbroker/processed.json` that records the IDs of all tasks this machine has already executed. This prevents re-execution on restart without requiring any modification to the shared task file.
+The system SHALL maintain a local (non-synced) file at `~/.lattix/processed.json` that records the IDs of all tasks this machine has already executed. This prevents re-execution on restart without requiring any modification to the shared task file.
 
 #### Scenario: New task not yet processed
 - **WHEN** a task file is detected and its `id` is NOT in `processed.json`
