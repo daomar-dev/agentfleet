@@ -10,4 +10,7 @@ test('CLI help shows the Lattix brand and slogan', () => {
   assert.match(output, /Usage: lattix/);
   assert.match(output, /Distributed agent orchestration, without a control plane\./);
   assert.match(output, /Start Lattix: auto-initialize if needed, then watch for\s+tasks/);
+  assert.ok(output.includes('install'), 'help should list the install command');
+  assert.ok(output.includes('uninstall'), 'help should list the uninstall command');
+  assert.ok(output.includes('stop'), 'help should list the stop command');
 });
