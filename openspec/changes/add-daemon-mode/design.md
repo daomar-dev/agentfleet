@@ -16,7 +16,7 @@ The codebase uses `console.log` / `console.error` throughout all services (`task
 **Non-Goals:**
 - Windows Service or systemd unit management.
 - Log rotation or log-level filtering.
-- A dedicated `lattix stop` / `lattix restart` command (future work).
+- A dedicated `lattix restart` command (future work).
 - Changing the default foreground behavior of `lattix run`.
 
 ## Decisions

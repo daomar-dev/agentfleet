@@ -153,7 +153,7 @@ export class DaemonService {
         continue;
       }
       const arg = originalArgs[i];
-      if (arg === '--daemon') continue;
+      if (arg === '--daemon' || arg === '-d') continue;
       if (arg === '--log-file') {
         skipNext = true; // skip the value too
         continue;

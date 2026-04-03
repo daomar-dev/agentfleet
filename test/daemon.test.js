@@ -171,3 +171,21 @@ test('DaemonService getPidPath and getDefaultLogPath', () => {
   assert.ok(svc.getDefaultLogPath().includes('.lattix'));
   assert.ok(svc.getDefaultLogPath().includes('lattix.log'));
 });
+
+test('DaemonService buildChildArgs removes -d shorthand', () => {
+  const { DaemonService } = require('../dist/services/daemon.js');
+  const tmpDir = makeTempDir();
+  const svc = new DaemonService({ homedir: tmpDir });
+
+  const result = svc.buildChildArgs(
+    ['dist/cli.js', 'run', '-d', '--poll-interval', '30'],
+    '/tmp/lattix.log'
+  );
+
+  assert.ok(!result.includes('-d'), 'should not contain -d');
+  assert.ok(!result.includes('--daemon'), 'should not contain --daemon');
+  assert.ok(result.includes('--_daemon-child'), 'should contain --_daemon-child');
+  assert.ok(result.includes('--poll-interval'), 'should preserve other args');
+
+  fs.rmSync(tmpDir, { recursive: true, force: true });
+});
