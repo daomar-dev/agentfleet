@@ -13,7 +13,7 @@ interface RunOptions {
   concurrency: string;
   daemon?: boolean;
   logFile?: string;
-  DaemonChild?: boolean;
+  _daemonChild?: boolean;
 }
 
 interface RunDependencies {
@@ -40,7 +40,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
   const serviceManager = dependencies.serviceManager ?? new WindowsServiceManager();
 
   // Skip service check when running as daemon child (service uses --_daemon-child)
-  if (!options.DaemonChild) {
+  if (!options._daemonChild) {
     const serviceState = serviceManager.queryServiceState();
     if (serviceState === 'running') {
       console.log('ℹ️ Lattix is installed and running as a Windows Service.');
@@ -79,7 +79,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
   }
 
   // Daemon child mode: set up logging
-  const isDaemonChild = options.DaemonChild ?? false;
+  const isDaemonChild = options._daemonChild ?? false;
   let logger: Logger | undefined;
 
   if (isDaemonChild) {
