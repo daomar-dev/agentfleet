@@ -3,6 +3,7 @@ import { TaskWatcher } from '../services/task-watcher';
 import { AgentExecutor } from '../services/agent-executor';
 import { ResultWriter } from '../services/result-writer';
 import { DaemonService } from '../services/daemon';
+import { WindowsServiceManager } from '../services/windows-service';
 import { Logger } from '../services/logger';
 import { LattixConfig } from '../types';
 import { bootstrap } from '../services/bootstrap';
@@ -28,6 +29,7 @@ interface RunDependencies {
   registerSignal?: (signal: NodeJS.Signals, handler: () => void) => void;
   exit?: (code: number) => never;
   daemonService?: DaemonService;
+  serviceManager?: WindowsServiceManager;
   logger?: Logger;
   processArgv?: string[];
 }
@@ -35,6 +37,27 @@ interface RunDependencies {
 export async function runCommand(options: RunOptions, dependencies: RunDependencies = {}): Promise<void> {
   const exit = dependencies.exit ?? ((code: number) => process.exit(code));
   const daemonService = dependencies.daemonService ?? new DaemonService();
+  const serviceManager = dependencies.serviceManager ?? new WindowsServiceManager();
+
+  // Check Windows Service state first
+  const serviceState = serviceManager.queryServiceState();
+  if (serviceState === 'running') {
+    console.error('❌ Lattix is already running as a Windows Service. Use `lattix stop` to stop or `lattix uninstall` to remove.');
+    exit(1);
+    return undefined as never;
+  }
+  if (serviceState === 'stopped') {
+    // Service is registered but stopped — resume it
+    if (!serviceManager.isAdmin()) {
+      console.error('❌ Administrator privileges required to start the service. Right-click your terminal and select "Run as administrator".');
+      exit(1);
+      return undefined as never;
+    }
+    serviceManager.startService();
+    console.log('🟢 Lattix service started');
+    exit(0);
+    return undefined as never;
+  }
 
   // Single-instance guard: check for an already-running Lattix process
   const existingPid = daemonService.checkExistingDaemon();

@@ -61,6 +61,11 @@ function createMockDeps(overrides = {}) {
       getPidPath() { return 'C:\\temp\\lattix.pid'; },
       getDefaultLogPath() { return 'C:\\temp\\lattix.log'; },
     },
+    serviceManager: overrides.serviceManager || {
+      queryServiceState() { return 'not-installed'; },
+      isAdmin() { return true; },
+      startService() {},
+    },
   };
 }
 
@@ -256,4 +261,60 @@ test('run command writes PID file in foreground mode', async () => {
 
   assert.ok(pidWritten !== null, 'should have written PID file');
   assert.equal(typeof pidWritten, 'number', 'PID should be a number');
+});
+
+test('run command resumes stopped service via SCM', async () => {
+  const { runCommand } = require('../dist/commands/run.js');
+  let serviceStarted = false;
+  let exitCode = null;
+
+  const deps = createMockDeps({
+    serviceManager: {
+      queryServiceState() { return 'stopped'; },
+      isAdmin() { return true; },
+      startService() { serviceStarted = true; },
+    },
+    exit: (code) => { exitCode = code; throw new Error(`exit ${code}`); },
+  });
+
+  try { await runCommand({ pollInterval: '10', concurrency: '1' }, deps); } catch { /* expected */ }
+
+  assert.ok(serviceStarted, 'should start the service');
+  assert.equal(exitCode, 0);
+});
+
+test('run command blocked when service is already running', async () => {
+  const { runCommand } = require('../dist/commands/run.js');
+  let exitCode = null;
+
+  const deps = createMockDeps({
+    serviceManager: {
+      queryServiceState() { return 'running'; },
+      isAdmin() { return true; },
+      startService() {},
+    },
+    exit: (code) => { exitCode = code; throw new Error(`exit ${code}`); },
+  });
+
+  try { await runCommand({ pollInterval: '10', concurrency: '1' }, deps); } catch { /* expected */ }
+
+  assert.equal(exitCode, 1);
+});
+
+test('run command resume blocked without admin', async () => {
+  const { runCommand } = require('../dist/commands/run.js');
+  let exitCode = null;
+
+  const deps = createMockDeps({
+    serviceManager: {
+      queryServiceState() { return 'stopped'; },
+      isAdmin() { return false; },
+      startService() {},
+    },
+    exit: (code) => { exitCode = code; throw new Error(`exit ${code}`); },
+  });
+
+  try { await runCommand({ pollInterval: '10', concurrency: '1' }, deps); } catch { /* expected */ }
+
+  assert.equal(exitCode, 1);
 });

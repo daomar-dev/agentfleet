@@ -5,6 +5,9 @@ import { runCommand } from './commands/run';
 import { submitCommand } from './commands/submit';
 import { statusCommand } from './commands/status';
 import { stopCommand } from './commands/stop';
+import { installCommand } from './commands/install';
+import { uninstallCommand } from './commands/uninstall';
+import { VersionChecker } from './services/version-checker';
 
 const packageJson = require('../package.json');
 
@@ -14,6 +17,23 @@ program
   .name('lattix')
   .description('Distributed agent orchestration, without a control plane.')
   .version(packageJson.version);
+
+// Show version comparison in help output
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  const checker = new VersionChecker();
+  checker.checkVersion().then((info) => {
+    if (info.latest && info.updateAvailable) {
+      program.addHelpText('beforeAll', `📦 Lattix v${info.current} (latest: v${info.latest}) ⚡ Update available\n`);
+    } else if (info.latest) {
+      program.addHelpText('beforeAll', `📦 Lattix v${info.current} (latest)\n`);
+    } else {
+      program.addHelpText('beforeAll', `📦 Lattix v${info.current}\n`);
+    }
+    program.parse();
+  });
+} else {
+  program.parse();
+}
 
 program
   .command('run')
@@ -44,4 +64,16 @@ program
   .description('Stop the running Lattix instance')
   .action(stopCommand);
 
-program.parse();
+program
+  .command('install')
+  .description('Install Lattix as a Windows Service (requires Administrator)')
+  .option('--poll-interval <seconds>', 'Polling interval in seconds', '10')
+  .option('--concurrency <number>', 'Maximum concurrent agent processes', '1')
+  .action(installCommand);
+
+program
+  .command('uninstall')
+  .description('Uninstall the Lattix Windows Service (requires Administrator)')
+  .action(uninstallCommand);
+
+// parse is handled above conditionally (sync for commands, async for --help with version check)

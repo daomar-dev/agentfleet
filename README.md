@@ -73,7 +73,33 @@ To use a custom log file:
 lattix run --daemon --log-file C:\logs\lattix.log
 ```
 
-> **Note:** Only one Lattix instance is allowed at a time, whether foreground or daemon.
+> **Note:** Only one Lattix instance is allowed at a time, whether foreground, daemon, or Windows Service.
+
+#### Windows Service Mode
+
+For long-running agent workers that need to survive reboots and recover from crashes, install Lattix as a Windows Service:
+
+```bash
+npx lattix install
+```
+
+This copies the current Lattix package to `~/.lattix/app/`, registers a Windows Service named "Lattix", and starts it immediately. The service runs under the current user's account, starts automatically on boot, and recovers from crashes.
+
+Options:
+- `--poll-interval <seconds>` — Polling interval (default: `10`)
+- `--concurrency <number>` — Maximum concurrent agent processes (default: `1`)
+
+> **Note:** Administrator privileges are required. Right-click your terminal and select "Run as administrator".
+
+**Upgrade the service** by running `npx lattix install` again — this stops the service, updates the package, and restarts it.
+
+**Uninstall the service:**
+
+```bash
+npx lattix uninstall
+```
+
+This stops the service, removes the registration, and deletes `~/.lattix/app/`.
 
 ### Stop
 
@@ -83,7 +109,11 @@ Stop the running Lattix instance:
 lattix stop
 ```
 
-This sends SIGTERM to the running process and cleans up the PID file. Works for both foreground and daemon instances.
+This works for all run modes:
+- **Foreground/Daemon**: Sends SIGTERM and cleans up the PID file
+- **Windows Service**: Stops the service via SCM (the service registration is preserved and will auto-start on next boot)
+
+> **Note:** Stopping a Windows Service requires administrator privileges.
 
 Lattix checks both OneDrive for Business and personal OneDrive accounts.
 
@@ -108,11 +138,16 @@ Options:
 
 ### Check Status
 
-Show the running Lattix process info (PID, mode, log file) and list all tasks with their machine results:
+Show version info, running Lattix process info (PID, mode, log file), and list all tasks with their machine results:
 
 ```bash
 lattix status
 ```
+
+The status output shows:
+- **Version**: Current version and latest version on npm (with upgrade prompt if outdated)
+- **Process info**: PID, run mode (foreground / daemon / Windows Service), log file location
+- **Tasks**: All tasks with execution results per machine
 
 View details for a specific task:
 
@@ -126,8 +161,9 @@ lattix status task-20260402120000-abc123
 ~/.lattix/
 ├── config.json          # Local machine config (not synced)
 ├── processed.json       # IDs of tasks already executed on this machine
-├── lattix.pid           # Daemon PID file (present only when running as daemon)
-├── lattix.log           # Daemon log file (default location)
+├── lattix.pid           # PID file (present when running in any mode)
+├── lattix.log           # Log file (daemon and service modes)
+├── app/                 # Stable package copy (service mode only)
 ├── tasks/ → OneDrive    # Symlink to the selected <OneDrive>\Lattix\tasks
 │   ├── task-001.json
 │   └── task-002.json
