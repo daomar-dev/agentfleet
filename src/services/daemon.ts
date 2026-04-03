@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 
 export interface DaemonDependencies {
   homedir?: string;
@@ -114,12 +114,23 @@ export class DaemonService {
       fs.mkdirSync(logDir, { recursive: true });
     }
 
-    const logFd = fs.openSync(logPath, 'a');
-
     // Build child args: remove --daemon, add --_daemon-child, pass --log-file
     const childArgs = this.buildChildArgs(originalArgs, logPath);
-
     const execPath = this.deps.execPath ?? process.execPath;
+
+    if (os.platform() === 'win32' && !this.deps.spawnFn) {
+      // On Windows, use PowerShell Start-Process -WindowStyle Hidden to avoid console flash
+      const argsStr = childArgs.map(a => `'${a.replace(/'/g, "''")}'`).join(',');
+      const psCmd = `Start-Process -FilePath '${execPath}' -ArgumentList ${argsStr} -WindowStyle Hidden -PassThru | Select-Object -ExpandProperty Id`;
+      const pidStr = execSync(`powershell -NoProfile -Command "${psCmd}"`, {
+        encoding: 'utf-8',
+        windowsHide: true,
+      }).trim();
+      return parseInt(pidStr, 10);
+    }
+
+    // Non-Windows or test: use spawn with detached
+    const logFd = fs.openSync(logPath, 'a');
     const spawnFn = this.deps.spawnFn ?? spawn;
 
     const child = spawnFn(execPath, childArgs, {
