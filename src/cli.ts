@@ -18,23 +18,6 @@ program
   .description('Distributed agent orchestration, without a control plane.')
   .version(packageJson.version);
 
-// Show version comparison in help output
-if (process.argv.includes('--help') || process.argv.includes('-h')) {
-  const checker = new VersionChecker();
-  checker.checkVersion().then((info) => {
-    if (info.latest && info.updateAvailable) {
-      program.addHelpText('beforeAll', `📦 Lattix v${info.current} (latest: v${info.latest}) ⚡ Update available\n`);
-    } else if (info.latest) {
-      program.addHelpText('beforeAll', `📦 Lattix v${info.current} (latest)\n`);
-    } else {
-      program.addHelpText('beforeAll', `📦 Lattix v${info.current}\n`);
-    }
-    program.parse();
-  });
-} else {
-  program.parse();
-}
-
 program
   .command('run')
   .description('Start Lattix: auto-initialize if needed, then watch for tasks')
@@ -76,4 +59,19 @@ program
   .description('Uninstall the Lattix Windows Service (requires Administrator)')
   .action(uninstallCommand);
 
-// parse is handled above conditionally (sync for commands, async for --help with version check)
+// Version check in help output (async fetch before parse)
+if (process.argv.includes('--help') || process.argv.includes('-h')) {
+  const checker = new VersionChecker();
+  checker.checkVersion().then((info) => {
+    if (info.latest && info.updateAvailable) {
+      program.addHelpText('beforeAll', `📦 Lattix v${info.current} (latest: v${info.latest}) ⚡ Update available\n`);
+    } else if (info.latest) {
+      program.addHelpText('beforeAll', `📦 Lattix v${info.current} (latest)\n`);
+    } else {
+      program.addHelpText('beforeAll', `📦 Lattix v${info.current}\n`);
+    }
+    program.parse();
+  });
+} else {
+  program.parse();
+}
