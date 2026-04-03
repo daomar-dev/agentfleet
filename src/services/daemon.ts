@@ -126,6 +126,7 @@ export class DaemonService {
       detached: true,
       stdio: ['ignore', logFd, logFd],
       env: process.env,
+      windowsHide: true,
     });
 
     child.unref();

@@ -92,6 +92,7 @@ export class AgentExecutor {
           cwd: task.workingDirectory || process.cwd(),
           shell: true,
           stdio: ['ignore', 'pipe', 'pipe'],
+          windowsHide: true,
         });
       } catch (err) {
         resolve({
