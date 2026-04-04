@@ -42,11 +42,12 @@ export class ScheduledTaskManager {
 
   install(): void {
     const npxPath = this.findNpx();
-    // Wrap npx in powershell -WindowStyle Hidden to prevent console window flash
-    const psExe = 'powershell';
-    const psArgs = `-WindowStyle Hidden -NoProfile -Command "& '${npxPath}' -y lattix run -d"`;
+    // Use a .cmd wrapper approach: powershell -WindowStyle Hidden runs npx
+    // Avoid nested quote issues by using encoded command
+    const innerCmd = `& '${npxPath}' -y lattix run -d`;
+    const encodedCmd = Buffer.from(innerCmd, 'utf16le').toString('base64');
     const psCmd = [
-      `$action = New-ScheduledTaskAction -Execute '${psExe}' -Argument '${psArgs}'`,
+      `$action = New-ScheduledTaskAction -Execute 'powershell' -Argument '-WindowStyle Hidden -NoProfile -EncodedCommand ${encodedCmd}'`,
       `$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME`,
       `$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable`,
       `Register-ScheduledTask -TaskName '${TASK_NAME}' -Action $action -Trigger $trigger -Settings $settings -Description 'Lattix agent orchestration' -Force`,
