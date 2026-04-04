@@ -8,6 +8,8 @@ import { Logger } from '../services/logger';
 import { LattixConfig } from '../types';
 import { bootstrap } from '../services/bootstrap';
 
+import { ShortcutResult } from '../services/shortcut';
+
 interface RunOptions {
   pollInterval: string;
   concurrency: string;
@@ -32,6 +34,7 @@ interface RunDependencies {
   taskManager?: ScheduledTaskManager;
   logger?: Logger;
   processArgv?: string[];
+  getShortcutResult?: () => ShortcutResult | undefined;
 }
 
 export async function runCommand(options: RunOptions, dependencies: RunDependencies = {}): Promise<void> {
@@ -147,6 +150,14 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
   } else {
     console.log(`   Running as daemon (PID ${process.pid})\n`);
   }
+
+  // Show submit hint
+  const getShortcutFn = dependencies.getShortcutResult ?? (() => {
+    try { return require('../cli').getShortcutResult(); } catch { return undefined; }
+  });
+  const shortcut = getShortcutFn();
+  const cmd = shortcut?.shortcutAvailable ? 'lattix' : 'npx -y lattix';
+  console.log(`💡 To submit a task: ${cmd} submit --prompt "your instruction here"\n`);
 
   // Handle graceful shutdown
   const shutdown = async () => {

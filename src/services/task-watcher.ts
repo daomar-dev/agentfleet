@@ -14,12 +14,14 @@ export class TaskWatcher {
   private handler: TaskHandler | null = null;
   private processedIds: Set<string>;
   private inProgressIds: Set<string> = new Set();
+  private readonly startupTimestamp: number;
 
   constructor(tasksDir: string, processedPath: string, pollIntervalSeconds: number = 10) {
     this.tasksDir = tasksDir;
     this.processedPath = processedPath;
     this.pollIntervalMs = pollIntervalSeconds * 1000;
     this.processedIds = this.loadProcessed();
+    this.startupTimestamp = Date.now();
   }
 
   /**
@@ -30,16 +32,12 @@ export class TaskWatcher {
   }
 
   /**
-   * Start watching. First processes existing unprocessed tasks, then watches for new ones.
+   * Start watching. Only processes tasks that arrive after startup.
    */
   async start(): Promise<void> {
     if (!this.handler) {
       throw new Error('No task handler set. Call onTask() before start().');
     }
-
-    // Startup scan: process existing tasks not yet in processed.json
-    console.log('Scanning for unprocessed tasks...');
-    await this.scanExisting();
 
     // Start file watcher
     this.watcher = chokidar.watch(this.tasksDir, {
@@ -101,6 +99,15 @@ export class TaskWatcher {
         .map(f => path.join(this.tasksDir, f));
 
       for (const filePath of files) {
+        // Only process files modified after startup (polling fallback for missed events)
+        try {
+          const stat = fs.statSync(filePath);
+          if (stat.mtimeMs <= this.startupTimestamp) {
+            continue;
+          }
+        } catch {
+          continue;
+        }
         this.processFile(filePath);
       }
     } catch (err) {

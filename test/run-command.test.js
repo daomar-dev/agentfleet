@@ -64,6 +64,7 @@ function createMockDeps(overrides = {}) {
     taskManager: overrides.taskManager || {
       queryTaskState() { return 'not-installed'; },
     },
+    getShortcutResult: overrides.getShortcutResult || (() => undefined),
   };
 }
 
@@ -301,4 +302,45 @@ test('run command shows info when scheduled task is installed and running', asyn
   try { await runCommand({ pollInterval: '10', concurrency: '1' }, deps); } catch { /* expected */ }
 
   assert.equal(exitCode, 0, 'should exit with 0 (informational)');
+});
+
+test('run command shows submit hint with lattix when shortcut available', async () => {
+  const { runCommand } = require('../dist/commands/run.js');
+  const logs = [];
+  const origLog = console.log;
+  console.log = (...args) => logs.push(args.join(' '));
+
+  try {
+    const deps = createMockDeps({
+      getShortcutResult: () => ({ shortcutAvailable: true, action: 'skipped-global-exists' }),
+    });
+    await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
+  } finally {
+    console.log = origLog;
+  }
+
+  const hintLine = logs.find(l => l.includes('To submit a task'));
+  assert.ok(hintLine, 'should print submit hint');
+  assert.ok(hintLine.includes('lattix submit'), 'should use lattix shortcut');
+  assert.ok(!hintLine.includes('npx -y lattix submit'), 'should NOT use npx form');
+});
+
+test('run command shows submit hint with npx when no shortcut', async () => {
+  const { runCommand } = require('../dist/commands/run.js');
+  const logs = [];
+  const origLog = console.log;
+  console.log = (...args) => logs.push(args.join(' '));
+
+  try {
+    const deps = createMockDeps({
+      getShortcutResult: () => ({ shortcutAvailable: false, action: 'skipped-not-npx' }),
+    });
+    await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
+  } finally {
+    console.log = origLog;
+  }
+
+  const hintLine = logs.find(l => l.includes('To submit a task'));
+  assert.ok(hintLine, 'should print submit hint');
+  assert.ok(hintLine.includes('npx -y lattix submit'), 'should use npx form');
 });

@@ -9,9 +9,25 @@ import { installCommand } from './commands/install';
 import { uninstallCommand } from './commands/uninstall';
 import { VersionChecker } from './services/version-checker';
 
+import { ShortcutService, ShortcutResult } from './services/shortcut';
+
 const packageJson = require('../package.json');
 
 const program = new Command();
+
+// Run shortcut registration (non-blocking, errors silently caught)
+let shortcutResult: ShortcutResult | undefined;
+try {
+  const shortcutService = new ShortcutService();
+  shortcutResult = shortcutService.ensureShortcut();
+} catch {
+  // silently ignore
+}
+
+// Export for use by run/install commands
+export function getShortcutResult(): ShortcutResult | undefined {
+  return shortcutResult;
+}
 
 program
   .name('lattix')

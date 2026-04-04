@@ -1,10 +1,12 @@
 import { ScheduledTaskManager } from '../services/windows-service';
 import { DaemonService } from '../services/daemon';
+import { ShortcutResult } from '../services/shortcut';
 
 interface InstallDependencies {
   taskManager?: ScheduledTaskManager;
   daemonService?: DaemonService;
   exit?: (code: number) => never;
+  getShortcutResult?: () => ShortcutResult | undefined;
 }
 
 export function installCommand(
@@ -51,6 +53,13 @@ export function installCommand(
       if (pid !== null) {
         console.log(`🟢 Lattix started (PID ${pid})`);
       }
+      // Show submit hint
+      const getShortcutFn = dependencies.getShortcutResult ?? (() => {
+        try { return require('../cli').getShortcutResult(); } catch { return undefined; }
+      });
+      const shortcut = getShortcutFn();
+      const cmd = shortcut?.shortcutAvailable ? 'lattix' : 'npx -y lattix';
+      console.log(`\n💡 To submit a task: ${cmd} submit --prompt "your instruction here"\n`);
     }, 3000);
   } catch (err) {
     console.error(`❌ Failed to install/start scheduled task: ${(err as Error).message}`);

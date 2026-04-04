@@ -24,7 +24,7 @@ test('queryTaskState returns "not-installed" when PowerShell fails', () => {
   assert.equal(mgr.queryTaskState(), 'not-installed');
 });
 
-test('install calls Register-ScheduledTask', () => {
+test('install calls Register-ScheduledTask with AtLogOn and wake triggers', () => {
   const calledCmds = [];
   const { mgr } = createManager({
     execSyncFn: (cmd) => {
@@ -37,7 +37,11 @@ test('install calls Register-ScheduledTask', () => {
   const installCmd = calledCmds.find(c => c.includes('Register-ScheduledTask'));
   assert.ok(installCmd, 'should call Register-ScheduledTask');
   assert.ok(installCmd.includes('Lattix'));
-  assert.ok(installCmd.includes('AtLogOn'));
+  assert.ok(installCmd.includes('AtLogOn'), 'should include AtLogOn trigger');
+  assert.ok(installCmd.includes('MSFT_TaskEventTrigger'), 'should include CIM event trigger');
+  assert.ok(installCmd.includes('Power-Troubleshooter'), 'should include Power-Troubleshooter subscription');
+  assert.ok(installCmd.includes('[char]34'), 'should use [char]34 for XML attribute quotes');
+  assert.ok(installCmd.includes('@($trigger1, $trigger2)'), 'should pass array of triggers');
 });
 
 test('uninstall calls Unregister-ScheduledTask', () => {

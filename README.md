@@ -31,8 +31,10 @@ No servers, no databases, no control plane — just distributed coordination thr
 ## Installation
 
 ```bash
-npx lattix run
+npx -y lattix run
 ```
+
+On first run, Lattix automatically creates a `lattix` shortcut command so you can use `lattix` directly in the future (requires a terminal restart). If you've already installed globally via `npm install -g lattix`, the shortcut creation is skipped.
 
 Or install globally:
 
@@ -45,7 +47,7 @@ lattix run
 
 ### Run
 
-Start Lattix on this machine. On first use, it auto-detects OneDrive and creates the necessary symlinks and config. On subsequent runs, it loads the existing config and starts the task watcher.
+Start Lattix on this machine. On first use, it auto-detects OneDrive and creates the necessary symlinks and config. On subsequent runs, it loads the existing config and starts the task watcher. Only tasks that arrive **after** Lattix starts will be processed — existing tasks are never replayed, even after a restart or on a new machine.
 
 ```bash
 lattix run
@@ -80,15 +82,15 @@ lattix run --daemon --log-file C:\logs\lattix.log
 For machines that need Lattix to run permanently, set up auto-start on login:
 
 ```bash
-npx lattix install
+npx -y lattix install
 ```
 
-This creates a scheduled task that runs `npx lattix run -d` on every login (always using the latest version). The daemon starts immediately after installation. No administrator privileges required.
+This creates a scheduled task that runs `npx lattix run -d` on every login and when the computer wakes from sleep or hibernation (always using the latest version). The daemon starts immediately after installation. No administrator privileges required.
 
 **Uninstall auto-start:**
 
 ```bash
-npx lattix uninstall
+npx -y lattix uninstall
 ```
 
 This stops the running instance and removes the scheduled task.
@@ -101,7 +103,7 @@ Stop the running Lattix instance:
 lattix stop
 ```
 
-This sends SIGTERM to the running process and cleans up the PID file. Works for all run modes (foreground, daemon, auto-start). If auto-start is configured, Lattix will restart on next login.
+This sends SIGTERM to the running process and cleans up the PID file. Works for all run modes (foreground, daemon, auto-start). If auto-start is configured, Lattix will restart on next login or wake from sleep.
 
 Lattix checks both OneDrive for Business and personal OneDrive accounts.
 
@@ -152,6 +154,8 @@ lattix status task-20260402120000-abc123
 ├── lattix.pid           # PID file (present when running in any mode)
 ├── lattix.log           # Log file (daemon and auto-start modes)
 ├── start-lattix.vbs     # Auto-start launcher (created by install)
+├── bin/
+│   └── lattix.cmd       # Shortcut wrapper (auto-created on first npx run)
 ├── tasks/ → OneDrive    # Symlink to the selected <OneDrive>\Lattix\tasks
 │   ├── task-001.json
 │   └── task-002.json
@@ -178,7 +182,7 @@ lattix status task-20260402120000-abc123
 }
 ```
 
-Task files are immutable once written. Each machine keeps its own local `processed.json` record so restarts do not cause duplicate execution.
+Task files are immutable once written. Lattix only processes tasks that arrive after the daemon starts — old tasks are never replayed, ensuring safe restarts and new machine onboarding.
 
 ## Migration from AgentBroker
 
@@ -211,7 +215,7 @@ Run the automated test suite:
 npm test
 ```
 
-The current tests cover the highest-risk rebrand behaviors, including legacy workspace migration, Lattix path setup, CLI branding, and result artifact writing.
+The test suite covers task-watcher startup behavior, shortcut registration, scheduled task triggers, daemon management, run/install/stop/uninstall commands, CLI branding, bootstrap, OneDrive detection, provider selection, result writing, and legacy workspace migration.
 
 ## License
 

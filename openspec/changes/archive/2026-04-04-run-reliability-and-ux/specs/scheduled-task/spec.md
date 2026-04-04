@@ -1,7 +1,4 @@
-## Purpose
-Define the scheduled task capability: auto-start on login via Windows scheduled tasks (`schtasks`), task state query, and install/uninstall commands.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Scheduled task installation
 The system SHALL provide a `lattix install` command that creates a Windows scheduled task named "Lattix" with two triggers: (1) an ONLOGON trigger and (2) a system-wake event trigger that fires when Windows resumes from sleep or hibernation. The wake trigger SHALL subscribe to the System event log for events from `Microsoft-Windows-Power-Troubleshooter` with EventID 1. The task runs under the current user's account and requires no administrator privileges. After creating the task, the command SHALL start the daemon immediately.
@@ -25,25 +22,3 @@ The system SHALL provide a `lattix install` command that creates a Windows sched
 #### Scenario: Wake trigger does not duplicate running daemon
 - **WHEN** the computer resumes from sleep and the daemon process is still running
 - **THEN** the triggered `lattix run -d` SHALL detect the existing daemon via PID file check and exit with code 0 without starting a duplicate
-
-### Requirement: Scheduled task removal
-The system SHALL provide a `lattix uninstall` command that stops the running Lattix instance (if any) and removes the scheduled task.
-
-#### Scenario: Uninstalling the scheduled task
-- **WHEN** the user runs `lattix uninstall` and the "Lattix" scheduled task exists
-- **THEN** the system SHALL kill the running process (if any), remove the scheduled task via `schtasks /delete`, and print a confirmation
-
-#### Scenario: Uninstall when no task exists
-- **WHEN** the user runs `lattix uninstall` and no "Lattix" scheduled task exists
-- **THEN** the system SHALL print an informational message indicating no task is installed
-
-### Requirement: Scheduled task state query
-The system SHALL provide the ability to query whether a "Lattix" scheduled task is registered.
-
-#### Scenario: Query installed task
-- **WHEN** the system queries schtasks and the "Lattix" task exists
-- **THEN** the query SHALL return an "installed" state
-
-#### Scenario: Query non-existent task
-- **WHEN** the system queries schtasks and no "Lattix" task exists
-- **THEN** the query SHALL return a "not-installed" state

@@ -53,9 +53,14 @@ export class ScheduledTaskManager {
 
     const psCmd = [
       `$action = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument '"${vbsPath}"'`,
-      `$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME`,
+      `$trigger1 = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME`,
+      `$class = Get-CimClass MSFT_TaskEventTrigger root/Microsoft/Windows/TaskScheduler`,
+      `$trigger2 = $class | New-CimInstance -ClientOnly`,
+      `$trigger2.Enabled = $true`,
+      `$q = [char]34`,
+      `$trigger2.Subscription = '<QueryList><Query Id=' + $q + '0' + $q + ' Path=' + $q + 'System' + $q + '><Select Path=' + $q + 'System' + $q + '>*[System[Provider[@Name=''Microsoft-Windows-Power-Troubleshooter''] and EventID=1]]</Select></Query></QueryList>'`,
       `$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable`,
-      `Register-ScheduledTask -TaskName '${TASK_NAME}' -Action $action -Trigger $trigger -Settings $settings -Description 'Lattix agent orchestration' -Force`,
+      `Register-ScheduledTask -TaskName '${TASK_NAME}' -Action $action -Trigger @($trigger1, $trigger2) -Settings $settings -Description 'Lattix agent orchestration' -Force`,
     ].join('; ');
     this.exec(`powershell -NoProfile -Command "${psCmd}"`);
   }

@@ -15,6 +15,7 @@ function createMockDeps(overrides = {}) {
       checkExistingDaemon() { return null; },
     },
     exit: (code) => { throw new Error(`exit ${code}`); },
+    getShortcutResult: () => undefined,
     ...overrides,
   };
 }
