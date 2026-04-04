@@ -279,3 +279,26 @@ test('run command starts via scheduled task when task installed but not running'
   assert.ok(taskStarted, 'should start via scheduled task');
   assert.equal(exitCode, 0);
 });
+
+test('run command shows info when scheduled task is installed and running', async () => {
+  const { runCommand } = require('../dist/commands/run.js');
+  let exitCode = null;
+
+  const deps = createMockDeps({
+    taskManager: {
+      queryTaskState() { return 'installed'; },
+    },
+    daemonService: {
+      checkExistingDaemon() { return 12345; },
+      writePid() {},
+      removePid() {},
+      getPidPath() { return 'C:\\temp\\lattix.pid'; },
+      getDefaultLogPath() { return 'C:\\temp\\lattix.log'; },
+    },
+    exit: (code) => { exitCode = code; throw new Error(`exit ${code}`); },
+  });
+
+  try { await runCommand({ pollInterval: '10', concurrency: '1' }, deps); } catch { /* expected */ }
+
+  assert.equal(exitCode, 0, 'should exit with 0 (informational)');
+});

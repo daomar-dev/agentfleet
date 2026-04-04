@@ -179,3 +179,36 @@ test('status shows auto-start mode when scheduled task is installed', async () =
     fs.rmSync(tasksDir, { recursive: true, force: true });
   }
 });
+
+test('status shows auto-start configured but not running', async () => {
+  const { statusCommand } = require('../dist/commands/status.js');
+  const logs = [];
+  const origLog = console.log;
+  console.log = (...args) => logs.push(args.join(' '));
+
+  const tasksDir = createMockDeps().setup.getTasksDir();
+  fs.mkdirSync(tasksDir, { recursive: true });
+
+  try {
+    await statusCommand(undefined, undefined, createMockDeps({
+      daemonService: {
+        readPid() { return null; },
+        isRunning() { return false; },
+        removePid() {},
+        getDefaultLogPath() { return path.join(os.tmpdir(), 'lattix.log'); },
+        getPidPath() { return path.join(os.tmpdir(), 'lattix.pid'); },
+      },
+      taskManager: {
+        queryTaskState() { return 'installed'; },
+        getTaskName() { return 'Lattix'; },
+      },
+    }));
+
+    const output = logs.join('\n');
+    assert.ok(output.includes('auto-start'), 'should mention auto-start');
+    assert.ok(output.includes('not currently running'), 'should indicate not running');
+  } finally {
+    console.log = origLog;
+    fs.rmSync(tasksDir, { recursive: true, force: true });
+  }
+});
