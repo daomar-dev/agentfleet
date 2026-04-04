@@ -42,12 +42,17 @@ export class ScheduledTaskManager {
 
   install(): void {
     const npxPath = this.findNpx();
-    // Use a .cmd wrapper approach: powershell -WindowStyle Hidden runs npx
-    // Avoid nested quote issues by using encoded command
-    const innerCmd = `& '${npxPath}' -y lattix run -d`;
-    const encodedCmd = Buffer.from(innerCmd, 'utf16le').toString('base64');
+
+    // Create a VBS launcher to run npx completely hidden (no window flash)
+    if (!fs.existsSync(this.lattixDir)) {
+      fs.mkdirSync(this.lattixDir, { recursive: true });
+    }
+    const vbsPath = path.join(this.lattixDir, 'start-lattix.vbs');
+    const vbsContent = `Set WshShell = CreateObject("WScript.Shell")\nWshShell.Run """${npxPath}"" -y lattix run -d", 0, False`;
+    fs.writeFileSync(vbsPath, vbsContent, 'utf-8');
+
     const psCmd = [
-      `$action = New-ScheduledTaskAction -Execute 'powershell' -Argument '-WindowStyle Hidden -NoProfile -EncodedCommand ${encodedCmd}'`,
+      `$action = New-ScheduledTaskAction -Execute 'wscript.exe' -Argument '"${vbsPath}"'`,
       `$trigger = New-ScheduledTaskTrigger -AtLogOn -User $env:USERNAME`,
       `$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable`,
       `Register-ScheduledTask -TaskName '${TASK_NAME}' -Action $action -Trigger $trigger -Settings $settings -Description 'Lattix agent orchestration' -Force`,
@@ -57,6 +62,9 @@ export class ScheduledTaskManager {
 
   uninstall(): void {
     this.exec(`powershell -NoProfile -Command "Unregister-ScheduledTask -TaskName '${TASK_NAME}' -Confirm:$false"`);
+    // Clean up VBS launcher
+    const vbsPath = path.join(this.lattixDir, 'start-lattix.vbs');
+    try { if (fs.existsSync(vbsPath)) fs.unlinkSync(vbsPath); } catch { /* ignore */ }
   }
 
   startTask(): void {
