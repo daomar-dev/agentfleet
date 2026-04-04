@@ -1,0 +1,8 @@
+Get-ScheduledTask : No MSFT_ScheduledTask objects found with property 'TaskName' equal to 'Lattix'.  Verify 
+the value of the property and retry.
+At line:1 char:1
++ Get-ScheduledTask -TaskName 'Lattix' -ErrorAction Stop | Out-Null
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (Lattix:String) [Get-ScheduledTask], CimJobException
+    + FullyQualifiedErrorId : CmdletizationQuery_NotFound_TaskName,Get-ScheduledTask
+ 
