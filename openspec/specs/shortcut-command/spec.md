@@ -4,11 +4,11 @@ Define the automatic `lattix` CLI shortcut registration, npx invocation detectio
 ## Requirements
 
 ### Requirement: Shortcut command registration on install or run via npx
-The system SHALL check whether a convenient `lattix` command is available only when the `install` or `run` command is invoked via npx (detected by checking whether the script path contains an npx cache directory such as `_npx`). If no global `lattix` command exists and no wrapper has been created, the system SHALL create a `lattix.cmd` wrapper file at `~/.lattix/bin/lattix.cmd` that delegates to `npx -y lattix %*`, and add `~/.lattix/bin` to the user's PATH environment variable via `[Environment]::SetEnvironmentVariable`. For other commands (e.g., `submit`, `status`, `stop`) or when not running via npx, shortcut registration SHALL be skipped.
+The system SHALL check whether a convenient `lattix` command is available only when the `install` or `run` command is invoked via npx (detected by checking whether the script path contains an npx cache directory such as `_npx`). If no global `lattix` command exists and no wrapper has been created, the system SHALL create a `lattix.cmd` wrapper file in the npm global prefix directory (obtained via `npm config get prefix`) that delegates to `npx -y lattix %*`. Because this directory is already in the user's PATH (added by the Node.js installer), the shortcut is available immediately without a terminal restart. For other commands (e.g., `submit`, `status`, `stop`) or when not running via npx, shortcut registration SHALL be skipped.
 
 #### Scenario: First run via npx with no global lattix installed
 - **WHEN** the user runs `npx -y lattix run` (or `npx -y lattix install`) for the first time and `lattix` is not globally installed and no wrapper exists
-- **THEN** the system SHALL create `~/.lattix/bin/lattix.cmd` with content `@npx -y lattix %*`, add `~/.lattix/bin` to user PATH via `[Environment]::SetEnvironmentVariable`, and print a message telling the user to restart their terminal for the `lattix` shortcut to become available
+- **THEN** the system SHALL create `lattix.cmd` with content `@npx -y lattix %*` in the npm global prefix directory, and the command SHALL be immediately available in the current terminal
 
 #### Scenario: Command invoked via npx but is not install or run
 - **WHEN** the user runs `npx -y lattix submit --prompt "..."` or any command other than `install` or `run`
@@ -23,12 +23,8 @@ The system SHALL check whether a convenient `lattix` command is available only w
 - **THEN** the system SHALL skip wrapper creation entirely
 
 #### Scenario: Wrapper already exists
-- **WHEN** the user runs `npx -y lattix run` and `~/.lattix/bin/lattix.cmd` already exists
-- **THEN** the system SHALL skip wrapper creation and PATH modification
-
-#### Scenario: PATH already contains lattix bin directory
-- **WHEN** the user runs `npx -y lattix run` and `~/.lattix/bin` is already in the user PATH but the wrapper does not exist
-- **THEN** the system SHALL create the wrapper file without modifying PATH
+- **WHEN** the user runs `npx -y lattix run` and `lattix.cmd` already exists in the npm global prefix directory
+- **THEN** the system SHALL skip wrapper creation
 
 ### Requirement: Global install detection excludes npx cache
 The system SHALL detect whether `lattix` is globally installed by running `where lattix` and filtering out any results that point to npx cache directories (paths containing `_npx` or `npm-cache`). Only results pointing to global npm bin directories or user-installed locations SHALL count as a valid global install.
@@ -45,7 +41,7 @@ The system SHALL detect whether `lattix` is globally installed by running `where
 The shortcut registration SHALL run synchronously but quickly (file existence checks and optional file creation). Any errors during shortcut registration SHALL be silently logged and SHALL NOT cause the command to fail.
 
 #### Scenario: Wrapper creation fails due to permissions
-- **WHEN** the system cannot create the wrapper file or modify PATH due to insufficient permissions
+- **WHEN** the system cannot create the wrapper file due to insufficient permissions
 - **THEN** the system SHALL log a warning and continue executing the user's command normally
 
 ### Requirement: Friendly submit hint after install or run
