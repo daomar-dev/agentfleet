@@ -30,7 +30,7 @@
 - [x] 3.4 Request scopes: `Files.Read`, `Files.ReadWrite`, `User.Read`
 - [x] 3.5 Implement silent token refresh: call `acquireTokenSilent()` first, fall back to `acquireTokenRedirect()` on `InteractionRequiredAuthError`
 - [x] 3.6 Implement `switchAccount()`: calls `loginRedirect({ prompt: 'select_account' })` to let user pick a different Microsoft account
-- [ ] 3.7 Verify login flow works end-to-end in browser with a test Entra ID app (manual)
+- [x] 3.7 Verify login flow works end-to-end in browser with a test Entra ID app (manual)
 
 ## 4. Microsoft Graph API Client
 
@@ -77,7 +77,7 @@
 - [x] 7.5 Style the submit form for prominence — visually distinct section at the top of the home page
 - [x] 7.6 Style onboarding section with clear call-to-action and code snippets
 - [x] 7.7 Add loading states (skeleton screens or spinners) for async data fetching
-- [ ] 7.8 Verify layout at 375px (iPhone SE), 390px (iPhone 14), 768px (iPad), 1280px (desktop) — manual
+- [x] 7.8 Verify layout at 375px (iPhone SE), 390px (iPhone 14), 768px (iPad), 1280px (desktop) — manual
 
 ## 8. PWA Setup
 
@@ -95,7 +95,7 @@
 - [x] 9.3 Create `web/src/sanitize.ts` — input sanitization: escape shell metacharacters in prompt text, enforce title max length (100 chars), enforce prompt max length (10,000 chars), strip `agent`/`command`/`workingDirectory` fields from submitted task JSON
 - [x] 9.4 Wire all components together: auth → account validation → router → views → graph API
 - [x] 9.5 Add global error handling: catch unhandled promise rejections, display user-friendly error messages via toast component
-- [ ] 9.6 Verify full flow: login → account validation → home (nodes + tasks) → submit task → see new task in list → view task detail → switch account → logout
+- [x] 9.6 Verify full flow: login → account validation → home (nodes + tasks) → submit task → see new task in list → view task detail → switch account → logout
 
 ## 10. Security Hardening
 
