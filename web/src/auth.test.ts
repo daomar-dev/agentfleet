@@ -3,8 +3,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 // We mock @azure/msal-browser before importing auth
 const mockHandleRedirectPromise = vi.fn().mockResolvedValue(null);
 const mockGetAllAccounts = vi.fn().mockReturnValue([]);
+const mockGetActiveAccount = vi.fn().mockReturnValue(null);
+const mockSetActiveAccount = vi.fn();
 const mockLoginRedirect = vi.fn().mockResolvedValue(undefined);
 const mockLogoutRedirect = vi.fn().mockResolvedValue(undefined);
+const mockLogoutPopup = vi.fn().mockResolvedValue(undefined);
 const mockAcquireTokenSilent = vi.fn();
 const mockAcquireTokenRedirect = vi.fn().mockResolvedValue(undefined);
 const mockInitialize = vi.fn().mockResolvedValue(undefined);
@@ -15,8 +18,11 @@ vi.mock('@azure/msal-browser', () => {
       initialize: mockInitialize,
       handleRedirectPromise: mockHandleRedirectPromise,
       getAllAccounts: mockGetAllAccounts,
+      getActiveAccount: mockGetActiveAccount,
+      setActiveAccount: mockSetActiveAccount,
       loginRedirect: mockLoginRedirect,
       logoutRedirect: mockLogoutRedirect,
+      logoutPopup: mockLogoutPopup,
       acquireTokenSilent: mockAcquireTokenSilent,
       acquireTokenRedirect: mockAcquireTokenRedirect,
     })),
@@ -24,6 +30,12 @@ vi.mock('@azure/msal-browser', () => {
       constructor(message: string) {
         super(message);
         this.name = 'InteractionRequiredAuthError';
+      }
+    },
+    BrowserAuthError: class BrowserAuthError extends Error {
+      constructor(message: string) {
+        super(message);
+        this.name = 'BrowserAuthError';
       }
     },
   };
@@ -52,47 +64,73 @@ const mockAccount = {
 };
 
 describe('initAuth', () => {
+  beforeEach(() => {
+    mockHandleRedirectPromise.mockResolvedValue(null);
+    mockGetActiveAccount.mockReturnValue(null);
+    mockGetAllAccounts.mockReturnValue([]);
+    mockSetActiveAccount.mockClear();
+  });
+
   it('initializes MSAL and handles redirect promise', async () => {
     await initAuth();
     expect(mockInitialize).toHaveBeenCalled();
     expect(mockHandleRedirectPromise).toHaveBeenCalled();
   });
+
+  it('sets active account from redirect response', async () => {
+    mockHandleRedirectPromise.mockResolvedValue({ account: mockAccount });
+    await initAuth();
+    expect(mockSetActiveAccount).toHaveBeenCalledWith(mockAccount);
+  });
+
+  it('restores active account from cache when no redirect response', async () => {
+    mockGetActiveAccount.mockReturnValue(null);
+    mockGetAllAccounts.mockReturnValue([mockAccount]);
+    await initAuth();
+    expect(mockSetActiveAccount).toHaveBeenCalledWith(mockAccount);
+  });
 });
 
 describe('getAccount', () => {
   beforeEach(async () => {
+    mockGetActiveAccount.mockReturnValue(null);
+    mockGetAllAccounts.mockReturnValue([]);
     await initAuth();
   });
 
-  it('returns null when no accounts', () => {
-    mockGetAllAccounts.mockReturnValue([]);
+  it('returns null when no active account', () => {
+    mockGetActiveAccount.mockReturnValue(null);
     expect(getAccount()).toBeNull();
   });
 
-  it('returns first account when accounts exist', () => {
-    mockGetAllAccounts.mockReturnValue([mockAccount]);
+  it('returns active account when set', () => {
+    mockGetActiveAccount.mockReturnValue(mockAccount);
     expect(getAccount()).toBe(mockAccount);
   });
 });
 
 describe('isAuthenticated', () => {
   beforeEach(async () => {
+    mockGetActiveAccount.mockReturnValue(null);
+    mockGetAllAccounts.mockReturnValue([]);
     await initAuth();
   });
 
-  it('returns false when no account', () => {
-    mockGetAllAccounts.mockReturnValue([]);
+  it('returns false when no active account', () => {
+    mockGetActiveAccount.mockReturnValue(null);
     expect(isAuthenticated()).toBe(false);
   });
 
-  it('returns true when account exists', () => {
-    mockGetAllAccounts.mockReturnValue([mockAccount]);
+  it('returns true when active account exists', () => {
+    mockGetActiveAccount.mockReturnValue(mockAccount);
     expect(isAuthenticated()).toBe(true);
   });
 });
 
 describe('login', () => {
   beforeEach(async () => {
+    mockGetActiveAccount.mockReturnValue(null);
+    mockGetAllAccounts.mockReturnValue([]);
     await initAuth();
   });
 
@@ -108,17 +146,25 @@ describe('login', () => {
 
 describe('logout', () => {
   beforeEach(async () => {
+    mockGetActiveAccount.mockReturnValue(null);
+    mockGetAllAccounts.mockReturnValue([]);
     await initAuth();
   });
 
-  it('calls logoutRedirect', async () => {
+  it('calls logoutRedirect with postLogoutRedirectUri', async () => {
     await logout();
-    expect(mockLogoutRedirect).toHaveBeenCalled();
+    expect(mockLogoutRedirect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        postLogoutRedirectUri: expect.any(String),
+      }),
+    );
   });
 });
 
 describe('switchAccount', () => {
   beforeEach(async () => {
+    mockGetActiveAccount.mockReturnValue(null);
+    mockGetAllAccounts.mockReturnValue([]);
     await initAuth();
   });
 
@@ -130,10 +176,16 @@ describe('switchAccount', () => {
       }),
     );
   });
+
+  it('clears active account before redirecting', async () => {
+    await switchAccount();
+    expect(mockSetActiveAccount).toHaveBeenCalledWith(null);
+  });
 });
 
 describe('getToken', () => {
   beforeEach(async () => {
+    mockGetActiveAccount.mockReturnValue(mockAccount);
     mockGetAllAccounts.mockReturnValue([mockAccount]);
     await initAuth();
   });
@@ -153,12 +205,12 @@ describe('getToken', () => {
   });
 
   it('throws when no account is signed in', async () => {
-    mockGetAllAccounts.mockReturnValue([]);
+    mockGetActiveAccount.mockReturnValue(null);
     await expect(getToken()).rejects.toThrow('No account signed in');
   });
 
   it('propagates non-InteractionRequired errors', async () => {
-    mockGetAllAccounts.mockReturnValue([mockAccount]);
+    mockGetActiveAccount.mockReturnValue(mockAccount);
     mockAcquireTokenSilent.mockRejectedValue(new Error('Network error'));
     await expect(getToken()).rejects.toThrow('Network error');
   });

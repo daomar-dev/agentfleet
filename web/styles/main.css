@@ -420,6 +420,12 @@ h3 { margin-bottom: var(--spacing-sm); font-size: 1.1rem; }
   /* Hide slogan on mobile */
   .navbar-slogan { display: none; }
 
+  /* Comfortable horizontal padding on mobile */
+  .main-content {
+    padding: var(--spacing-lg) var(--spacing-md);
+    padding-bottom: calc(var(--spacing-lg) + 60px + var(--safe-bottom));
+  }
+
   /* Show bottom tab bar */
   .navbar-tabs {
     display: flex;
@@ -455,11 +461,6 @@ h3 { margin-bottom: var(--spacing-sm); font-size: 1.1rem; }
     height: 22px;
   }
 
-  /* Content needs bottom padding for tab bar */
-  .main-content {
-    padding-bottom: calc(var(--spacing-lg) + 60px + var(--safe-bottom));
-  }
-
   /* Toast above tab bar */
   .lattix-toast {
     bottom: calc(60px + var(--safe-bottom) + var(--spacing-sm));
@@ -483,7 +484,10 @@ h3 { margin-bottom: var(--spacing-sm); font-size: 1.1rem; }
    Small phone (≤ 480px)
    ============================== */
 @media (max-width: 480px) {
-  .main-content { padding: var(--spacing-md) var(--spacing-sm); padding-bottom: calc(var(--spacing-md) + 60px + var(--safe-bottom)); }
+  .main-content {
+    padding: var(--spacing-md);
+    padding-bottom: calc(var(--spacing-md) + 60px + var(--safe-bottom));
+  }
   .submit-section { padding: var(--spacing-md); }
   .node-grid { grid-template-columns: 1fr; }
   .task-meta { flex-direction: column; gap: 2px; }
