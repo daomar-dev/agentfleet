@@ -215,6 +215,63 @@ npm test
 
 The test suite covers task-watcher startup behavior, shortcut registration, scheduled task triggers, daemon management, run/install/stop/uninstall commands, CLI branding, bootstrap, OneDrive detection, provider selection, result writing, and legacy workspace migration.
 
+## Web Dashboard
+
+A browser-based dashboard is available at **[https://lattix.code365.xyz/](https://lattix.code365.xyz/)**.
+
+### What it does
+
+- **Submit tasks** to all your Lattix machines simultaneously from any browser
+- **Monitor nodes** — see which machines are active, their last activity, and task counts
+- **Browse task history** — paginated list of all submitted tasks with status indicators
+- **View task results** — per-machine results with exit codes, duration, and timestamps
+- **Mobile-friendly** — progressive web app (PWA) installable on iOS and Android
+
+### Access
+
+Open **[https://lattix.code365.xyz/](https://lattix.code365.xyz/)** in your browser and sign in with the Microsoft account that owns the OneDrive where Lattix is installed.
+
+> **Important:** Sign in with the **same Microsoft account** used by your machines' OneDrive sync. If your OneDrive is linked to `user@example.com`, log in with that account.
+
+### Security model
+
+- **Authentication:** Microsoft Entra ID with PKCE authorization code flow — no secrets stored in the browser
+- **Token storage:** Session storage only (cleared on tab close)
+- **Permissions:** `Files.Read`, `Files.ReadWrite`, and `User.Read` (delegated — only the signed-in user's files are accessible)
+- **Input sanitization:** Shell metacharacters are stripped from task prompts before submission; `agent`, `command`, and `workingDirectory` fields are not exposed in the UI
+- **Content Security Policy:** Enforced via HTTP header; restricts scripts, styles, and connections to trusted origins only
+- **No backend:** All API calls go directly from the browser to Microsoft Graph — no Lattix server is involved
+
+### Mobile install (PWA)
+
+**iOS (Safari):** Open [https://lattix.code365.xyz/](https://lattix.code365.xyz/) → tap the **Share** button → **Add to Home Screen**
+
+**Android (Chrome):** Open [https://lattix.code365.xyz/](https://lattix.code365.xyz/) → tap the **⋮** menu → **Add to Home screen** (or wait for the install prompt)
+
+### Entra ID app registration
+
+The web dashboard uses a pre-registered Microsoft Entra ID application:
+
+| Property | Value |
+|---|---|
+| Client ID | `b94f9687-adcf-48ea-9861-c4ce4b5c01a0` |
+| Tenant | `91dde955-43a9-40a9-a406-694cffb04f28` (multi-tenant) |
+| Sign-in audience | AzureAD and personal Microsoft accounts |
+| Redirect URIs | `https://lattix.code365.xyz/`, `http://localhost:5173/` |
+| Permissions | `Files.Read`, `Files.ReadWrite`, `User.Read` (delegated) |
+
+To self-host the dashboard, register your own Entra ID app and update `web/public/config.js` with your `clientId`. See [Microsoft documentation](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) for app registration steps.
+
+### Local development
+
+```bash
+cd web
+npm install
+npm run dev        # Start dev server at http://localhost:5173
+npm run build      # Production build to web/dist/
+npm test           # Run unit tests (Vitest)
+```
+
 ## License
 
 ISC
