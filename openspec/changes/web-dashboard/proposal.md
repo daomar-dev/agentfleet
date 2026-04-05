@@ -14,18 +14,17 @@ Key user-facing outcomes:
 - **Node overview**: The home page lists all Lattix nodes (machines) that have participated in task execution, discovered by scanning result files in the shared OneDrive `output/` directory for unique hostnames.
 - **Task history**: A list of all dispatched tasks with per-machine execution results (status, timing, exit codes). Users can drill into individual task details.
 - **Onboarding guidance**: If no nodes or tasks are found, the dashboard displays clear instructions on how to install and start using Lattix.
-- **Task submission**: A prominent form at the top of the page allows users to create new tasks directly from the browser, writing task JSON files to the OneDrive `tasks/` directory via Microsoft Graph API. The submit form restricts input to prompt and title only — custom agent commands and arbitrary working directories are not exposed in the web UI to reduce the attack surface.
-- **PWA / Mobile support**: The app is a Progressive Web App — installable on iPhone and Android home screens, responsive layout that adapts from desktop to mobile, and optimized for performance on low-powered devices. API calls are paginated and lazy-loaded to minimize mobile data usage.
+- **Task submission**: A prominent form at the top of the page allows users to create new tasks directly from the browser, writing task JSON files to the OneDrive `tasks/` directory via Microsoft Graph API. The submit form exposes title, prompt, and an optional agent command (in a collapsible "Options" section). The `workingDirectory` field is not exposed, causing each machine to use its default working directory.
+- **PWA / Mobile support**: The app is a Progressive Web App — installable on iPhone and Android home screens. Mobile layout features a bottom tab bar navigation (Home, Tasks, Settings) with SVG icons, safe area insets for PWA standalone mode, and stale-while-revalidate caching for instant page loads. API calls are paginated and lazy-loaded to minimize mobile data usage.
 
 ## Security Model
 
 Lattix operates on a **trusted-owner model**: the OneDrive workspace is owned by a single user, and all machines running Lattix belong to that user. The web dashboard inherits this trust model — only the authenticated OneDrive owner can read/write task files. However, the web UI introduces a lower barrier to submission compared to the CLI, so additional safeguards are applied:
 
 - **Input sanitization**: Task prompts submitted via the web UI are sanitized to remove shell metacharacters and injection patterns before being written as task JSON.
-- **No custom agent commands**: The web UI does not expose the `agent` or `command` fields. Tasks submitted from the web always use the default agent configured on each machine.
-- **No working directory override**: The web UI does not expose the `workingDirectory` field. Tasks submitted from the web omit this field, causing each machine to use its default working directory.
+- **Optional agent command**: The web UI exposes an optional agent command field in a collapsible "Options" section. Users can also set a default agent in Settings. The `workingDirectory` field is not exposed.
 - **Content Security Policy**: The SPA includes a strict CSP meta tag to mitigate XSS risks, given that the app handles Graph API access tokens with file write permissions.
-- **Token handling**: MSAL.js manages token storage, refresh, and expiry using its built-in secure cache. No tokens are manually stored in localStorage.
+- **Token handling**: MSAL.js manages token storage in `localStorage` for persistent login across browser sessions and PWA reopens. Tokens are refreshed silently via MSAL's built-in cache. The active account pattern (`setActiveAccount`/`getActiveAccount`) ensures reliable session restoration.
 - **Account validation**: On login, the dashboard verifies the authenticated account's OneDrive contains a `Lattix/` directory. If not, it guides the user to sign in with the correct account.
 
 ## Capabilities

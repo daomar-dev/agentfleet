@@ -80,7 +80,7 @@ No SDK dependency — use `fetch()` with the MSAL access token in the `Authoriza
 - `#/` — Home: node list + task summary + submit form
 - `#/tasks` — Full task list with filters
 - `#/tasks/:id` — Task detail with per-machine results
-- `#/settings` — Entra ID configuration
+- `#/settings` — Default agent preference and about info
 
 ### Decision 5: PWA with service worker and web app manifest
 
@@ -104,14 +104,17 @@ web/                          # SPA source code
 ├── src/
 │   ├── index.ts              # Entry point
 │   ├── auth.ts               # MSAL authentication
+│   ├── cache.ts              # Stale-while-revalidate localStorage cache
 │   ├── graph.ts              # Microsoft Graph API client
 │   ├── router.ts             # Hash-based SPA router
 │   ├── sanitize.ts           # Input sanitization for task submission
 │   ├── components/           # View components
 │   │   ├── home.ts           # Home view (nodes + tasks + submit)
+│   │   ├── login.ts          # Login prompt for unauthenticated users
+│   │   ├── navbar.ts         # Top nav bar + mobile bottom tab bar
 │   │   ├── task-list.ts      # Task list view
 │   │   ├── task-detail.ts    # Task detail view
-│   │   └── settings.ts       # Settings view
+│   │   └── settings.ts       # Settings view (default agent, about)
 │   ├── types.ts              # Shared TypeScript types
 │   └── utils.ts              # Helpers (date formatting, etc.)
 ├── public/
@@ -119,6 +122,7 @@ web/                          # SPA source code
 │   ├── manifest.json         # PWA manifest
 │   ├── sw.js                 # Service worker
 │   ├── config.js             # Entra ID config (client ID populated at build)
+│   ├── favicon.svg           # SVG favicon
 │   ├── CNAME                 # Custom domain for GitHub Pages
 │   └── icons/                # PWA icons
 ├── styles/
@@ -146,7 +150,9 @@ This is the officially recommended GitHub Pages deployment method. The root `pac
 **Breakpoints**:
 - `≤480px` — Phone: single column, stacked layout, larger touch targets
 - `481–768px` — Tablet: two-column where appropriate
-- `≥769px` — Desktop: full layout with sidebar navigation
+- `≥769px` — Desktop: full layout with top horizontal navigation
+
+**Mobile navigation**: On screens ≤768px, the desktop top navigation links are hidden and replaced with a fixed bottom tab bar featuring SVG icons for Home, Tasks, and Settings. The user account dropdown remains in the top right. Safe area insets (`env(safe-area-inset-top/bottom)`) are applied to prevent PWA standalone mode from overlapping with the status bar or home indicator.
 
 **Touch targets**: All interactive elements ≥ 44×44px per Apple HIG / Material guidelines.
 
@@ -154,9 +160,9 @@ This is the officially recommended GitHub Pages deployment method. The root `pac
 
 ## Risks / Trade-offs
 
-**[Risk] Command injection via web-submitted prompts** → Mitigation: The web UI sanitizes prompt text (escape shell metacharacters) and does not expose `agent`, `command`, or `workingDirectory` fields. Defense-in-depth on top of the CLI's existing `JSON.stringify()` quoting. See Decision 11.
+**[Risk] Command injection via web-submitted prompts** → Mitigation: The web UI sanitizes prompt text (escape shell metacharacters). The optional agent command field is available for power users but does not expose `workingDirectory`. Defense-in-depth on top of the CLI's existing `JSON.stringify()` quoting. See Decision 11.
 
-**[Risk] Token exposure via XSS** → Mitigation: MSAL tokens stored in `sessionStorage` (tab-scoped, auto-cleared). Strict CSP meta tag restricts script sources. No inline scripts. See Decision 12.
+**[Risk] Token exposure via XSS** → Mitigation: MSAL tokens stored in `localStorage` for PWA persistence. Strict CSP meta tag restricts script sources. No inline scripts. Login uses redirect flow only (no popup). See Decision 12.
 
 **[Risk] Account mismatch — user logs in with wrong Microsoft account** → Mitigation: Dashboard probes `Lattix/` path on login. If missing, shows guidance about signing in with the correct account. "Switch account" option available in navbar. See Decision 14.
 
@@ -184,7 +190,7 @@ This is the officially recommended GitHub Pages deployment method. The root `pac
 - **Unit test**: Login redirect and token acquisition succeed (mocked MSAL)
 - **Unit test**: Unauthenticated state shows login prompt
 - **Unit test**: Token expiry triggers silent refresh; if silent fails, redirects to login
-- **Unit test**: `cacheLocation` is set to `sessionStorage` (not localStorage)
+- **Unit test**: `cacheLocation` is set to `localStorage` (for PWA persistence)
 
 ### Account validation
 - **Unit test**: After login, probe `Lattix/` path — if 404, show onboarding with account mismatch hint
@@ -203,7 +209,7 @@ This is the officially recommended GitHub Pages deployment method. The root `pac
 
 ### Input sanitization
 - **Unit test**: Shell metacharacters (`; | & $ \` \\ > < ( )`) in prompt are escaped/rejected
-- **Unit test**: Submitted task JSON does not contain `agent`, `command`, or `workingDirectory` fields
+- **Unit test**: Submitted task JSON does not contain `workingDirectory` field; `command` field is included only when explicitly provided
 - **Unit test**: Title is truncated to 100 characters
 - **Unit test**: Prompt is rejected if exceeds 10,000 characters
 - **Unit test**: Task ID uses `crypto.getRandomValues()` for sufficient entropy
@@ -220,7 +226,7 @@ This is the officially recommended GitHub Pages deployment method. The root `pac
 - **Unit test**: Task list renders task items with status badges
 - **Unit test**: Task list pagination — "Load more" button fetches next page
 - **Unit test**: Task detail renders per-machine results
-- **Unit test**: Submit form only exposes title and prompt fields (no agent/workingDirectory)
+- **Unit test**: Submit form exposes title, prompt, and optional agent command fields
 - **Unit test**: Submit form validates input before submission
 
 ### Security
@@ -322,24 +328,27 @@ The CNAME record `lattix.code365.xyz` → `chenxizhang.github.io` is created man
 
 **Choice**: The web dashboard's task submission form restricts what users can submit:
 
-1. **Exposed fields**: Only `title` (optional, max 100 chars) and `prompt` (required, max 10,000 chars) are exposed in the submit form.
-2. **Hidden fields**: The `agent`, `command`, and `workingDirectory` fields are **not** exposed in the web UI. Tasks submitted from the web always omit these, causing each machine to use its locally configured defaults.
+1. **Exposed fields**: `title` (optional, max 100 chars), `prompt` (required, max 10,000 chars), and `command` (optional agent command, in a collapsible "Options" section) are exposed in the submit form. Users can also configure a default agent command in Settings.
+2. **Hidden fields**: The `workingDirectory` field is **not** exposed in the web UI. Tasks submitted from the web omit this, causing each machine to use its locally configured defaults.
 3. **Input sanitization**: The prompt text is sanitized before writing to OneDrive — shell metacharacters (`; | & $ \` \\ > < ( )`) are escaped or rejected. This is defense-in-depth; the CLI already quotes prompts when constructing shell commands, but the web layer adds a second barrier.
 4. **Task ID collision prevention**: Task IDs use `crypto.getRandomValues()` for 8 bytes of randomness (instead of `Date.now()` alone), making collisions effectively impossible even with concurrent submissions.
 
-**Rationale**: Lattix's CLI executes prompts via `shell: true` with `spawn()`. While the CLI applies `JSON.stringify()` quoting, the web UI should not rely solely on downstream defenses. Restricting the exposed fields removes the most dangerous attack vectors (arbitrary agent commands, arbitrary working directories), and sanitizing prompt text provides defense-in-depth.
+**Rationale**: Lattix's CLI executes prompts via `shell: true` with `spawn()`. While the CLI applies `JSON.stringify()` quoting, the web UI should not rely solely on downstream defenses. Sanitizing prompt text provides defense-in-depth. The optional agent command allows power users to specify a different agent while keeping the default experience simple.
 
 ### Decision 12: Token security and MSAL cache strategy
 
-**Choice**: Use MSAL.js's built-in browser cache (`cacheLocation: 'sessionStorage'`) for token storage. Do not manually handle or store tokens.
+**Choice**: Use MSAL.js's built-in browser cache (`cacheLocation: 'localStorage'`) for token storage. Do not manually handle or store tokens.
 
 **Details**:
-- **sessionStorage** (not localStorage): Tokens are cleared when the browser tab closes, reducing exposure window
+- **localStorage** (not sessionStorage): Tokens persist across browser sessions and PWA reopens, providing seamless re-authentication. This is required for PWA standalone mode where sessionStorage would lose login state on every app close.
+- **Active account pattern**: MSAL's `setActiveAccount()`/`getActiveAccount()` is used to reliably track the signed-in user across page loads and redirect flows.
 - **Automatic token refresh**: MSAL.js silently refreshes tokens before expiry using hidden iframes
 - **Token expiry handling**: If silent refresh fails (e.g., session expired), redirect user to login
-- **CSP meta tag**: The `index.html` includes a strict Content Security Policy: `default-src 'self'; script-src 'self'; connect-src https://graph.microsoft.com https://login.microsoftonline.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://login.microsoftonline.com`
+- **No popup auth**: `loginRedirect()` is used exclusively — `loginPopup()` is unreliable in PWA standalone mode and causes `interaction_in_progress` errors on retry
+- **PWA logout**: In standalone mode, `logoutPopup()` is used (with local cache clear fallback) to keep the user within the PWA window
+- **CSP meta tag**: The `index.html` includes a strict Content Security Policy: `default-src 'self'; script-src 'self'; connect-src https://graph.microsoft.com https://login.microsoftonline.com https://login.live.com; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src https://login.microsoftonline.com https://login.live.com`
 
-**Rationale**: sessionStorage is more secure than localStorage for SPAs — it's tab-scoped and auto-cleared. MSAL's built-in cache handles the complexity of token lifecycle. The CSP restricts script execution to our own bundle and limits network connections to Microsoft endpoints only.
+**Rationale**: localStorage is necessary for PWA login persistence — sessionStorage is cleared when the standalone app window closes, forcing re-login on every app open. MSAL's built-in cache handles the complexity of token lifecycle. The CSP restricts script execution to our own bundle and limits network connections to Microsoft endpoints only.
 
 ### Decision 13: Graph API error handling and resilience
 
@@ -372,7 +381,7 @@ The CNAME record `lattix.code365.xyz` → `chenxizhang.github.io` is created man
 **Choice**: All Graph API list operations use server-side pagination with conservative defaults:
 
 - **Task list**: Fetch 20 tasks per page (sorted by `lastModifiedDateTime` descending — most recent first). "Load more" button fetches next page using `@odata.nextLink`.
-- **Node discovery**: Performed lazily — scan result directories of the first 50 tasks only. Cache discovered hostnames in `sessionStorage` to avoid re-scanning on navigation.
+- **Node discovery**: Performed lazily — scan result directories of the first 50 tasks only. Cache discovered hostnames in `localStorage` (via cache module) to provide stale-while-revalidate behavior — cached data shows instantly on page load, fresh data replaces it in the background.
 - **Result files**: Only fetched on-demand when user opens a specific task detail view, not eagerly for all tasks.
 - **Auto-refresh**: Disabled by default. Manual "Refresh" button. Optional 60-second auto-refresh toggle (disabled on mobile by default to save data).
 

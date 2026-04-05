@@ -236,9 +236,9 @@ Open **[https://lattix.code365.xyz/](https://lattix.code365.xyz/)** in your brow
 ### Security model
 
 - **Authentication:** Microsoft Entra ID with PKCE authorization code flow — no secrets stored in the browser
-- **Token storage:** Session storage only (cleared on tab close)
+- **Token storage:** MSAL.js manages tokens in `localStorage` for persistent login across browser sessions and PWA reopens
 - **Permissions:** `Files.Read`, `Files.ReadWrite`, and `User.Read` (delegated — only the signed-in user's files are accessible)
-- **Input sanitization:** Shell metacharacters are stripped from task prompts before submission; `agent`, `command`, and `workingDirectory` fields are not exposed in the UI
+- **Input sanitization:** Shell metacharacters are stripped from task prompts before submission; `workingDirectory` field is not exposed in the UI; an optional agent command can be specified by power users
 - **Content Security Policy:** Enforced via HTTP header; restricts scripts, styles, and connections to trusted origins only
 - **No backend:** All API calls go directly from the browser to Microsoft Graph — no Lattix server is involved
 
