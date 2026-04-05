@@ -185,12 +185,11 @@ export async function submitTask(
 
     try {
       const resp = await graphFetch(
-        `${GRAPH_BASE}/me/drive/root:/Lattix/tasks/${filename}:/content`,
+        `${GRAPH_BASE}/me/drive/root:/Lattix/tasks/${filename}:/content?@microsoft.graph.conflictBehavior=fail`,
         {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            '@microsoft.graph.conflictBehavior': 'fail',
           },
           body: JSON.stringify(payload),
         },
