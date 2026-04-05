@@ -26,6 +26,7 @@ export function buildTaskPayload(
   prompt: string,
   taskId: string,
   hostname: string,
+  command?: string,
 ): Record<string, unknown> {
   const payload: Record<string, unknown> = {
     id: taskId,
@@ -37,6 +38,8 @@ export function buildTaskPayload(
   if (cleanTitle) {
     payload.title = cleanTitle;
   }
-  // Intentionally omit: agent, command, workingDirectory
+  if (command && command.trim()) {
+    payload.command = command.trim();
+  }
   return payload;
 }

@@ -104,3 +104,11 @@ export async function getToken(): Promise<string> {
 export function getMsalInstance(): PublicClientApplication | null {
   return msalInstance;
 }
+
+const CONSUMER_TENANT = '9188040d-6c67-4c5b-b112-36a304b66dad';
+
+export function getAccountType(): 'personal' | 'business' | null {
+  const account = getAccount();
+  if (!account) return null;
+  return account.tenantId === CONSUMER_TENANT ? 'personal' : 'business';
+}

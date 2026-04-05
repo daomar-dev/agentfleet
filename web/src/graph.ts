@@ -174,13 +174,14 @@ export async function discoverNodes(): Promise<
 export async function submitTask(
   title: string | undefined,
   prompt: string,
+  command?: string,
 ): Promise<string> {
   const maxRetries = 3;
   let lastError: Error | null = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     const taskId = generateTaskId();
-    const payload = buildTaskPayload(title, prompt, taskId, 'web-dashboard');
+    const payload = buildTaskPayload(title, prompt, taskId, 'web-dashboard', command);
     const filename = `${taskId}.json`;
 
     try {
