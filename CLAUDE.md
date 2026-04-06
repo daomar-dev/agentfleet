@@ -72,3 +72,38 @@ OpenSpec skills are available via `/opsx:*` commands (e.g., `/opsx:new`, `/opsx:
 - Hostname prefixes prevent result collisions across machines
 - `~/.lattix/` contains local config (config.json, processed.json, PID file) and symlinks to OneDrive
 - Single instance enforcement via PID file (foreground, daemon, or scheduled task modes)
+
+## Internationalization (i18n)
+
+Lattix supports en-US (default) and zh-CN. Both CLI and web dashboard have separate i18n modules and message catalogs.
+
+### Adding new user-facing strings
+
+1. Add the string key and English text to the appropriate locale file:
+   - CLI: `src/locales/en-US.json`
+   - Web: `web/src/locales/en-US.json`
+2. Add the matching Chinese translation to the zh-CN file:
+   - CLI: `src/locales/zh-CN.json`
+   - Web: `web/src/locales/zh-CN.json`
+3. Use `t('key.name')` in code instead of hardcoded strings. For interpolation: `t('key.name', { param: value })`.
+4. Keys use dot-notation grouped by module (e.g., `run.starting`, `home.submitTitle`).
+5. Both locale files **must** have identical key sets — catalog validation tests enforce this.
+6. Emoji prefixes remain outside `t()` calls (emoji is locale-independent).
+
+### Locale detection
+
+- **CLI**: `LATTIX_LANG` env var > `Intl.DateTimeFormat().resolvedOptions().locale` > `en-US`. Set `LATTIX_LANG=en-US` in test fixtures for deterministic output.
+- **Web**: `localStorage.getItem('lattix-lang')` > `navigator.language` > `en-US`.
+
+### Key files
+
+- CLI i18n module: `src/services/i18n.ts`
+- CLI locales: `src/locales/en-US.json`, `src/locales/zh-CN.json`
+- Web i18n module: `web/src/i18n.ts`
+- Web locales: `web/src/locales/en-US.json`, `web/src/locales/zh-CN.json`
+- CLI i18n tests: `test/i18n.test.js`, `test/i18n-catalog.test.js`
+- Web i18n tests: `web/src/i18n.test.ts`
+
+### Build note
+
+The CLI build script is `tsc && npm run copy-locales`. The `copy-locales` step copies JSON files from `src/locales/` to `dist/locales/` since tsc only compiles `.ts` files.

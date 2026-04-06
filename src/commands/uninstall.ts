@@ -1,5 +1,6 @@
 import { ScheduledTaskManager } from '../services/windows-service';
 import { DaemonService } from '../services/daemon';
+import { t } from '../services/i18n';
 
 interface UninstallDependencies {
   taskManager?: ScheduledTaskManager;
@@ -21,7 +22,7 @@ export function uninstallCommand(
   const taskState = taskManager.queryTaskState();
 
   if (taskState === 'not-installed') {
-    console.log('ℹ️ No Lattix scheduled task is installed.');
+    console.log(`ℹ️ ${t('uninstall.not_installed')}`);
     return;
   }
 
@@ -30,17 +31,17 @@ export function uninstallCommand(
   if (pid !== null && daemonService.isRunning(pid)) {
     try {
       killProcess(pid);
-      console.log(`⏹️ Stopped running Lattix (PID ${pid})`);
+      console.log(`⏹️ ${t('uninstall.stopped', { pid })}`);
     } catch { /* ignore */ }
     daemonService.removePid();
   }
 
   try {
     taskManager.uninstall();
-    console.log('✅ Lattix scheduled task removed');
-    console.log('   Lattix will no longer auto-start on login.');
+    console.log(`✅ ${t('uninstall.removed')}`);
+    console.log(`   ${t('uninstall.no_auto_start')}`);
   } catch (err) {
-    console.error(`❌ Failed to remove scheduled task: ${(err as Error).message}`);
+    console.error(`❌ ${t('uninstall.failed', { message: (err as Error).message })}`);
     return exit(1);
   }
 }

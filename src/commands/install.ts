@@ -1,6 +1,7 @@
 import { ScheduledTaskManager } from '../services/windows-service';
 import { DaemonService } from '../services/daemon';
 import { ShortcutResult } from '../services/shortcut';
+import { t } from '../services/i18n';
 
 interface InstallDependencies {
   taskManager?: ScheduledTaskManager;
@@ -23,10 +24,10 @@ export function installCommand(
   if (existingPid !== null) {
     const taskState = taskManager.queryTaskState();
     if (taskState === 'installed') {
-      console.log('ℹ️ Lattix scheduled task is already installed and running.');
-      console.log(`   PID: ${existingPid}`);
+      console.log(`ℹ️ ${t('install.already_installed_running')}`);
+      console.log(`   ${t('install.pid', { pid: existingPid })}`);
     } else {
-      console.error(`❌ Lattix is already running (PID ${existingPid}). Stop it first with \`lattix stop\`.`);
+      console.error(`❌ ${t('install.already_running', { pid: existingPid })}`);
       return exit(1);
     }
     return;
@@ -37,21 +38,21 @@ export function installCommand(
   try {
     if (taskState !== 'installed') {
       taskManager.install();
-      console.log('✅ Lattix scheduled task installed');
-      console.log(`   Task name: ${taskManager.getTaskName()}`);
-      console.log('   Lattix will auto-start on login via `npx lattix run -d`');
+      console.log(`✅ ${t('install.installed')}`);
+      console.log(`   ${t('install.task_name', { name: taskManager.getTaskName() })}`);
+      console.log(`   ${t('install.auto_start_hint')}`);
     } else {
-      console.log('ℹ️ Lattix scheduled task is already installed.');
+      console.log(`ℹ️ ${t('install.already_installed')}`);
     }
 
     // Start the task immediately
-    console.log('🚀 Starting Lattix...');
+    console.log(`🚀 ${t('install.starting')}`);
     taskManager.startTask();
     // Wait a moment for the daemon to write its PID
     setTimeout(() => {
       const pid = daemonService.readPid();
       if (pid !== null) {
-        console.log(`🟢 Lattix started (PID ${pid})`);
+        console.log(`🟢 ${t('install.started', { pid })}`);
       }
       // Show submit hint
       const getShortcutFn = dependencies.getShortcutResult ?? (() => {
@@ -59,10 +60,10 @@ export function installCommand(
       });
       const shortcut = getShortcutFn();
       const cmd = shortcut?.shortcutAvailable ? 'lattix' : 'npx -y lattix';
-      console.log(`\n💡 To submit a task: ${cmd} submit --prompt "your instruction here"\n`);
+      console.log(`\n💡 ${t('install.submit_hint', { command: cmd })}\n`);
     }, 3000);
   } catch (err) {
-    console.error(`❌ Failed to install/start scheduled task: ${(err as Error).message}`);
+    console.error(`❌ ${t('install.failed', { message: (err as Error).message })}`);
     return exit(1);
   }
 }

@@ -8,6 +8,7 @@ import { stopCommand } from './commands/stop';
 import { installCommand } from './commands/install';
 import { uninstallCommand } from './commands/uninstall';
 import { VersionChecker } from './services/version-checker';
+import { t } from './services/i18n';
 
 import { ShortcutService, ShortcutResult } from './services/shortcut';
 
@@ -31,46 +32,46 @@ export function getShortcutResult(): ShortcutResult | undefined {
 
 program
   .name('lattix')
-  .description('Distributed agent orchestration, without a control plane.')
+  .description(t('cli.description'))
   .version(packageJson.version);
 
 program
   .command('run')
-  .description('Start Lattix: auto-initialize if needed, then watch for tasks')
-  .option('--poll-interval <seconds>', 'Polling interval in seconds', '10')
-  .option('--concurrency <number>', 'Maximum concurrent agent processes', '1')
-  .option('-d, --daemon', 'Run as a background daemon process')
-  .option('--log-file <path>', 'Log file path (used with --daemon)')
+  .description(t('cli.run_description'))
+  .option('--poll-interval <seconds>', t('cli.run_option_poll'), '10')
+  .option('--concurrency <number>', t('cli.run_option_concurrency'), '1')
+  .option('-d, --daemon', t('cli.run_option_daemon'))
+  .option('--log-file <path>', t('cli.run_option_log_file'))
   .addOption(new Option('--_daemon-child').hideHelp())
   .action(runCommand);
 
 program
   .command('submit')
-  .description('Submit a new task for all machines to execute')
-  .requiredOption('--prompt <text>', 'The prompt/instruction for the coding agent')
-  .option('--title <text>', 'A short title for the task')
-  .option('--working-dir <path>', 'Working directory for the agent', process.cwd())
-  .option('--agent <command>', 'Agent command template. Use {prompt} as placeholder (e.g. "claude -p {prompt} --allowed-tools WebSearch")')
+  .description(t('cli.submit_description'))
+  .requiredOption('--prompt <text>', t('cli.submit_option_prompt'))
+  .option('--title <text>', t('cli.submit_option_title'))
+  .option('--working-dir <path>', t('cli.submit_option_working_dir'), process.cwd())
+  .option('--agent <command>', t('cli.submit_option_agent'))
   .action(submitCommand);
 
 program
   .command('status [taskId]')
-  .description('Show status of all tasks or a specific task')
+  .description(t('cli.status_description'))
   .action(statusCommand);
 
 program
   .command('stop')
-  .description('Stop the running Lattix instance')
+  .description(t('cli.stop_description'))
   .action(stopCommand);
 
 program
   .command('install')
-  .description('Install Lattix auto-start on login (scheduled task)')
+  .description(t('cli.install_description'))
   .action(installCommand);
 
 program
   .command('uninstall')
-  .description('Remove Lattix auto-start and stop running instance')
+  .description(t('cli.uninstall_description'))
   .action(uninstallCommand);
 
 // Version check in help output (async fetch before parse)
@@ -78,11 +79,11 @@ if (process.argv.includes('--help') || process.argv.includes('-h')) {
   const checker = new VersionChecker();
   checker.checkVersion().then((info) => {
     if (info.latest && info.updateAvailable) {
-      program.addHelpText('beforeAll', `📦 Lattix v${info.current} (latest: v${info.latest}) ⚡ Update available\n`);
+      program.addHelpText('beforeAll', `📦 ${t('cli.version_update_available', { current: info.current, latest: info.latest })}\n`);
     } else if (info.latest) {
-      program.addHelpText('beforeAll', `📦 Lattix v${info.current} (latest)\n`);
+      program.addHelpText('beforeAll', `📦 ${t('cli.version_latest', { current: info.current })}\n`);
     } else {
-      program.addHelpText('beforeAll', `📦 Lattix v${info.current}\n`);
+      program.addHelpText('beforeAll', `📦 ${t('cli.version_current', { current: info.current })}\n`);
     }
     program.parse();
   });

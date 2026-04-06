@@ -4,6 +4,7 @@ import * as os from 'os';
 import { execSync, ExecSyncOptionsWithStringEncoding } from 'child_process';
 import { OneDriveSelection } from '../types';
 import { createOneDriveSelection, formatOneDriveSelection } from './provider-selection';
+import { t } from './i18n';
 
 export interface OneDriveAccount extends OneDriveSelection {
   isBusiness: boolean;
@@ -43,23 +44,19 @@ export class OneDriveDetector {
     const accounts = this.detectAccounts();
 
     if (accounts.length === 0) {
-      throw new Error(
-        'No supported OneDrive account found.\n' +
-        'Please install OneDrive and sign in with either your personal or business account.\n' +
-        'Download: https://www.microsoft.com/en-us/microsoft-365/onedrive/download'
-      );
+      throw new Error(t('bootstrap.no_onedrive'));
     }
 
     if (accounts.length > 1) {
       console.warn(
-        `Multiple OneDrive accounts detected. Using the first one:\n` +
+        t('detector.multiple_accounts') + '\n' +
         accounts.map((account, index) => `  ${index + 1}. ${formatOneDriveSelection(account)}`).join('\n')
       );
     }
 
     const selected = accounts[0];
 
-    console.log(`✓ OneDrive detected: ${selected.path}`);
+    console.log(`✓ ${t('detector.detected', { path: selected.path })}`);
     return selected.path;
   }
 

@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { DEFAULT_CONFIG, LattixConfig, OneDriveAccountType, OneDriveSelection, SyncProvider } from '../types';
+import { t } from './i18n';
 
 export function inferOneDriveAccountType(onedrivePath: string): OneDriveAccountType {
   return path.basename(onedrivePath) === 'OneDrive' ? 'personal' : 'business';
@@ -89,14 +90,10 @@ export async function chooseOneDriveAccount(
   accounts: OneDriveSelection[]
 ): Promise<OneDriveSelection> {
   if (accounts.length === 0) {
-    throw new Error(
-      'No supported OneDrive account found.\n' +
-      'Please install OneDrive and sign in with either your personal or business account.\n' +
-      'Download: https://www.microsoft.com/en-us/microsoft-365/onedrive/download'
-    );
+    throw new Error(t('bootstrap.no_onedrive'));
   }
 
   const selected = accounts[0];
-  console.log(`✓ OneDrive selected: ${formatOneDriveSelection(selected)}`);
+  console.log(`✓ ${t('bootstrap.selected', { selection: formatOneDriveSelection(selected) })}`);
   return selected;
 }

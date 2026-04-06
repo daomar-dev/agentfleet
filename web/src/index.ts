@@ -1,3 +1,4 @@
+import { initI18n, t } from './i18n';
 import { initAuth, isAuthenticated } from './auth';
 import { registerRoutes, startRouter } from './router';
 import { renderLogin } from './components/login';
@@ -28,10 +29,13 @@ const routes: Route[] = [
 ];
 
 async function main(): Promise<void> {
+  // Initialize i18n early — sets <html lang>, <title>, and <meta description>
+  initI18n();
+
   try {
     await initAuth();
   } catch (err) {
-    showToast('Failed to initialize authentication', 'error');
+    showToast(t('app.authInitFailed'), 'error');
     console.error('Auth init failed:', err);
   }
 
@@ -52,7 +56,7 @@ async function main(): Promise<void> {
 window.addEventListener('unhandledrejection', (event) => {
   console.error('Unhandled rejection:', event.reason);
   showToast(
-    event.reason?.message || 'An unexpected error occurred',
+    event.reason?.message || t('app.unexpectedError'),
     'error',
   );
 });

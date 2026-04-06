@@ -10,7 +10,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', 'PingFang SC', Helvetica, Arial, sans-serif;
       background: #f5f5f5;
       color: #333;
       min-height: 100vh;
@@ -167,15 +167,15 @@
       <img src="/icons/icon-192.png" alt="" />
       <span>Lattix</span>
     </a>
-    <h1>Support Lattix</h1>
-    <p>Lattix is free and open-source. If it helps your workflow, consider buying the author a coffee. Every contribution counts!</p>
+    <h1 id="page-title">Support Lattix</h1>
+    <p id="page-subtitle">Lattix is free and open-source. If it helps your workflow, consider buying the author a coffee. Every contribution counts!</p>
   </header>
 
   <div class="channels">
     <!-- PayPal (English, international users) -->
-    <div class="channel-card">
+    <div class="channel-card" id="paypal-card">
       <h2>PayPal</h2>
-      <p class="desc">For international supporters — quick and easy via PayPal.</p>
+      <p class="desc" id="paypal-desc">For international supporters — quick and easy via PayPal.</p>
       <a class="paypal-btn" href="https://paypal.me/chenxizhang2026" target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.56A.774.774 0 0 1 5.71 1.9h5.903c2.757 0 4.693.867 5.353 3.036.196.648.263 1.37.196 2.14-.06.71-.222 1.5-.49 2.342C15.834 12.387 13.1 13.5 9.834 13.5H7.473l-.397 7.837zm13.35-15.53c-.06.69-.222 1.46-.49 2.28-.838 2.588-2.846 3.97-5.9 4.122l1.166-7.81c.197-.643.752-1.1 1.426-1.1h2.06c.867 0 1.584.197 2.14.593-.072.27-.159.567-.27.9l-.133.015z"/></svg>
         Donate with PayPal
@@ -183,7 +183,7 @@
     </div>
 
     <!-- WeChat Pay (Chinese, domestic users) -->
-    <div class="channel-card">
+    <div class="channel-card" id="wechat-card">
       <h2>微信支付</h2>
       <p class="desc">国内用户可以通过微信扫码赞赏，感谢您的支持！</p>
       <img class="wechat-qr" src="/wechat-donation.jpg" alt="微信支付二维码" />
@@ -191,8 +191,27 @@
     </div>
   </div>
 
-  <footer>
+  <footer id="page-footer">
     All supporters will be recognized on the <a href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">project homepage</a>.
   </footer>
+
+  <script>
+    (function () {
+      var isZh = navigator.language && navigator.language.startsWith('zh');
+      if (isZh) {
+        document.documentElement.lang = 'zh-CN';
+        document.title = '支持 Lattix';
+        document.getElementById('page-title').textContent = '支持 Lattix';
+        document.getElementById('page-subtitle').textContent =
+          'Lattix 是免费的开源项目。如果它对您的工作有帮助，欢迎请作者喝杯咖啡，每一份支持都是莫大的鼓励！';
+        document.getElementById('paypal-desc').textContent =
+          '海外用户可通过 PayPal 快捷赞赏。';
+        document.getElementById('page-footer').innerHTML =
+          '所有赞赏者将在<a href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">项目主页</a>上获得致谢。';
+        // Reorder: WeChat first for Chinese users
+        document.getElementById('wechat-card').style.order = '-1';
+      }
+    })();
+  </script>
 </body>
 </html>

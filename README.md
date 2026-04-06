@@ -2,6 +2,8 @@
   <img src="assets/icon.svg" alt="Lattix icon" width="160" />
 </p>
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 # Lattix
 
 > Distributed agent orchestration, without a control plane.

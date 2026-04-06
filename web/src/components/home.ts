@@ -1,7 +1,7 @@
 import { renderNavbar } from './navbar';
 import { submitTask, listTaskFiles, discoverNodes, checkWorkspaceExists } from '../graph';
-import { formatDate } from '../utils';
 import { showToast } from '../utils';
+import { t, formatDate, formatRelativeTime } from '../i18n';
 import { getCache, setCache, getSetting, getTaskContent } from '../task-cache';
 import type { TaskFile, LattixNode } from '../types';
 
@@ -12,21 +12,24 @@ interface CachedTask {
 
 function renderNodes(section: HTMLElement, nodes: LattixNode[], loading: boolean): void {
   if (loading && nodes.length === 0) {
-    section.innerHTML = '<h2>Nodes</h2><div class="skeleton-block"></div>';
+    section.innerHTML = `<h2>${t('home.nodesTitle')}</h2><div class="skeleton-block"></div>`;
     return;
   }
   if (nodes.length > 0) {
-    section.innerHTML = `<h2>Nodes (${nodes.length})</h2>`;
+    section.innerHTML = `<h2>${t('home.nodesTitleCount', { count: nodes.length })}</h2>`;
     const grid = document.createElement('div');
     grid.className = 'node-grid';
     for (const node of nodes) {
       const card = document.createElement('div');
       card.className = 'node-card';
+      const resultText = node.taskCount !== 1
+        ? t('home.nodeResultsPlural', { count: node.taskCount })
+        : t('home.nodeResults', { count: node.taskCount });
       card.innerHTML = `
         <div class="node-hostname">${node.hostname}</div>
         <div class="node-meta">
-          <span>${node.taskCount} result${node.taskCount !== 1 ? 's' : ''}</span>
-          <span>Last active: ${formatDate(node.lastActive)}</span>
+          <span>${resultText}</span>
+          <span>${t('home.nodeLastActive', { time: formatRelativeTime(node.lastActive) })}</span>
         </div>
       `;
       grid.appendChild(card);
@@ -34,19 +37,19 @@ function renderNodes(section: HTMLElement, nodes: LattixNode[], loading: boolean
     section.appendChild(grid);
   } else {
     section.innerHTML = `
-      <h2>Nodes</h2>
-      <p class="empty-state">No nodes have executed tasks yet. Run <code>npx -y lattix run</code> on a machine to enroll it.</p>
+      <h2>${t('home.nodesTitle')}</h2>
+      <p class="empty-state">${t('home.nodesEmpty')}</p>
     `;
   }
 }
 
 function renderRecentTasks(section: HTMLElement, tasks: CachedTask[], loading: boolean, loadFailed = false): void {
   if (loading && tasks.length === 0) {
-    section.innerHTML = '<h2>Recent Tasks</h2><div class="skeleton-block"></div>';
+    section.innerHTML = `<h2>${t('home.recentTasksTitle')}</h2><div class="skeleton-block"></div>`;
     return;
   }
   if (tasks.length > 0) {
-    section.innerHTML = `<h2>Recent Tasks</h2>`;
+    section.innerHTML = `<h2>${t('home.recentTasksTitle')}</h2>`;
     const list = document.createElement('div');
     list.className = 'task-list';
     for (const { task, lastModified } of tasks) {
@@ -57,7 +60,7 @@ function renderRecentTasks(section: HTMLElement, tasks: CachedTask[], loading: b
         <div class="task-title">${task.title || task.id}</div>
         <div class="task-meta">
           <span>${formatDate(task.createdAt || lastModified)}</span>
-          ${task.createdBy ? `<span>by ${task.createdBy}</span>` : ''}
+          ${task.createdBy ? `<span>${t('home.by', { name: task.createdBy })}</span>` : ''}
         </div>
       `;
       list.appendChild(item);
@@ -66,17 +69,17 @@ function renderRecentTasks(section: HTMLElement, tasks: CachedTask[], loading: b
     const viewAll = document.createElement('a');
     viewAll.href = '#/tasks';
     viewAll.className = 'btn btn-sm view-all-link';
-    viewAll.textContent = 'View all tasks →';
+    viewAll.textContent = t('home.viewAllTasks');
     section.appendChild(viewAll);
   } else if (loadFailed) {
     section.innerHTML = `
-      <h2>Recent Tasks</h2>
-      <p class="empty-state">Failed to load tasks. Please try again.</p>
+      <h2>${t('home.recentTasksTitle')}</h2>
+      <p class="empty-state">${t('home.recentTasksFailed')}</p>
     `;
   } else {
     section.innerHTML = `
-      <h2>Recent Tasks</h2>
-      <p class="empty-state">No tasks yet. Use the form above to submit your first task.</p>
+      <h2>${t('home.recentTasksTitle')}</h2>
+      <p class="empty-state">${t('home.recentTasksEmpty')}</p>
     `;
   }
 }
@@ -93,19 +96,19 @@ export async function renderHome(container: HTMLElement): Promise<void> {
   const submitSection = document.createElement('section');
   submitSection.className = 'submit-section';
   submitSection.innerHTML = `
-    <h2>Submit a Task</h2>
+    <h2>${t('home.submitTitle')}</h2>
     <form id="submit-form" class="submit-form">
-      <input type="text" id="task-title" placeholder="Title (optional)" maxlength="100" class="form-input" />
-      <textarea id="task-prompt" placeholder="What should the agents do?" maxlength="10000" class="form-textarea" required rows="3"></textarea>
+      <input type="text" id="task-title" placeholder="${t('home.titlePlaceholder')}" maxlength="100" class="form-input" />
+      <textarea id="task-prompt" placeholder="${t('home.promptPlaceholder')}" maxlength="10000" class="form-textarea" required rows="3"></textarea>
       <details class="form-advanced">
-        <summary class="form-advanced-toggle">Options</summary>
+        <summary class="form-advanced-toggle">${t('home.options')}</summary>
         <div class="form-advanced-content">
-          <label class="form-label" for="task-agent">Agent command</label>
-          <input type="text" id="task-agent" placeholder="e.g. claude -p {prompt}" value="${defaultAgent}" class="form-input" />
-          <p class="form-hint">Leave empty to use each node's default agent configuration.</p>
+          <label class="form-label" for="task-agent">${t('home.agentLabel')}</label>
+          <input type="text" id="task-agent" placeholder="${t('home.agentPlaceholder')}" value="${defaultAgent}" class="form-input" />
+          <p class="form-hint">${t('home.agentHint')}</p>
         </div>
       </details>
-      <button type="submit" class="btn btn-primary">Submit Task</button>
+      <button type="submit" class="btn btn-primary">${t('home.submitButton')}</button>
     </form>
   `;
   main.appendChild(submitSection);
@@ -119,17 +122,17 @@ export async function renderHome(container: HTMLElement): Promise<void> {
 
     try {
       btn.disabled = true;
-      btn.textContent = 'Submitting...';
+      btn.textContent = t('home.submitting');
       const command = agentInput.value.trim() || undefined;
       await submitTask(titleInput.value || undefined, promptInput.value, command);
       titleInput.value = '';
       promptInput.value = '';
-      showToast('Task submitted successfully!', 'info');
+      showToast(t('home.submitSuccess'), 'info');
     } catch (err) {
-      showToast(`Failed to submit: ${err instanceof Error ? err.message : 'Unknown error'}`, 'error');
+      showToast(t('home.submitFailed', { error: err instanceof Error ? err.message : 'Unknown error' }), 'error');
     } finally {
       btn.disabled = false;
-      btn.textContent = 'Submit Task';
+      btn.textContent = t('home.submitButton');
     }
   });
 
@@ -160,11 +163,11 @@ export async function renderHome(container: HTMLElement): Promise<void> {
       const onboarding = document.createElement('section');
       onboarding.className = 'onboarding';
       onboarding.innerHTML = `
-        <h2>Welcome to Lattix</h2>
-        <p>No Lattix workspace found in your OneDrive. Get started by installing Lattix on your first machine:</p>
-        <pre class="code-block">npx -y lattix run</pre>
-        <p>This will create the Lattix workspace in your OneDrive and start watching for tasks.</p>
-        <p class="onboarding-hint">💡 Make sure you signed in with the same Microsoft account used by your machines' OneDrive.</p>
+        <h2>${t('home.welcomeTitle')}</h2>
+        <p>${t('home.welcomeText')}</p>
+        <pre class="code-block">${t('home.welcomeCommand')}</pre>
+        <p>${t('home.welcomeExplanation')}</p>
+        <p class="onboarding-hint">${t('home.welcomeHint')}</p>
       `;
       main.appendChild(onboarding);
       return;
@@ -198,7 +201,7 @@ export async function renderHome(container: HTMLElement): Promise<void> {
 
     const loadFailed = freshTasks.length === 0 && itemsToRead.length > 0;
     if (loadFailed) {
-      showToast('Failed to load task details. Please try again.', 'error');
+      showToast(t('home.loadFailed'), 'error');
     }
 
     // Update cache and re-render with fresh data
@@ -212,7 +215,7 @@ export async function renderHome(container: HTMLElement): Promise<void> {
   } catch (err) {
     // If we have cached data, keep showing it
     if (!cachedNodes && !cachedTasks) {
-      showToast('Failed to load data', 'error');
+      showToast(t('home.loadDataFailed'), 'error');
     }
   }
 }

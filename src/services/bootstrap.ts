@@ -2,6 +2,7 @@ import { OneDriveDetector } from './onedrive-detector';
 import { SetupService } from './setup';
 import { LattixConfig, OneDriveSelection } from '../types';
 import { createOneDriveSelection, selectionFromConfig } from './provider-selection';
+import { t } from './i18n';
 
 interface BootstrapDependencies {
   detector?: Pick<OneDriveDetector, 'detectAccounts'>;
@@ -21,15 +22,11 @@ export async function bootstrap(deps: BootstrapDependencies = {}): Promise<Latti
   const accounts = detector.detectAccounts();
 
   if (accounts.length === 0) {
-    throw new Error(
-      'No supported OneDrive account found.\n' +
-      'Please install OneDrive and sign in with either your personal or business account.\n' +
-      'Download: https://www.microsoft.com/en-us/microsoft-365/onedrive/download'
-    );
+    throw new Error(t('bootstrap.no_onedrive'));
   }
 
   const selected = accounts[0];
-  console.log(`✓ OneDrive selected: ${selected.accountName} (${selected.accountType}) → ${selected.path}`);
+  console.log(`✓ ${t('bootstrap.selected', { name: selected.accountName, type: selected.accountType, path: selected.path })}`);
 
   return setup.setup(selected);
 }

@@ -1,5 +1,6 @@
 import { spawn, ChildProcess } from 'child_process';
 import { TaskFile, LattixConfig } from '../types';
+import { t } from './i18n';
 
 export interface ExecutionResult {
   taskId: string;
@@ -34,7 +35,7 @@ export class AgentExecutor {
    */
   async execute(task: TaskFile): Promise<ExecutionResult> {
     if (this.runningCount >= this.config.maxConcurrency) {
-      console.log(`⏳ Task ${task.id} queued (${this.runningCount}/${this.config.maxConcurrency} running)`);
+      console.log(`⏳ ${t('executor.queued', { taskId: task.id, running: this.runningCount, max: this.config.maxConcurrency })}`);
       return new Promise<ExecutionResult>((resolve, reject) => {
         this.queue.push({ task, resolve, reject });
       });
@@ -48,9 +49,9 @@ export class AgentExecutor {
     const agentCommand = task.command || this.config.defaultAgentCommand;
     const startedAt = new Date().toISOString();
 
-    console.log(`🚀 Executing task ${task.id} with: ${agentCommand}`);
+    console.log(`🚀 ${t('executor.executing', { taskId: task.id, command: agentCommand })}`);
     if (task.workingDirectory) {
-      console.log(`   Working directory: ${task.workingDirectory}`);
+      console.log(`   ${t('executor.working_dir', { dir: task.workingDirectory })}`);
     }
 
     try {
@@ -134,7 +135,7 @@ export class AgentExecutor {
       // Timeout handling
       const timeoutMs = this.config.taskTimeoutMinutes * 60 * 1000;
       const timer = setTimeout(() => {
-        console.warn(`⏰ Task ${task.id} timed out after ${this.config.taskTimeoutMinutes} minutes, killing process`);
+        console.warn(`⏰ ${t('executor.timeout', { taskId: task.id, minutes: this.config.taskTimeoutMinutes })}`);
         proc.kill('SIGTERM');
         setTimeout(() => {
           if (!proc.killed) proc.kill('SIGKILL');

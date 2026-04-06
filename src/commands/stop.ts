@@ -1,4 +1,5 @@
 import { DaemonService } from '../services/daemon';
+import { t } from '../services/i18n';
 
 interface StopDependencies {
   daemonService?: DaemonService;
@@ -14,13 +15,13 @@ export function stopCommand(dependencies: StopDependencies = {}): void {
   const pid = daemonService.readPid();
 
   if (pid === null) {
-    console.log('ℹ️ Lattix is not running (no PID file found)');
+    console.log(`ℹ️ ${t('stop.not_running_no_pid')}`);
     exit(0);
     return undefined as never;
   }
 
   if (!daemonService.isRunning(pid)) {
-    console.log('ℹ️ Lattix is not running (stale PID file cleaned up)');
+    console.log(`ℹ️ ${t('stop.not_running_stale')}`);
     daemonService.removePid();
     exit(0);
     return undefined as never;
@@ -28,9 +29,9 @@ export function stopCommand(dependencies: StopDependencies = {}): void {
 
   try {
     killProcess(pid);
-    console.log(`✅ Lattix stopped (PID ${pid})`);
+    console.log(`✅ ${t('stop.stopped', { pid })}`);
   } catch (err) {
-    console.error(`❌ Failed to stop Lattix (PID ${pid}): ${(err as Error).message}`);
+    console.error(`❌ ${t('stop.failed', { pid, message: (err as Error).message })}`);
     exit(1);
     return undefined as never;
   }

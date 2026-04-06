@@ -2,6 +2,7 @@
   "name": "Lattix",
   "short_name": "Lattix",
   "description": "Distributed agent orchestration dashboard",
+  "lang": "en-US",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",

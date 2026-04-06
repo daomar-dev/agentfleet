@@ -6,6 +6,7 @@ import { DaemonService } from '../services/daemon';
 import { ScheduledTaskManager } from '../services/windows-service';
 import { VersionChecker } from '../services/version-checker';
 import { bootstrap } from '../services/bootstrap';
+import { t, formatDate, formatRelativeTime } from '../services/i18n';
 
 interface StatusDependencies {
   daemonService?: DaemonService;
@@ -45,41 +46,41 @@ function showProcessInfo(daemonService: DaemonService, taskManager: ScheduledTas
   const autoStart = taskState === 'installed';
 
   if (pid !== null && daemonService.isRunning(pid)) {
-    console.log(`🟢 Lattix is running (PID ${pid})`);
+    console.log(`🟢 ${t('status.running', { pid })}`);
     if (autoStart) {
-      console.log('   Mode: daemon (auto-start on login)');
+      console.log(`   ${t('status.mode_auto_start')}`);
     } else {
       const logPath = daemonService.getDefaultLogPath();
       const hasLogFile = fs.existsSync(logPath);
-      console.log(`   Mode: ${hasLogFile ? 'daemon (background)' : 'foreground'}`);
+      console.log(`   ${hasLogFile ? t('status.mode_daemon') : t('status.mode_foreground')}`);
       if (hasLogFile) {
-        console.log(`   Log file: ${logPath}`);
+        console.log(`   ${t('status.log_file', { path: logPath })}`);
       }
     }
-    console.log(`   PID file: ${daemonService.getPidPath()}`);
+    console.log(`   ${t('status.pid_file', { path: daemonService.getPidPath() })}`);
     console.log();
     return;
   }
 
   if (autoStart) {
-    console.log('⚪ Lattix auto-start is configured but not currently running');
-    console.log('   Run `lattix run` to start, or it will auto-start on next login.\n');
+    console.log(`⚪ ${t('status.auto_start_not_running')}`);
+    console.log(`   ${t('status.auto_start_hint')}\n`);
     if (pid !== null) daemonService.removePid();
     return;
   }
 
-  console.log('⚪ Lattix is not running\n');
+  console.log(`⚪ ${t('status.not_running')}\n`);
   if (pid !== null) daemonService.removePid();
 }
 
 async function showVersionInfo(versionChecker: VersionChecker): Promise<void> {
   const info = await versionChecker.checkVersion();
   if (info.latest && info.updateAvailable) {
-    console.log(`📦 Lattix v${info.current} (latest: v${info.latest}) ⚡ Update available`);
+    console.log(`📦 ${t('status.version_update', { current: info.current, latest: info.latest })}`);
   } else if (info.latest) {
-    console.log(`📦 Lattix v${info.current} (latest)`);
+    console.log(`📦 ${t('status.version_latest', { current: info.current })}`);
   } else {
-    console.log(`📦 Lattix v${info.current}`);
+    console.log(`📦 ${t('status.version_current', { current: info.current })}`);
   }
 }
 
@@ -87,12 +88,12 @@ function showAllTasks(tasksDir: string, outputDir: string): void {
   const taskFiles = fs.readdirSync(tasksDir).filter(f => f.endsWith('.json'));
 
   if (taskFiles.length === 0) {
-    console.log('No tasks found.');
+    console.log(t('status.no_tasks'));
     return;
   }
 
-  console.log(`\n📋 Tasks (${taskFiles.length} total)\n`);
-  console.log(padRight('ID', 36) + padRight('Title', 30) + padRight('Status', 12) + 'Results');
+  console.log(`\n📋 ${t('status.tasks_header', { count: taskFiles.length })}\n`);
+  console.log(padRight(t('status.col_id'), 36) + padRight(t('status.col_title'), 30) + padRight(t('status.col_status'), 12) + t('status.col_results'));
   console.log('─'.repeat(90));
 
   for (const file of taskFiles) {
@@ -111,17 +112,17 @@ function showAllTasks(tasksDir: string, outputDir: string): void {
         machines = resultFiles.map(f => f.replace('-result.json', ''));
       }
 
-      const status = resultCount > 0 ? `done (${resultCount})` : 'pending';
+      const status = resultCount > 0 ? t('status.status_done', { count: resultCount }) : t('status.status_pending');
       const machineStr = machines.length > 0 ? machines.join(', ') : '-';
 
       console.log(
         padRight(task.id, 36) +
-        padRight(task.title || '(untitled)', 30) +
+        padRight(task.title || t('status.untitled'), 30) +
         padRight(status, 12) +
         machineStr
       );
     } catch {
-      console.log(padRight(file, 36) + '(error reading file)');
+      console.log(padRight(file, 36) + t('status.error_reading'));
     }
   }
   console.log();
@@ -144,17 +145,17 @@ function showTaskDetail(taskId: string, tasksDir: string, outputDir: string): vo
   }
 
   if (!task) {
-    console.error(`❌ Task not found: ${taskId}`);
+    console.error(`❌ ${t('status.task_not_found', { taskId })}`);
     process.exit(1);
   }
 
-  console.log(`\n📋 Task: ${task.id}`);
-  console.log(`   Title: ${task.title || '(none)'}`);
-  console.log(`   Prompt: ${task.prompt}`);
-  console.log(`   Working dir: ${task.workingDirectory || '(default)'}`);
-  console.log(`   Agent: ${task.command || '(default)'}`);
-  console.log(`   Created: ${task.createdAt || 'unknown'}`);
-  console.log(`   Created by: ${task.createdBy || 'unknown'}`);
+  console.log(`\n📋 ${t('status.task_header', { taskId: task.id })}`);
+  console.log(`   ${t('status.task_title', { title: task.title || t('status.task_title_none') })}`);
+  console.log(`   ${t('status.task_prompt', { prompt: task.prompt })}`);
+  console.log(`   ${t('status.task_working_dir', { path: task.workingDirectory || t('status.task_default') })}`);
+  console.log(`   ${t('status.task_agent', { agent: task.command || t('status.task_default') })}`);
+  console.log(`   ${t('status.task_created', { date: task.createdAt ? formatDate(task.createdAt) : t('status.task_unknown') })}`);
+  console.log(`   ${t('status.task_created_by', { hostname: task.createdBy || t('status.task_unknown') })}`);
 
   // Show results
   const taskOutputDir = path.join(outputDir, task.id);
@@ -162,7 +163,7 @@ function showTaskDetail(taskId: string, tasksDir: string, outputDir: string): vo
     const resultFiles = fs.readdirSync(taskOutputDir).filter(f => f.endsWith('-result.json'));
 
     if (resultFiles.length > 0) {
-      console.log(`\n📊 Results (${resultFiles.length} machine(s)):\n`);
+      console.log(`\n📊 ${t('status.results_header', { count: resultFiles.length })}\n`);
 
       for (const resultFile of resultFiles) {
         try {
@@ -170,10 +171,10 @@ function showTaskDetail(taskId: string, tasksDir: string, outputDir: string): vo
           const result = JSON.parse(content) as ResultFile;
           const icon = result.status === 'completed' ? '✅' : result.status === 'timeout' ? '⏰' : '❌';
           console.log(`   ${icon} ${result.hostname}`);
-          console.log(`      Status: ${result.status} (exit code: ${result.exitCode})`);
-          console.log(`      Started: ${result.startedAt}`);
-          console.log(`      Completed: ${result.completedAt}`);
-          if (result.error) console.log(`      Error: ${result.error}`);
+          console.log(`      ${t('status.result_status', { status: result.status, exitCode: result.exitCode })}`);
+          console.log(`      ${t('status.result_started', { date: formatDate(result.startedAt) })}`);
+          console.log(`      ${t('status.result_completed', { date: formatDate(result.completedAt) })}`);
+          if (result.error) console.log(`      ${t('status.result_error', { error: result.error })}`);
         } catch { /* skip */ }
       }
     }
@@ -181,14 +182,14 @@ function showTaskDetail(taskId: string, tasksDir: string, outputDir: string): vo
     // List all output files
     const allFiles = fs.readdirSync(taskOutputDir);
     if (allFiles.length > 0) {
-      console.log(`\n📁 Output files:`);
+      console.log(`\n📁 ${t('status.output_files')}`);
       for (const f of allFiles) {
         const stats = fs.statSync(path.join(taskOutputDir, f));
         console.log(`   ${f} (${formatBytes(stats.size)})`);
       }
     }
   } else {
-    console.log('\n   No results yet.');
+    console.log(`\n   ${t('status.no_results')}`);
   }
   console.log();
 }

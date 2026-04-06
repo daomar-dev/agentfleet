@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { execSync } from 'child_process';
+import { t } from './i18n';
 
 export interface ShortcutResult {
   /** Whether a `lattix` shortcut command is available (global or wrapper) */
@@ -113,11 +114,11 @@ export class ShortcutService {
 
       // Create wrapper and add to PATH
       this.createWrapper();
-      console.log(`\n🔗 \`lattix\` command is now available (shortcut to \`npx -y lattix\`)\n`);
+      console.log(`\n🔗 ${t('shortcut.available')}\n`);
 
       return { shortcutAvailable: true, action: 'wrapper-created' };
     } catch (err) {
-      console.warn(`⚠ Shortcut registration failed: ${(err as Error).message}`);
+      console.warn(`⚠ ${t('shortcut.failed', { error: (err as Error).message })}`);
       return { shortcutAvailable: false, action: 'error' };
     }
   }

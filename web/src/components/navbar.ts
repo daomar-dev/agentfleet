@@ -1,4 +1,5 @@
 import { getAccount, logout, getAccountType } from '../auth';
+import { t } from '../i18n';
 
 export function renderNavbar(container: HTMLElement): HTMLElement {
   const nav = document.createElement('nav');
@@ -8,7 +9,7 @@ export function renderNavbar(container: HTMLElement): HTMLElement {
   const displayName = account?.name || account?.username || '';
   const email = account?.username || '';
   const accountType = getAccountType();
-  const accountLabel = accountType === 'personal' ? 'OneDrive Personal' : 'OneDrive for Business';
+  const accountLabel = accountType === 'personal' ? t('navbar.accountPersonal') : t('navbar.accountBusiness');
 
   nav.innerHTML = `
     <div class="navbar-brand">
@@ -16,7 +17,7 @@ export function renderNavbar(container: HTMLElement): HTMLElement {
         <img src="/icons/icon-192.png" alt="" width="28" height="28" />
         <div class="navbar-title-group">
           <span class="navbar-title">Lattix</span>
-          <span class="navbar-slogan">Distributed agent orchestration, without a control plane.</span>
+          <span class="navbar-slogan">${t('navbar.slogan')}</span>
         </div>
       </a>
     </div>
@@ -29,7 +30,7 @@ export function renderNavbar(container: HTMLElement): HTMLElement {
           <div class="dropdown-type">${accountLabel}</div>
         </div>
         <div class="dropdown-actions">
-          <button class="btn btn-sm dropdown-action-btn" id="logout-btn">Logout</button>
+          <button class="btn btn-sm dropdown-action-btn" id="logout-btn">${t('navbar.logout')}</button>
         </div>
       </div>
     </div>
@@ -43,15 +44,15 @@ export function renderNavbar(container: HTMLElement): HTMLElement {
   tabBar.innerHTML = `
     <a href="#/" class="tab-link" data-path="/">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1h-2z"/></svg>
-      <span>Home</span>
+      <span>${t('navbar.home')}</span>
     </a>
     <a href="#/tasks" class="tab-link" data-path="/tasks">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-      <span>Tasks</span>
+      <span>${t('navbar.tasks')}</span>
     </a>
     <a href="#/settings" class="tab-link" data-path="/settings">
       <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
-      <span>Settings</span>
+      <span>${t('navbar.settings')}</span>
     </a>
   `;
   container.appendChild(tabBar);
@@ -60,10 +61,10 @@ export function renderNavbar(container: HTMLElement): HTMLElement {
   const desktopNav = document.createElement('div');
   desktopNav.className = 'navbar-desktop-links';
   desktopNav.innerHTML = `
-    <a href="#/" class="navbar-link">Home</a>
-    <a href="#/tasks" class="navbar-link">Tasks</a>
-    <a href="#/settings" class="navbar-link">Settings</a>
-    <a href="/donate.html" class="navbar-link navbar-link--donate" target="_blank" rel="noopener">&#9829; Donate</a>
+    <a href="#/" class="navbar-link">${t('navbar.home')}</a>
+    <a href="#/tasks" class="navbar-link">${t('navbar.tasks')}</a>
+    <a href="#/settings" class="navbar-link">${t('navbar.settings')}</a>
+    <a href="/donate.html" class="navbar-link navbar-link--donate" target="_blank" rel="noopener">&#9829; ${t('navbar.donate')}</a>
   `;
   nav.insertBefore(desktopNav, nav.querySelector('.navbar-actions'));
 

@@ -1,6 +1,7 @@
 import { renderNavbar } from './navbar';
 import { listTaskFiles } from '../graph';
-import { formatDate, showToast } from '../utils';
+import { showToast } from '../utils';
+import { t, formatDate } from '../i18n';
 import { getCache, setCache, getTaskContent } from '../task-cache';
 import type { TaskFile, DriveItem } from '../types';
 
@@ -19,16 +20,20 @@ function renderList(
   main.innerHTML = '';
 
   const header = document.createElement('h2');
-  header.textContent = items.length > 0
-    ? `All Tasks (${items.length}${hasMore ? '+' : ''})`
-    : 'All Tasks';
+  if (items.length > 0) {
+    header.textContent = hasMore
+      ? t('taskList.titleCountMore', { count: items.length })
+      : t('taskList.titleCount', { count: items.length });
+  } else {
+    header.textContent = t('taskList.title');
+  }
   main.appendChild(header);
 
   if (items.length === 0) {
     if (loadFailed) {
-      main.innerHTML += '<p class="empty-state">Failed to load tasks. Please try again.</p>';
+      main.innerHTML += `<p class="empty-state">${t('taskList.loadFailed')}</p>`;
     } else {
-      main.innerHTML += '<p class="empty-state">No tasks found. Submit a task from the Home page.</p>';
+      main.innerHTML += `<p class="empty-state">${t('taskList.empty')}</p>`;
     }
     return;
   }
@@ -44,7 +49,7 @@ function renderList(
       <div class="task-title">${task.title || task.id}</div>
       <div class="task-meta">
         <span>${formatDate(task.createdAt || lastModified)}</span>
-        ${task.createdBy ? `<span>by ${task.createdBy}</span>` : ''}
+        ${task.createdBy ? `<span>${t('home.by', { name: task.createdBy })}</span>` : ''}
       </div>
     `;
     list.appendChild(item);
@@ -55,10 +60,10 @@ function renderList(
   if (hasMore && onLoadMore) {
     const loadMoreBtn = document.createElement('button');
     loadMoreBtn.className = 'btn btn-sm load-more-btn';
-    loadMoreBtn.textContent = 'Load more';
+    loadMoreBtn.textContent = t('taskList.loadMore');
     loadMoreBtn.addEventListener('click', async () => {
       loadMoreBtn.disabled = true;
-      loadMoreBtn.textContent = 'Loading...';
+      loadMoreBtn.textContent = t('taskList.loading');
       await onLoadMore();
     });
     main.appendChild(loadMoreBtn);
@@ -77,7 +82,7 @@ export async function renderTaskList(container: HTMLElement): Promise<void> {
   if (cached && cached.length > 0) {
     renderList(main, cached, false);
   } else {
-    main.innerHTML = '<h2>All Tasks</h2><div class="skeleton-block"></div><div class="skeleton-block"></div>';
+    main.innerHTML = `<h2>${t('taskList.title')}</h2><div class="skeleton-block"></div><div class="skeleton-block"></div>`;
   }
 
   let nextLink: string | undefined;
@@ -109,7 +114,7 @@ export async function renderTaskList(container: HTMLElement): Promise<void> {
 
     const loadFailed = allItems.length === 0 && result.items.length > 0;
     if (loadFailed) {
-      showToast('Failed to load task details. Please try again.', 'error');
+      showToast(t('taskList.loadFailed'), 'error');
     }
 
     setCache('task_list', allItems);

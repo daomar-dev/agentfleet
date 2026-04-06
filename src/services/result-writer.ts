@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { ResultFile } from '../types';
 import { ExecutionResult } from './agent-executor';
+import { t } from './i18n';
 
 export class ResultWriter {
   private readonly outputDir: string;
@@ -53,7 +54,7 @@ export class ResultWriter {
     }
 
     const statusIcon = result.status === 'completed' ? '✅' : result.status === 'timeout' ? '⏰' : '❌';
-    console.log(`${statusIcon} Results written to: ${taskOutputDir}`);
+    console.log(`${statusIcon} ${t('result.written', { path: taskOutputDir })}`);
 
     return taskOutputDir;
   }

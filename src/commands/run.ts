@@ -7,6 +7,7 @@ import { ScheduledTaskManager } from '../services/windows-service';
 import { Logger } from '../services/logger';
 import { LattixConfig } from '../types';
 import { bootstrap } from '../services/bootstrap';
+import { t } from '../services/i18n';
 
 import { ShortcutResult } from '../services/shortcut';
 
@@ -48,13 +49,13 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     if (taskState === 'installed') {
       const existingPid = daemonService.checkExistingDaemon();
       if (existingPid !== null) {
-        console.log(`ℹ️ Lattix is running (PID ${existingPid}) with auto-start on login.`);
-        console.log('   Use `lattix stop` to stop or `lattix uninstall` to remove auto-start.');
+        console.log(`ℹ️ ${t('run.scheduled_task_running', { pid: existingPid })}`);
+        console.log(`   ${t('run.scheduled_task_hint')}`);
         exit(0);
         return undefined as never;
       }
       // Task installed but not running — start via scheduled task
-      console.log('ℹ️ Lattix auto-start is configured. Starting via scheduled task...');
+      console.log(`ℹ️ ${t('run.scheduled_task_starting')}`);
       taskManager.startTask();
       exit(0);
       return undefined as never;
@@ -64,7 +65,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
   // Single-instance guard: check for an already-running Lattix process
   const existingPid = daemonService.checkExistingDaemon();
   if (existingPid !== null) {
-    console.error(`❌ Lattix is already running (PID ${existingPid})`);
+    console.error(`❌ ${t('run.already_running', { pid: existingPid })}`);
     exit(1);
     return undefined as never;
   }
@@ -75,9 +76,9 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     const logFile = options.logFile ?? daemonService.getDefaultLogPath();
     const childPid = daemonService.spawnDetached(argv, logFile);
 
-    console.log(`🕸️ Lattix daemon started (PID ${childPid})`);
-    console.log(`   Log file: ${logFile}`);
-    console.log(`   PID file: ${daemonService.getPidPath()}`);
+    console.log(`🕸️ ${t('run.daemon_started', { pid: childPid })}`);
+    console.log(`   ${t('run.daemon_log_file', { path: logFile })}`);
+    console.log(`   ${t('run.daemon_pid_file', { path: daemonService.getPidPath() })}`);
     exit(0);
     return undefined as never;
   }
@@ -96,7 +97,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
   // Write PID file for all run modes (foreground + daemon child)
   daemonService.writePid(process.pid);
 
-  console.log('🕸️ Lattix - Starting\n');
+  console.log(`🕸️ ${t('run.starting')}\n`);
 
   const setup = dependencies.setup ?? new SetupService();
 
@@ -105,7 +106,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     const bootstrapFn = dependencies.bootstrapFn ?? (() => bootstrap({ setup: setup as SetupService }));
     config = await bootstrapFn();
   } catch (err) {
-    console.error(`\n❌ ${(err as Error).message}`);
+    console.error(`\n❌ ${t('run.error', { message: (err as Error).message })}`);
     daemonService.removePid();
     if (logger) logger.restore();
     exit(1);
@@ -134,7 +135,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
       writer.write(result);
       watcher.markProcessed(task.id);
     } catch (err) {
-      console.error(`❌ Error executing task ${task.id}: ${(err as Error).message}`);
+      console.error(`❌ ${t('run.task_error', { taskId: task.id, message: (err as Error).message })}`);
       watcher.markProcessed(task.id);
     }
   });
@@ -142,13 +143,13 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
   // Start watching
   await watcher.start();
 
-  console.log(`\n🟢 Lattix is running on ${config.hostname}`);
-  console.log(`   Concurrency: ${config.maxConcurrency}`);
-  console.log(`   Poll interval: ${config.pollIntervalSeconds}s`);
+  console.log(`\n🟢 ${t('run.running_on', { hostname: config.hostname })}`);
+  console.log(`   ${t('run.concurrency', { value: config.maxConcurrency })}`);
+  console.log(`   ${t('run.poll_interval', { value: config.pollIntervalSeconds })}`);
   if (!isDaemonChild) {
-    console.log(`   Press Ctrl+C to stop\n`);
+    console.log(`   ${t('run.press_ctrl_c')}\n`);
   } else {
-    console.log(`   Running as daemon (PID ${process.pid})\n`);
+    console.log(`   ${t('run.running_as_daemon', { pid: process.pid })}\n`);
   }
 
   // Show submit hint
@@ -157,11 +158,11 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
   });
   const shortcut = getShortcutFn();
   const cmd = shortcut?.shortcutAvailable ? 'lattix' : 'npx -y lattix';
-  console.log(`💡 To submit a task: ${cmd} submit --prompt "your instruction here"\n`);
+  console.log(`💡 ${t('run.submit_hint', { command: cmd })}\n`);
 
   // Handle graceful shutdown
   const shutdown = async () => {
-    console.log('\nShutting down...');
+    console.log(`\n${t('run.shutting_down')}`);
     await watcher.stop();
     daemonService.removePid();
     if (logger) logger.restore();

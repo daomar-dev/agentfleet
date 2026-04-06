@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as chokidar from 'chokidar';
 import { TaskFile, ProcessedTasks } from '../types';
+import { t } from './i18n';
 
 export type TaskHandler = (task: TaskFile, filePath: string) => void;
 
@@ -56,7 +57,7 @@ export class TaskWatcher {
     });
 
     this.watcher.on('error', (error: unknown) => {
-      console.error(`Watcher error: ${(error as Error).message}`);
+      console.error(t('watcher.error', { message: (error as Error).message }));
     });
 
     // Start polling fallback
@@ -64,8 +65,8 @@ export class TaskWatcher {
       this.scanExisting();
     }, this.pollIntervalMs);
 
-    console.log(`✓ Watching for tasks in: ${this.tasksDir}`);
-    console.log(`  Poll interval: ${this.pollIntervalMs / 1000}s`);
+    console.log(`✓ ${t('watcher.watching', { dir: this.tasksDir })}`);
+    console.log(`  ${t('watcher.poll_interval', { seconds: this.pollIntervalMs / 1000 })}`);
   }
 
   /**
@@ -80,7 +81,7 @@ export class TaskWatcher {
       clearInterval(this.pollTimer);
       this.pollTimer = null;
     }
-    console.log('Task watcher stopped.');
+    console.log(t('watcher.stopped'));
   }
 
   /**
@@ -111,7 +112,7 @@ export class TaskWatcher {
         this.processFile(filePath);
       }
     } catch (err) {
-      console.error(`Error scanning tasks directory: ${(err as Error).message}`);
+      console.error(t('watcher.scan_error', { message: (err as Error).message }));
     }
   }
 
@@ -133,10 +134,10 @@ export class TaskWatcher {
       }
 
       this.inProgressIds.add(task.id);
-      console.log(`\n📋 New task detected: ${task.id}${task.title ? ` - ${task.title}` : ''}`);
+      console.log(`\n📋 ${t('watcher.new_task', { taskId: task.id, title: task.title ? ` - ${task.title}` : '' })}`);
       this.handler!(task, filePath);
     } catch (err) {
-      console.warn(`⚠ Error reading task file ${path.basename(filePath)}: ${(err as Error).message}`);
+      console.warn(`⚠ ${t('watcher.read_error', { file: path.basename(filePath), message: (err as Error).message })}`);
     }
   }
 
@@ -145,7 +146,7 @@ export class TaskWatcher {
     try {
       parsed = JSON.parse(content);
     } catch {
-      console.warn(`⚠ Invalid JSON in ${path.basename(filePath)}, skipping`);
+      console.warn(`⚠ ${t('watcher.invalid_json', { file: path.basename(filePath) })}`);
       return null;
     }
 
@@ -157,7 +158,7 @@ export class TaskWatcher {
     if (typeof obj.prompt !== 'string' || !obj.prompt) missing.push('prompt');
 
     if (missing.length > 0) {
-      console.warn(`⚠ Task file ${path.basename(filePath)} missing required fields: ${missing.join(', ')}`);
+      console.warn(`⚠ ${t('watcher.missing_fields', { file: path.basename(filePath), fields: missing.join(', ') })}`);
       return null;
     }
 
@@ -171,7 +172,7 @@ export class TaskWatcher {
         return new Set(data.processedIds);
       }
     } catch {
-      console.warn('⚠ Could not load processed.json, starting fresh');
+      console.warn(`⚠ ${t('watcher.load_processed_error')}`);
     }
     return new Set();
   }

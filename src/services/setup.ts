@@ -3,6 +3,7 @@ import * as path from 'path';
 import * as os from 'os';
 import { LattixConfig, OneDriveSelection } from '../types';
 import { normalizeConfig, selectionFromConfig, selectionsEqual } from './provider-selection';
+import { t } from './i18n';
 
 const LATTIX_DIR = '.lattix';
 const LEGACY_AGENTBROKER_DIR = '.agentbroker';
@@ -53,7 +54,7 @@ export class SetupService {
     // 1. Create ~/.lattix if it doesn't exist
     if (!fs.existsSync(this.lattixDir)) {
       fs.mkdirSync(this.lattixDir, { recursive: true });
-      console.log(`✓ Created ${this.lattixDir}`);
+      console.log(`✓ ${t('setup.created_dir', { path: this.lattixDir })}`);
     }
 
     // 2. Create OneDrive subdirectories
@@ -62,7 +63,7 @@ export class SetupService {
       const targetDir = path.join(onedriveBase, subdir);
       if (!fs.existsSync(targetDir)) {
         fs.mkdirSync(targetDir, { recursive: true });
-        console.log(`✓ Created OneDrive directory: ${targetDir}`);
+        console.log(`✓ ${t('setup.created_onedrive_dir', { path: targetDir })}`);
       }
     }
 
@@ -105,23 +106,18 @@ export class SetupService {
 
     if (!fs.existsSync(lattixPath)) {
       fs.renameSync(legacyPath, lattixPath);
-      console.log(`⟳ Migrated ${label}: ${legacyPath} → ${lattixPath}`);
+      console.log(`⟳ ${t('setup.migrated', { label, from: legacyPath, to: lattixPath })}`);
       return;
     }
 
     if (this.isDirectoryEmpty(lattixPath)) {
       fs.rmSync(lattixPath, { recursive: true, force: true });
       fs.renameSync(legacyPath, lattixPath);
-      console.log(`⟳ Reused legacy ${label}: ${legacyPath} → ${lattixPath}`);
+      console.log(`⟳ ${t('setup.migrated_reused', { label, from: legacyPath, to: lattixPath })}`);
       return;
     }
 
-    throw new Error(
-      `Found both legacy and current ${label} directories.\n` +
-      `Legacy: ${legacyPath}\n` +
-      `Current: ${lattixPath}\n` +
-      'Please merge or remove one of them manually, then run "lattix run" again.'
-    );
+    throw new Error(t('setup.migrate_conflict', { label, legacy: legacyPath, current: lattixPath }));
   }
 
   private isDirectoryEmpty(dirPath: string): boolean {
@@ -136,15 +132,15 @@ export class SetupService {
         if (stats.isSymbolicLink()) {
           const currentTarget = fs.readlinkSync(linkPath);
           if (path.resolve(currentTarget) === path.resolve(targetPath)) {
-            console.log(`✓ Symlink valid: ${linkPath} → ${targetPath}`);
+            console.log(`✓ ${t('setup.symlink_valid', { link: linkPath, target: targetPath })}`);
             return;
           }
           // Stale symlink — remove and recreate
-          console.log(`⟳ Symlink stale, recreating: ${linkPath}`);
+          console.log(`⟳ ${t('setup.symlink_stale', { link: linkPath })}`);
           this.removePathEntry(linkPath);
         } else {
           // It's a real directory, not a symlink — skip
-          console.warn(`⚠ ${linkPath} exists as a regular directory, not a symlink. Skipping.`);
+          console.warn(`⚠ ${t('setup.symlink_exists_as_dir', { path: linkPath })}`);
           return;
         }
       } catch {
@@ -160,19 +156,14 @@ export class SetupService {
     // Create symlink (or junction as fallback on Windows)
     try {
       fs.symlinkSync(targetPath, linkPath, 'junction');
-      console.log(`✓ Created junction: ${linkPath} → ${targetPath}`);
+      console.log(`✓ ${t('setup.created_junction', { link: linkPath, target: targetPath })}`);
     } catch (symlinkErr) {
       try {
         // Fallback: try directory symlink (requires Developer Mode)
         fs.symlinkSync(targetPath, linkPath, 'dir');
-        console.log(`✓ Created symlink: ${linkPath} → ${targetPath}`);
+        console.log(`✓ ${t('setup.created_symlink', { link: linkPath, target: targetPath })}`);
       } catch {
-        throw new Error(
-          `Failed to create symlink or junction at ${linkPath}.\n` +
-          'On Windows, try enabling Developer Mode:\n' +
-          '  Settings → Update & Security → For developers → Developer Mode\n' +
-          `Error: ${(symlinkErr as Error).message}`
-        );
+        throw new Error(t('setup.symlink_failed', { path: linkPath, error: (symlinkErr as Error).message }));
       }
     }
   }
@@ -200,7 +191,7 @@ export class SetupService {
     try {
       const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as Partial<LattixConfig>;
       if (typeof existing.onedrivePath !== 'string' || existing.onedrivePath.length === 0) {
-        console.warn(`⚠ Config file missing OneDrive path, recreating`);
+        console.warn(`⚠ ${t('setup.config_missing_path')}`);
         return null;
       }
 
@@ -210,7 +201,7 @@ export class SetupService {
         hostname: existing.hostname ?? os.hostname(),
       });
     } catch {
-      console.warn(`⚠ Config file corrupt, recreating`);
+      console.warn(`⚠ ${t('setup.config_corrupt')}`);
       return null;
     }
   }
@@ -231,11 +222,11 @@ export class SetupService {
       });
 
       if (!selectionsEqual(selectionFromConfig(existing), selection)) {
-        console.log('⟳ OneDrive selection changed, updating config');
+        console.log(`⟳ ${t('setup.onedrive_changed')}`);
       }
 
       fs.writeFileSync(configPath, JSON.stringify(nextConfig, null, 2));
-      console.log(`✓ Config loaded: ${configPath}`);
+      console.log(`✓ ${t('setup.config_loaded', { path: configPath })}`);
       return nextConfig;
     }
 
@@ -249,7 +240,7 @@ export class SetupService {
     });
 
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
-    console.log(`✓ Config created: ${configPath}`);
+    console.log(`✓ ${t('setup.config_created', { path: configPath })}`);
     return config;
   }
 }
