@@ -295,16 +295,7 @@ describe('discoverNodes', () => {
     expect(nodes).toEqual([]);
   });
 
-  it('uses sessionStorage cache when available', async () => {
-    const fetchSpy = vi.spyOn(global, 'fetch');
-    const cached = [{ hostname: 'CACHED-HOST', lastActive: '2024-01-01T00:00:00Z', taskCount: 5 }];
-    sessionStorage.setItem('lattix_nodes', JSON.stringify(cached));
-    const nodes = await discoverNodes();
-    expect(nodes).toEqual(cached);
-    expect(fetchSpy).not.toHaveBeenCalled();
-  });
-
-  it('caches discovered nodes in sessionStorage', async () => {
+  it('discovers nodes from output folder result files', async () => {
     // Return output folder with one task dir
     global.fetch = vi
       .fn()
@@ -329,6 +320,49 @@ describe('discoverNodes', () => {
     const nodes = await discoverNodes();
     expect(nodes).toHaveLength(1);
     expect(nodes[0].hostname).toBe('DESKTOP-HOST');
-    expect(sessionStorage.getItem('lattix_nodes')).not.toBeNull();
+  });
+});
+
+describe('parallel task content fetching', () => {
+  it('readFileContent partial failures do not prevent others from succeeding', async () => {
+    // Simulate 3 items: first succeeds, second fails (403), third succeeds
+    const items = [
+      { id: 'item-1', name: 'task-1.json', lastModifiedDateTime: '2024-01-01T00:00:00Z' },
+      { id: 'item-2', name: 'task-2.json', lastModifiedDateTime: '2024-01-02T00:00:00Z' },
+      { id: 'item-3', name: 'task-3.json', lastModifiedDateTime: '2024-01-03T00:00:00Z' },
+    ];
+
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('item-1')) {
+        return Promise.resolve({
+          ok: true, status: 200, headers: new Headers(),
+          json: () => Promise.resolve({ id: 'task-1', prompt: 'do thing 1' }),
+        });
+      }
+      if (url.includes('item-2')) {
+        return Promise.resolve({
+          ok: false, status: 403, headers: new Headers(),
+          json: () => Promise.resolve({ error: { code: 'accessDenied' } }),
+        });
+      }
+      if (url.includes('item-3')) {
+        return Promise.resolve({
+          ok: true, status: 200, headers: new Headers(),
+          json: () => Promise.resolve({ id: 'task-3', prompt: 'do thing 3' }),
+        });
+      }
+      return Promise.reject(new Error('unexpected URL'));
+    });
+
+    // Use Promise.allSettled to demonstrate the pattern
+    const results = await Promise.allSettled(
+      items.map((item) => readFileContent(item.id)),
+    );
+
+    const fulfilled = results.filter((r) => r.status === 'fulfilled');
+    const rejected = results.filter((r) => r.status === 'rejected');
+
+    expect(fulfilled).toHaveLength(2);
+    expect(rejected).toHaveLength(1);
   });
 });

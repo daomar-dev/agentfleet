@@ -1,5 +1,4 @@
-import { getAccount, logout, switchAccount, getAccountType } from '../auth';
-import { navigate } from '../router';
+import { getAccount, logout, getAccountType } from '../auth';
 
 export function renderNavbar(container: HTMLElement): HTMLElement {
   const nav = document.createElement('nav');
@@ -30,7 +29,6 @@ export function renderNavbar(container: HTMLElement): HTMLElement {
           <div class="dropdown-type">${accountLabel}</div>
         </div>
         <div class="dropdown-actions">
-          <button class="btn btn-sm dropdown-action-btn" id="switch-account-btn">Switch Account</button>
           <button class="btn btn-sm dropdown-action-btn" id="logout-btn">Logout</button>
         </div>
       </div>
@@ -68,23 +66,40 @@ export function renderNavbar(container: HTMLElement): HTMLElement {
   `;
   nav.insertBefore(desktopNav, nav.querySelector('.navbar-actions'));
 
-  // User dropdown toggle
+  // User dropdown toggle with backdrop
   const userBtn = nav.querySelector('#user-info-btn')!;
   const dropdown = nav.querySelector('#user-dropdown') as HTMLElement;
+  let backdrop: HTMLElement | null = null;
+
+  function openDropdown(): void {
+    dropdown.classList.add('dropdown--open');
+    backdrop = document.createElement('div');
+    backdrop.className = 'dropdown-backdrop';
+    backdrop.addEventListener('click', closeDropdown);
+    document.body.appendChild(backdrop);
+  }
+
+  function closeDropdown(): void {
+    dropdown.classList.remove('dropdown--open');
+    if (backdrop) {
+      backdrop.remove();
+      backdrop = null;
+    }
+  }
+
   userBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    dropdown.classList.toggle('dropdown--open');
+    if (dropdown.classList.contains('dropdown--open')) {
+      closeDropdown();
+    } else {
+      openDropdown();
+    }
   });
-  document.addEventListener('click', () => {
-    dropdown.classList.remove('dropdown--open');
-  });
+  document.addEventListener('click', closeDropdown);
 
   nav.querySelector('#logout-btn')!.addEventListener('click', () => {
+    closeDropdown();
     logout().catch(console.error);
-  });
-
-  nav.querySelector('#switch-account-btn')!.addEventListener('click', () => {
-    switchAccount().catch(console.error);
   });
 
   // Highlight active link (desktop)

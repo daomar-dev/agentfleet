@@ -51,7 +51,7 @@ Object.defineProperty(window, 'LATTIX_CONFIG', {
   writable: true,
 });
 
-import { initAuth, getAccount, isAuthenticated, login, logout, switchAccount, getToken } from './auth';
+import { initAuth, getAccount, isAuthenticated, login, logout, getToken } from './auth';
 import { InteractionRequiredAuthError } from '@azure/msal-browser';
 
 const mockAccount = {
@@ -158,28 +158,6 @@ describe('logout', () => {
         postLogoutRedirectUri: expect.any(String),
       }),
     );
-  });
-});
-
-describe('switchAccount', () => {
-  beforeEach(async () => {
-    mockGetActiveAccount.mockReturnValue(null);
-    mockGetAllAccounts.mockReturnValue([]);
-    await initAuth();
-  });
-
-  it('calls loginRedirect with select_account prompt', async () => {
-    await switchAccount();
-    expect(mockLoginRedirect).toHaveBeenCalledWith(
-      expect.objectContaining({
-        prompt: 'select_account',
-      }),
-    );
-  });
-
-  it('clears active account before redirecting', async () => {
-    await switchAccount();
-    expect(mockSetActiveAccount).toHaveBeenCalledWith(null);
   });
 });
 

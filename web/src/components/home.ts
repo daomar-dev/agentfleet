@@ -25,7 +25,7 @@ function renderNodes(section: HTMLElement, nodes: LattixNode[], loading: boolean
       card.innerHTML = `
         <div class="node-hostname">${node.hostname}</div>
         <div class="node-meta">
-          <span>${node.taskCount} task${node.taskCount !== 1 ? 's' : ''} executed</span>
+          <span>${node.taskCount} result${node.taskCount !== 1 ? 's' : ''}</span>
           <span>Last active: ${formatDate(node.lastActive)}</span>
         </div>
       `;
@@ -40,7 +40,7 @@ function renderNodes(section: HTMLElement, nodes: LattixNode[], loading: boolean
   }
 }
 
-function renderRecentTasks(section: HTMLElement, tasks: CachedTask[], loading: boolean): void {
+function renderRecentTasks(section: HTMLElement, tasks: CachedTask[], loading: boolean, loadFailed = false): void {
   if (loading && tasks.length === 0) {
     section.innerHTML = '<h2>Recent Tasks</h2><div class="skeleton-block"></div>';
     return;
@@ -68,6 +68,11 @@ function renderRecentTasks(section: HTMLElement, tasks: CachedTask[], loading: b
     viewAll.className = 'btn btn-sm view-all-link';
     viewAll.textContent = 'View all tasks →';
     section.appendChild(viewAll);
+  } else if (loadFailed) {
+    section.innerHTML = `
+      <h2>Recent Tasks</h2>
+      <p class="empty-state">Failed to load tasks. Please try again.</p>
+    `;
   } else {
     section.innerHTML = `
       <h2>Recent Tasks</h2>
@@ -171,23 +176,37 @@ export async function renderHome(container: HTMLElement): Promise<void> {
       discoverNodes(),
     ]);
 
-    // Process task files
-    const freshTasks: CachedTask[] = [];
-    for (const item of taskResult.items.slice(0, 10)) {
-      try {
+    // Read task contents in parallel
+    const itemsToRead = taskResult.items.slice(0, 10);
+    const settled = await Promise.allSettled(
+      itemsToRead.map(async (item) => {
         const task = await readFileContent<TaskFile>(item.id);
-        freshTasks.push({ task, lastModified: item.lastModifiedDateTime });
-      } catch {
-        // skip unreadable
-      }
+        return { task, lastModified: item.lastModifiedDateTime } as CachedTask;
+      }),
+    );
+
+    const freshTasks = settled
+      .filter((r): r is PromiseFulfilledResult<CachedTask> => r.status === 'fulfilled')
+      .map((r) => r.value);
+
+    const failedCount = settled.filter((r) => r.status === 'rejected').length;
+    if (failedCount > 0) {
+      console.warn(`Failed to read ${failedCount}/${itemsToRead.length} task files`);
+    }
+
+    const loadFailed = freshTasks.length === 0 && itemsToRead.length > 0;
+    if (loadFailed) {
+      showToast('Failed to load task details. Please try again.', 'error');
     }
 
     // Update cache and re-render with fresh data
     setCache('home_nodes', freshNodes);
-    setCache('home_tasks', freshTasks);
+    if (freshTasks.length > 0) {
+      setCache('home_tasks', freshTasks);
+    }
 
     renderNodes(nodesSection, freshNodes, false);
-    renderRecentTasks(tasksSection, freshTasks, false);
+    renderRecentTasks(tasksSection, freshTasks, false, loadFailed);
   } catch (err) {
     // If we have cached data, keep showing it
     if (!cachedNodes && !cachedTasks) {

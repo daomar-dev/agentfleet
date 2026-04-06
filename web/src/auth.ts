@@ -102,7 +102,7 @@ export async function logout(): Promise<void> {
   });
 }
 
-export async function switchAccount(): Promise<void> {
+async function switchAccount(): Promise<void> {
   if (!msalInstance) throw new Error('Auth not initialized');
   // Clear active account so MSAL doesn't auto-select it
   msalInstance.setActiveAccount(null);

@@ -152,6 +152,18 @@ body {
 }
 .dropdown-action-btn { flex: 1; justify-content: center; }
 
+/* Dropdown backdrop overlay */
+.dropdown-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 199;
+  background: rgba(0,0,0,0.15);
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* Mobile bottom tab bar */
 .navbar-tabs {
   display: none;
@@ -466,11 +478,11 @@ h3 { margin-bottom: var(--spacing-sm); font-size: 1.1rem; }
     bottom: calc(60px + var(--safe-bottom) + var(--spacing-sm));
   }
 
-  /* User dropdown on mobile */
+  /* User dropdown on mobile — positioned below navbar */
   .navbar-user-dropdown {
     position: fixed;
-    top: auto;
-    bottom: calc(60px + var(--safe-bottom));
+    top: calc(var(--safe-top) + 52px);
+    bottom: auto;
     right: var(--spacing-sm);
     left: var(--spacing-sm);
     min-width: auto;

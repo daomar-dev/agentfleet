@@ -113,15 +113,6 @@ export async function listTaskResults(
 export async function discoverNodes(): Promise<
   { hostname: string; lastActive: string; taskCount: number }[]
 > {
-  const cached = sessionStorage.getItem('lattix_nodes');
-  if (cached) {
-    try {
-      return JSON.parse(cached);
-    } catch {
-      // ignore invalid cache
-    }
-  }
-
   const nodeMap = new Map<string, { lastActive: string; count: number }>();
 
   // Get output folder children (task directories)
@@ -161,14 +152,11 @@ export async function discoverNodes(): Promise<
     return [];
   }
 
-  const nodes = Array.from(nodeMap.entries()).map(([hostname, info]) => ({
+  return Array.from(nodeMap.entries()).map(([hostname, info]) => ({
     hostname,
     lastActive: info.lastActive,
     taskCount: info.count,
   }));
-
-  sessionStorage.setItem('lattix_nodes', JSON.stringify(nodes));
-  return nodes;
 }
 
 export async function submitTask(

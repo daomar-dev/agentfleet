@@ -1,6 +1,6 @@
 import { renderNavbar } from './navbar';
 import { listTaskFiles, readFileContent } from '../graph';
-import { formatDate } from '../utils';
+import { formatDate, showToast } from '../utils';
 import { getCache, setCache } from '../cache';
 import type { TaskFile, DriveItem } from '../types';
 
@@ -14,6 +14,7 @@ function renderList(
   items: CachedTaskItem[],
   hasMore: boolean,
   onLoadMore?: () => Promise<void>,
+  loadFailed = false,
 ): void {
   main.innerHTML = '';
 
@@ -24,7 +25,11 @@ function renderList(
   main.appendChild(header);
 
   if (items.length === 0) {
-    main.innerHTML += '<p class="empty-state">No tasks found. Submit a task from the Home page.</p>';
+    if (loadFailed) {
+      main.innerHTML += '<p class="empty-state">Failed to load tasks. Please try again.</p>';
+    } else {
+      main.innerHTML += '<p class="empty-state">No tasks found. Submit a task from the Home page.</p>';
+    }
     return;
   }
 
@@ -82,17 +87,31 @@ export async function renderTaskList(container: HTMLElement): Promise<void> {
     const result = await listTaskFiles(link);
     nextLink = result.nextLink;
 
-    for (const item of result.items) {
-      try {
+    const settled = await Promise.allSettled(
+      result.items.map(async (item) => {
         const task = await readFileContent<TaskFile>(item.id);
-        allItems.push({ task, lastModified: item.lastModifiedDateTime });
-      } catch {
-        // skip unreadable
-      }
+        return { task, lastModified: item.lastModifiedDateTime } as CachedTaskItem;
+      }),
+    );
+
+    const loaded = settled
+      .filter((r): r is PromiseFulfilledResult<CachedTaskItem> => r.status === 'fulfilled')
+      .map((r) => r.value);
+
+    const failedCount = settled.filter((r) => r.status === 'rejected').length;
+    if (failedCount > 0) {
+      console.warn(`Failed to read ${failedCount}/${result.items.length} task files`);
+    }
+
+    allItems.push(...loaded);
+
+    const loadFailed = allItems.length === 0 && result.items.length > 0;
+    if (loadFailed) {
+      showToast('Failed to load task details. Please try again.', 'error');
     }
 
     setCache('task_list', allItems);
-    renderList(main, allItems, !!nextLink, () => loadPage(nextLink));
+    renderList(main, allItems, !!nextLink, () => loadPage(nextLink), loadFailed);
   }
 
   await loadPage();
