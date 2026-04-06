@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Support Lattix</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #0078d4;
+      color: #fff;
+      text-align: center;
+      padding: 2.5rem 1rem 2rem;
+    }
+
+    header .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    header .logo img {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+    }
+
+    header .logo span {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    header h1 {
+      font-size: 1.75rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 1rem;
+      opacity: 0.9;
+      max-width: 540px;
+      margin: 0 auto;
+      line-height: 1.5;
+    }
+
+    .channels {
+      display: flex;
+      gap: 1.5rem;
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      flex: 1;
+    }
+
+    .channel-card {
+      flex: 1;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 2rem 1.5rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .channel-card h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .channel-card .desc {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+
+    .paypal-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #0070ba;
+      color: #fff;
+      text-decoration: none;
+      padding: 0.75rem 2rem;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.15s;
+      margin-top: auto;
+    }
+
+    .paypal-btn:hover {
+      background: #005ea6;
+    }
+
+    .paypal-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .wechat-qr {
+      width: 240px;
+      max-width: 100%;
+      border-radius: 8px;
+      margin-top: auto;
+    }
+
+    .wechat-hint {
+      font-size: 0.85rem;
+      color: #888;
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    footer a {
+      color: #0078d4;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 767px) {
+      .channels {
+        flex-direction: column;
+      }
+
+      header h1 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="logo" href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">
+      <img src="/icons/icon-192.png" alt="" />
+      <span>Lattix</span>
+    </a>
+    <h1>Support Lattix</h1>
+    <p>Lattix is free and open-source. If it helps your workflow, consider buying the author a coffee. Every contribution counts!</p>
+  </header>
+
+  <div class="channels">
+    <!-- PayPal (English, international users) -->
+    <div class="channel-card">
+      <h2>PayPal</h2>
+      <p class="desc">For international supporters — quick and easy via PayPal.</p>
+      <a class="paypal-btn" href="https://paypal.me/chenxizhang2026" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.56A.774.774 0 0 1 5.71 1.9h5.903c2.757 0 4.693.867 5.353 3.036.196.648.263 1.37.196 2.14-.06.71-.222 1.5-.49 2.342C15.834 12.387 13.1 13.5 9.834 13.5H7.473l-.397 7.837zm13.35-15.53c-.06.69-.222 1.46-.49 2.28-.838 2.588-2.846 3.97-5.9 4.122l1.166-7.81c.197-.643.752-1.1 1.426-1.1h2.06c.867 0 1.584.197 2.14.593-.072.27-.159.567-.27.9l-.133.015z"/></svg>
+        Donate with PayPal
+      </a>
+    </div>
+
+    <!-- WeChat Pay (Chinese, domestic users) -->
+    <div class="channel-card">
+      <h2>微信支付</h2>
+      <p class="desc">国内用户可以通过微信扫码赞赏，感谢您的支持！</p>
+      <img class="wechat-qr" src="/wechat-donation.jpg" alt="微信支付二维码" />
+      <p class="wechat-hint">请使用微信扫描上方二维码完成赞赏<br/>付款时可备注您的 GitHub 用户名</p>
+    </div>
+  </div>
+
+  <footer>
+    All supporters will be recognized on the <a href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">project homepage</a>.
+  </footer>
+</body>
+</html>

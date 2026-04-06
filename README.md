@@ -283,6 +283,15 @@ npm run build      # Production build to web/dist/
 npm test           # Run unit tests (Vitest)
 ```
 
+## Support
+
+Lattix is free and open-source. If it helps your workflow, consider supporting the project:
+
+- **PayPal** (international): [paypal.me/chenxizhang2026](https://paypal.me/chenxizhang2026)
+- **WeChat Pay** (国内用户): Visit the [donation page](https://lattix.code365.xyz/donate.html) to scan the QR code
+
+All supporters will be recognized on this page.
+
 ## License
 
 ISC

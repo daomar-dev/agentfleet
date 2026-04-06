@@ -63,6 +63,7 @@ export function renderNavbar(container: HTMLElement): HTMLElement {
     <a href="#/" class="navbar-link">Home</a>
     <a href="#/tasks" class="navbar-link">Tasks</a>
     <a href="#/settings" class="navbar-link">Settings</a>
+    <a href="/donate.html" class="navbar-link navbar-link--donate" target="_blank" rel="noopener">&#9829; Donate</a>
   `;
   nav.insertBefore(desktopNav, nav.querySelector('.navbar-actions'));
 

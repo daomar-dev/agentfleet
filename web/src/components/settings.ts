@@ -26,7 +26,8 @@ export function renderSettings(container: HTMLElement): void {
       <p class="settings-desc"><strong>Secure by design:</strong> Lattix requires no tunnels, no exposed ports, and moves no data. All coordination happens through your existing OneDrive sync — nothing additional to audit, secure, or maintain.</p>
       <p>
         <a href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">GitHub Repository</a> ·
-        <a href="https://www.npmjs.com/package/lattix" target="_blank" rel="noopener">npm Package</a>
+        <a href="https://www.npmjs.com/package/lattix" target="_blank" rel="noopener">npm Package</a> ·
+        <a href="/donate.html" target="_blank" rel="noopener">Support Lattix</a>
       </p>
     </section>
   `;

@@ -92,4 +92,36 @@ describe('renderNavbar', () => {
 
     expect(logout).toHaveBeenCalled();
   });
+
+  it('renders 4 desktop nav links including Donate', () => {
+    const container = document.createElement('div');
+    renderNavbar(container);
+
+    const desktopLinks = container.querySelectorAll('.navbar-desktop-links .navbar-link');
+    expect(desktopLinks.length).toBe(4);
+
+    const linkTexts = Array.from(desktopLinks).map(l => l.textContent?.trim());
+    expect(linkTexts).toContain('Home');
+    expect(linkTexts).toContain('Tasks');
+    expect(linkTexts).toContain('Settings');
+
+    const donateLink = Array.from(desktopLinks).find(l => l.textContent?.includes('Donate'));
+    expect(donateLink).not.toBeNull();
+    expect(donateLink!.getAttribute('href')).toBe('/donate.html');
+    expect(donateLink!.getAttribute('target')).toBe('_blank');
+  });
+
+  it('renders exactly 3 mobile tabs without Donate', () => {
+    const container = document.createElement('div');
+    renderNavbar(container);
+
+    const mobileTabs = container.querySelectorAll('.navbar-tabs .tab-link');
+    expect(mobileTabs.length).toBe(3);
+
+    const tabTexts = Array.from(mobileTabs).map(t => t.textContent?.trim());
+    expect(tabTexts).toContain('Home');
+    expect(tabTexts).toContain('Tasks');
+    expect(tabTexts).toContain('Settings');
+    expect(tabTexts).not.toContain('Donate');
+  });
 });
