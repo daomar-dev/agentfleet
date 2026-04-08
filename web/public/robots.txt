@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://lattix.code365.xyz/sitemap.xml

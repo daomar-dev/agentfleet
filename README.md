@@ -195,23 +195,6 @@ This architecture means Lattix inherits the security, compliance, and data resid
 
 Task files are immutable once written. Lattix only processes tasks that arrive after the daemon starts — old tasks are never replayed, ensuring safe restarts and new machine onboarding.
 
-## Migration from AgentBroker
-
-Lattix is the direct rename of AgentBroker.
-
-- The npm package name changes from `agentbroker` to `lattix`.
-- The CLI command changes from `agentbroker` to `lattix`.
-- The local workspace moves from `~/.agentbroker` to `~/.lattix`.
-- The synced OneDrive workspace moves from `<OneDrive>\AgentBroker` to `<OneDrive>\Lattix`.
-
-Running `lattix run` will migrate the legacy local and OneDrive directories automatically when it is safe to do so. If both old and new paths already exist with real content, Lattix will stop and ask you to merge them manually before continuing.
-
-If you rename the GitHub repository from `agentbroker` to `lattix`, existing clones should update their remote URL:
-
-```bash
-git remote set-url origin https://github.com/chenxizhang/lattix.git
-```
-
 ## Development
 
 Build the CLI:
@@ -289,8 +272,16 @@ npm test           # Run unit tests (Vitest)
 
 Lattix is free and open-source. If it helps your workflow, consider supporting the project:
 
-- **PayPal** (international): [paypal.me/chenxizhang2026](https://paypal.me/chenxizhang2026)
-- **WeChat Pay** (国内用户): Visit the [donation page](https://lattix.code365.xyz/donate.html) to scan the QR code
+<table>
+  <tr>
+    <td align="center"><strong>PayPal</strong><br/>(international)</td>
+    <td align="center"><strong>WeChat Pay</strong><br/>(国内用户)</td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://paypal.me/chenxizhang2026"><img src="assets/paypal-donation.png" alt="PayPal QR Code" width="200" /></a></td>
+    <td align="center"><img src="assets/wechat-donation.jpg" alt="WeChat Pay QR Code" width="200" /></td>
+  </tr>
+</table>
 
 All supporters will be recognized on this page.
 

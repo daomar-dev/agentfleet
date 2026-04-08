@@ -1,6 +1,6 @@
 import { defineConfig, type Plugin } from 'vite';
-import { readFileSync, writeFileSync } from 'fs';
-import { resolve } from 'path';
+import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { resolve, join } from 'path';
 
 /** Vite plugin that stamps `__BUILD_HASH__` in `public/sw.js` at build time. */
 function swBuildHashPlugin(): Plugin {
@@ -16,10 +16,34 @@ function swBuildHashPlugin(): Plugin {
   };
 }
 
+/**
+ * Vite plugin that serves `.well-known/` files from `public/` during dev.
+ * Vite's dev server skips dot-prefixed paths by default.
+ */
+function wellKnownPlugin(): Plugin {
+  return {
+    name: 'serve-well-known',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url?.startsWith('/.well-known/')) {
+          const filePath = join(__dirname, 'public', req.url);
+          if (existsSync(filePath)) {
+            const content = readFileSync(filePath, 'utf-8');
+            res.setHeader('Content-Type', 'application/json');
+            res.end(content);
+            return;
+          }
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig({
   root: '.',
   base: '/',
-  plugins: [swBuildHashPlugin()],
+  plugins: [wellKnownPlugin(), swBuildHashPlugin()],
   build: {
     outDir: 'dist',
     emptyOutDir: true,

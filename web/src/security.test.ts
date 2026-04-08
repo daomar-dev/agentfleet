@@ -33,7 +33,8 @@ describe('index.html security', () => {
       (tag) =>
         !tag.includes('src=') &&
         !tag.includes('type="module"') &&
-        !tag.includes("type='module'"),
+        !tag.includes("type='module'") &&
+        !tag.includes('type="application/ld+json"'),
     );
     // Only config.js src and module entry point should be there — no inline script blocks
     expect(inlineScripts).toHaveLength(0);

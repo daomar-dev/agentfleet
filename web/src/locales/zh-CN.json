@@ -1,6 +1,8 @@
 {
   "meta.title": "Lattix",
   "meta.description": "分布式智能体编排仪表板",
+  "meta.ogTitle": "Lattix — 分布式智能体编排",
+  "meta.ogDescription": "同时向所有机器提交编码任务。无需服务器、无需控制平面——仅通过 OneDrive 同步实现分布式协调。",
 
   "login.tagline": "分布式智能体编排",
   "login.signIn": "使用 Microsoft 登录",

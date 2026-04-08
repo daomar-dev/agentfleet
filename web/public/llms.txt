@@ -1,0 +1,33 @@
+# Lattix
+
+> Distributed agent orchestration, without a control plane.
+
+Lattix is a free, open-source, decentralized multi-machine coding agent fabric built on top of OneDrive sync. It enables developers and teams to fan out coding tasks across all of their machines simultaneously, with no central scheduler, broker, or control plane to keep alive.
+
+## How It Works
+
+Machines share a synced OneDrive workspace. Lattix exposes stable local paths under ~/.lattix/. Any enrolled machine can create a task in the shared tasks/ directory, and every machine running "lattix run" picks up that task independently. Results land in a shared output/ directory with hostname-prefixed files to avoid collisions. Coordination happens entirely through file sync — no servers, no databases, no tunnels, no exposed ports.
+
+## Key Features
+
+- Distributed task execution: submit a task from any machine, all enrolled machines execute it simultaneously using their locally installed coding agent (e.g., GitHub Copilot CLI, Claude Code).
+- Zero infrastructure: no backend servers, no databases, no control plane. Lattix inherits the security, compliance, and data residency guarantees of your existing OneDrive and Microsoft 365 environment.
+- Daemon mode: run Lattix as a background process that persists after closing the terminal, with auto-start on login support.
+- Web dashboard: a browser-based Progressive Web App (PWA) at https://lattix.code365.xyz/ for submitting tasks, monitoring nodes, and viewing results. Authenticates via Microsoft Entra ID (PKCE flow) with no backend — all API calls go directly to Microsoft Graph.
+- CLI-first: install with "npx -y lattix run" or "npm install -g lattix". Commands include run, stop, submit, status, install, and uninstall.
+
+## Target Audience
+
+Software developers and engineering teams who use multiple machines (desktops, laptops, build servers) and want to parallelize coding agent work across all of them without setting up infrastructure.
+
+## Security Model
+
+No tunnels, no exposed ports, no data movement outside the Microsoft 365 tenant boundary. Each machine only syncs files through OneDrive's existing authenticated channel. The web dashboard uses Microsoft Entra ID authentication with PKCE and delegated permissions (Files.Read, Files.ReadWrite, User.Read).
+
+## Links
+
+- GitHub repository: https://github.com/chenxizhang/lattix
+- Web dashboard: https://lattix.code365.xyz/
+- npm package: https://www.npmjs.com/package/lattix
+- About page: https://lattix.code365.xyz/about.html
+- Donation page: https://lattix.code365.xyz/donate.html

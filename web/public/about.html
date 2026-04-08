@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>About Lattix — Distributed Agent Orchestration Without a Control Plane</title>
+  <meta name="description" content="Lattix is a free, open-source, decentralized multi-machine coding agent fabric built on OneDrive sync. Fan out coding tasks across all your machines with zero infrastructure." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <link rel="canonical" href="https://lattix.code365.xyz/about.html" />
+  <meta property="og:title" content="Lattix — Distributed Agent Orchestration" />
+  <meta property="og:description" content="Decentralized multi-machine coding agent fabric built on OneDrive sync. Zero infrastructure, zero servers." />
+  <meta property="og:url" content="https://lattix.code365.xyz/about.html" />
+  <meta property="og:type" content="article" />
+  <meta property="og:image" content="https://lattix.code365.xyz/og-image.png" />
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Lattix — Distributed Agent Orchestration Without a Control Plane",
+    "description": "Lattix is a free, open-source, decentralized multi-machine coding agent fabric built on OneDrive sync. Any enrolled machine can dispatch work. Every machine can execute it. There is no central scheduler, broker, or control plane to keep alive.",
+    "author": {
+      "@type": "Person",
+      "name": "Xizhang Chen",
+      "url": "https://github.com/chenxizhang"
+    },
+    "datePublished": "2026-04-08",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Lattix",
+      "url": "https://lattix.code365.xyz/"
+    },
+    "mainEntityOfPage": "https://lattix.code365.xyz/about.html"
+  }
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', 'PingFang SC', Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      line-height: 1.7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: #0078d4;
+      color: #fff;
+      text-align: center;
+      padding: 3rem 1rem 2.5rem;
+    }
+
+    header .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      text-decoration: none;
+      color: #fff;
+    }
+
+    header .logo img {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+    }
+
+    header .logo span {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+      flex: 1;
+    }
+
+    section {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #0078d4;
+      margin-bottom: 1rem;
+    }
+
+    p { margin-bottom: 1rem; }
+
+    ul, ol {
+      margin: 0 0 1rem 1.5rem;
+    }
+
+    li { margin-bottom: 0.5rem; }
+
+    code {
+      background: #f0f0f0;
+      padding: 0.15em 0.4em;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    pre {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-bottom: 1rem;
+    }
+
+    pre code {
+      background: none;
+      padding: 0;
+      color: inherit;
+    }
+
+    a { color: #0078d4; }
+    a:hover { text-decoration: underline; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .stat-card {
+      background: #f0f7ff;
+      border-radius: 8px;
+      padding: 1.25rem;
+      text-align: center;
+    }
+
+    .stat-card .number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #0078d4;
+    }
+
+    .stat-card .label {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 0.25rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 1.5rem 1rem;
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    footer a { color: #0078d4; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    @media (max-width: 600px) {
+      header h1 { font-size: 1.5rem; }
+      section { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <a class="logo" href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">
+      <img src="/icons/icon-192.png" alt="" />
+      <span>Lattix</span>
+    </a>
+    <h1>Distributed Agent Orchestration Without a Control Plane</h1>
+    <p>A free, open-source, decentralized multi-machine coding agent fabric built on OneDrive sync.</p>
+  </header>
+
+  <main>
+    <section>
+      <h2>Overview</h2>
+      <p>Lattix is a decentralized, multi-machine coding agent orchestration tool. It lets you fan out coding tasks across all of your machines simultaneously. Submit a task from any machine, and every machine running Lattix will see the same task, execute it locally with its installed coding agent, and write back machine-scoped results.</p>
+      <p>Unlike traditional orchestration platforms that require a central scheduler, message broker, or cloud-hosted control plane, Lattix uses <strong>OneDrive file sync</strong> as the sole coordination mechanism. There are no servers to run, no databases to maintain, and no additional infrastructure to deploy.</p>
+
+      <div class="stats">
+        <div class="stat-card">
+          <div class="number">0</div>
+          <div class="label">Servers required</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">0</div>
+          <div class="label">Open ports</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">0</div>
+          <div class="label">External dependencies</div>
+        </div>
+        <div class="stat-card">
+          <div class="number">&lt; 10s</div>
+          <div class="label">Task propagation via OneDrive</div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>How It Works</h2>
+      <ol>
+        <li>Your machines share a synced <a href="https://www.microsoft.com/en-us/microsoft-365/onedrive/online-cloud-storage" target="_blank" rel="noopener">OneDrive</a> workspace.</li>
+        <li>Lattix exposes stable local paths under <code>~/.lattix/</code>, with <code>tasks/</code> and <code>output/</code> symlinked to your OneDrive.</li>
+        <li>Any machine can create a task in the shared <code>tasks/</code> directory — via CLI or the web dashboard.</li>
+        <li>Every machine running <code>lattix run</code> picks up that task independently and executes it with its locally installed coding agent.</li>
+        <li>Results land in a shared <code>output/</code> directory with hostname-prefixed files to avoid collisions.</li>
+      </ol>
+      <p>This decentralized architecture means no single point of failure. If one machine is offline, the others still execute the task. There is no leader election, no quorum, and no consensus protocol — just file-based coordination through a battle-tested sync engine.</p>
+    </section>
+
+    <section>
+      <h2>Architecture</h2>
+      <pre><code>~/.lattix/
+├── config.json          # Local machine config (not synced)
+├── processed.json       # IDs of tasks already executed
+├── tasks/ → OneDrive    # Symlink to &lt;OneDrive&gt;\Lattix\tasks
+│   ├── task-001.json
+│   └── task-002.json
+└── output/ → OneDrive   # Symlink to &lt;OneDrive&gt;\Lattix\output
+    ├── task-001/
+    │   ├── DESKTOP-A-result.json
+    │   └── LAPTOP-B-result.json
+    └── task-002/
+        └── ...</code></pre>
+      <p>The CLI is built with <strong>Node.js and TypeScript</strong>. It uses a polling-based task watcher that checks for new task files at a configurable interval. Task files are immutable JSON documents — once written, they are never modified. Only tasks that arrive after the daemon starts are processed, ensuring safe restarts and new machine onboarding.</p>
+    </section>
+
+    <section>
+      <h2>Security Model</h2>
+      <p>Lattix is designed with a <strong>zero-infrastructure security model</strong>:</p>
+      <ul>
+        <li><strong>No tunnels</strong> — machines never open inbound connections. There is nothing to attack from the outside.</li>
+        <li><strong>No exposed ports</strong> — no listening services, no open ports, no attack surface.</li>
+        <li><strong>No data movement</strong> — data never leaves the <a href="https://learn.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-data-locations" target="_blank" rel="noopener">Microsoft 365 tenant boundary</a>.</li>
+        <li><strong>No central server</strong> — coordination happens through OneDrive sync, already approved by your organization's IT policies.</li>
+      </ul>
+      <p>The web dashboard authenticates via <a href="https://learn.microsoft.com/en-us/entra/identity-platform/" target="_blank" rel="noopener">Microsoft Entra ID</a> using the PKCE authorization code flow. <a href="https://learn.microsoft.com/en-us/entra/msal/overview" target="_blank" rel="noopener">MSAL.js</a> manages tokens in the browser with delegated permissions (Files.Read, Files.ReadWrite, User.Read). All API calls go directly to Microsoft Graph — no Lattix backend is involved.</p>
+    </section>
+
+    <section>
+      <h2>Getting Started</h2>
+      <p>Install and run Lattix on your first machine:</p>
+      <pre><code>npx -y lattix run</code></pre>
+      <p>This auto-detects OneDrive, creates the workspace, and starts watching for tasks. Repeat on every machine you want to enroll.</p>
+      <p>Submit a task from any machine:</p>
+      <pre><code>lattix submit --prompt "Add error handling to all API endpoints" --title "Error handling"</code></pre>
+      <p>Or use the <a href="https://lattix.code365.xyz/">web dashboard</a> to submit tasks and monitor results from any browser.</p>
+    </section>
+
+    <section>
+      <h2>Links</h2>
+      <ul>
+        <li><a href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">GitHub Repository</a> — source code, issues, and documentation</li>
+        <li><a href="https://www.npmjs.com/package/lattix" target="_blank" rel="noopener">npm Package</a> — installation via npm</li>
+        <li><a href="https://lattix.code365.xyz/">Web Dashboard</a> — submit tasks and monitor nodes from your browser</li>
+        <li><a href="https://lattix.code365.xyz/donate.html">Support Lattix</a> — help sustain the project</li>
+      </ul>
+    </section>
+  </main>
+
+  <footer>
+    <a href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">Lattix</a> — Distributed agent orchestration, without a control plane.
+  </footer>
+
+  <script>
+    (function () {
+      var isZh = navigator.language && navigator.language.startsWith('zh');
+      if (isZh) {
+        document.documentElement.lang = 'zh-CN';
+        document.title = '关于 Lattix — 无需控制平面的分布式智能体编排';
+      }
+    })();
+  </script>
+</body>
+</html>

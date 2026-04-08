@@ -111,6 +111,20 @@ export function initI18n(): void {
     document.head.appendChild(meta);
   }
 
+  // Update Open Graph and Twitter Card meta tags with localized content
+  const ogTwitterUpdates: Array<{ selector: string; content: string }> = [
+    { selector: 'meta[property="og:title"]', content: i18n.t('meta.ogTitle') },
+    { selector: 'meta[property="og:description"]', content: i18n.t('meta.ogDescription') },
+    { selector: 'meta[name="twitter:title"]', content: i18n.t('meta.ogTitle') },
+    { selector: 'meta[name="twitter:description"]', content: i18n.t('meta.ogDescription') },
+  ];
+  for (const { selector, content } of ogTwitterUpdates) {
+    const el = document.querySelector(selector);
+    if (el) {
+      el.setAttribute('content', content);
+    }
+  }
+
   // Update manifest link with locale-aware description
   const manifestLink = document.querySelector('link[rel="manifest"]');
   if (manifestLink) {

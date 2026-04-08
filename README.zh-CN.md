@@ -195,23 +195,6 @@ Lattix 采用零基础设施安全模型设计：
 
 任务文件一旦写入即不可变。Lattix 只处理守护进程启动后到达的任务——旧任务永远不会被重放，确保安全重启和新机器接入。
 
-## 从 AgentBroker 迁移
-
-Lattix 是 AgentBroker 的直接重命名。
-
-- npm 包名从 `agentbroker` 变更为 `lattix`。
-- CLI 命令从 `agentbroker` 变更为 `lattix`。
-- 本地工作区从 `~/.agentbroker` 移至 `~/.lattix`。
-- 同步的 OneDrive 工作区从 `<OneDrive>\AgentBroker` 移至 `<OneDrive>\Lattix`。
-
-运行 `lattix run` 会在安全的情况下自动迁移旧的本地和 OneDrive 目录。如果新旧路径都已存在且包含实际内容，Lattix 将停止运行并要求您在继续之前手动合并。
-
-如果您将 GitHub 仓库从 `agentbroker` 重命名为 `lattix`，现有克隆应更新远程 URL：
-
-```bash
-git remote set-url origin https://github.com/chenxizhang/lattix.git
-```
-
 ## 开发
 
 构建 CLI：
@@ -289,8 +272,16 @@ npm test           # 运行单元测试（Vitest）
 
 Lattix 是免费的开源项目。如果它对您的工作有帮助，欢迎支持本项目：
 
-- **PayPal**（国际用户）：[paypal.me/chenxizhang2026](https://paypal.me/chenxizhang2026)
-- **微信支付**（国内用户）：访问[捐赠页面](https://lattix.code365.xyz/donate.html)扫码赞赏
+<table>
+  <tr>
+    <td align="center"><strong>PayPal</strong><br/>（国际用户）</td>
+    <td align="center"><strong>微信支付</strong><br/>（国内用户）</td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://paypal.me/chenxizhang2026"><img src="assets/paypal-donation.png" alt="PayPal 二维码" width="200" /></a></td>
+    <td align="center"><img src="assets/wechat-donation.jpg" alt="微信支付二维码" width="200" /></td>
+  </tr>
+</table>
 
 所有赞赏者将在此页面获得致谢。
 

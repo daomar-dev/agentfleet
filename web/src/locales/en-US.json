@@ -1,6 +1,8 @@
 {
   "meta.title": "Lattix",
   "meta.description": "Distributed agent orchestration dashboard",
+  "meta.ogTitle": "Lattix — Distributed Agent Orchestration",
+  "meta.ogDescription": "Submit coding tasks to all your machines simultaneously. No servers, no control plane — just distributed coordination through OneDrive sync.",
 
   "login.tagline": "Distributed agent orchestration",
   "login.signIn": "Sign in with Microsoft",
