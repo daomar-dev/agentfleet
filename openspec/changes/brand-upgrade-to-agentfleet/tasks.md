@@ -1,11 +1,11 @@
 ## Phase 0: Infrastructure Setup
 
 ### 0.1 GitHub Organization & Repository
-- [ ] 0.1.1 Create public repo `daomar-dev/agentfleet` with MIT license via `gh repo create daomar-dev/agentfleet --public --license mit`
-- [ ] 0.1.2 Enable GitHub Pages on `daomar-dev/agentfleet` with GitHub Actions deployment source
-- [ ] 0.1.3 Set custom domain to `agentfleet.daomar.dev` via `gh api repos/daomar-dev/agentfleet/pages -X PUT -f cname=agentfleet.daomar.dev`
-- [ ] 0.1.4 Create `release` environment on the new repo for npm provenance publishing
-- [ ] 0.1.5 Create `daomar-dev/daomar-dev.github.io` repo for the brand landing page
+- [x] 0.1.1 Create public repo `daomar-dev/agentfleet` with MIT license via `gh repo create daomar-dev/agentfleet --public --license mit`
+- [x] 0.1.2 Enable GitHub Pages on `daomar-dev/agentfleet` with GitHub Actions deployment source
+- [x] 0.1.3 Set custom domain to `agentfleet.daomar.dev` via `gh api repos/daomar-dev/agentfleet/pages -X PUT -f cname=agentfleet.daomar.dev`
+- [x] 0.1.4 Create `release` environment on the new repo for npm provenance publishing
+- [x] 0.1.5 Create `daomar-dev/daomar-dev.github.io` repo for the brand landing page
 
 ### 0.2 Cloudflare DNS
 - [ ] 0.2.1 Login to Cloudflare CLI: `wrangler login`
@@ -14,8 +14,8 @@
 - [ ] 0.2.4 Verify DNS propagation for `agentfleet.daomar.dev`
 
 ### 0.3 Daomar Brand Landing Page
-- [ ] 0.3.1 Create minimal `index.html` for `daomar-dev.github.io` with brand story (刀马 · 道码), AgentFleet product link, and GitHub org link
-- [ ] 0.3.2 Add CNAME file with `daomar.dev`
+- [x] 0.3.1 Create minimal `index.html` for `daomar-dev.github.io` with brand story (刀马 · 道码), AgentFleet product link, and GitHub org link
+- [x] 0.3.2 Add CNAME file with `daomar.dev`
 - [ ] 0.3.3 Push to `daomar-dev/daomar-dev.github.io` and verify `daomar.dev` loads
 
 ### 0.4 Entra ID (Azure AD)
@@ -23,8 +23,8 @@
 - [ ] 0.4.2 Verify OAuth flow works with new redirect URI (can defer to Phase 3 verification)
 
 ### 0.5 npm Preparation
-- [ ] 0.5.1 Verify npm org access: `npm org ls daomar`
-- [ ] 0.5.2 Verify scoped publish will work: `npm access ls-packages @daomar`
+- [x] 0.5.1 Verify npm org access: `npm org ls daomar`
+- [x] 0.5.2 Verify scoped publish will work: `npm access ls-packages @daomar`
 
 ## Phase 1: Codebase Rename
 
@@ -143,14 +143,14 @@
 ## Phase 3: Publish and Verify
 
 ### 3.1 Push to New Repository
-- [ ] 3.1.1 Set git remote to `daomar-dev/agentfleet`: `git remote set-url origin https://github.com/daomar-dev/agentfleet.git`
-- [ ] 3.1.2 Push all branches and tags: `git push -u origin main --tags`
-- [ ] 3.1.3 Verify GitHub Actions `deploy-pages` workflow runs and succeeds
+- [x] 3.1.1 Set git remote to `daomar-dev/agentfleet`: `git remote set-url origin https://github.com/daomar-dev/agentfleet.git`
+- [x] 3.1.2 Push all branches and tags: `git push -u origin main --tags`
+- [x] 3.1.3 Verify GitHub Actions `deploy-pages` workflow runs and succeeds
 - [ ] 3.1.4 Verify `https://agentfleet.daomar.dev/` loads correctly
 
 ### 3.2 npm Publish
-- [ ] 3.2.1 Tag release: `git tag v2.0.0` (major version bump for brand change)
-- [ ] 3.2.2 Push tag: `git push origin v2.0.0`
+- [x] 3.2.1 Tag release: `git tag v2.0.0` (major version bump for brand change)
+- [x] 3.2.2 Push tag: `git push origin v2.0.0`
 - [ ] 3.2.3 Verify GitHub Actions `publish.yml` workflow publishes `@daomar/agentfleet` to npm
 - [ ] 3.2.4 Verify: `npx @daomar/agentfleet --help` works
 - [ ] 3.2.5 Verify: `npx @daomar/agentfleet run` creates `~/.agentfleet/` and works end-to-end
