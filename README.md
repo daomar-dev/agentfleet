@@ -36,7 +36,7 @@ No servers, no databases, no control plane — just distributed coordination thr
 npx -y @daomar/agentfleet run
 ```
 
-On first run, AgentFleet automatically creates `agentfleet` and `dma` shortcut commands in your npm global directory, so you can use either command directly without restarting the terminal. If you've already installed globally via `npm install -g @daomar/agentfleet`, shortcut creation is skipped.
+On first run, AgentFleet automatically creates an `agentfleet` shortcut command in your npm global directory, so you can use it directly without restarting the terminal. If you've already installed globally via `npm install -g @daomar/agentfleet`, shortcut creation is skipped.
 
 Or install globally:
 

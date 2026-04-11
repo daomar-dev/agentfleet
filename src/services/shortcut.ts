@@ -18,7 +18,7 @@ export interface ShortcutDependencies {
 }
 
 export class ShortcutService {
-  private static readonly BINARIES = ['agentfleet', 'dma'] as const;
+  private static readonly BINARIES = ['agentfleet'] as const;
   private readonly deps: ShortcutDependencies;
 
   constructor(deps: ShortcutDependencies = {}) {

@@ -36,7 +36,7 @@ AgentFleet 让您可以将编码任务同时分发到所有机器上。从任意
 npx -y @daomar/agentfleet run
 ```
 
-首次运行时，AgentFleet 会自动在 npm 全局目录中创建 `agentfleet` 和 `dma` 快捷命令，因此您可以直接使用任一命令，无需重启终端即可生效。如果您已通过 `npm install -g @daomar/agentfleet` 全局安装，将跳过快捷方式创建。
+首次运行时，AgentFleet 会自动在 npm 全局目录中创建 `agentfleet` 快捷命令，因此您可以直接使用该命令，无需重启终端即可生效。如果您已通过 `npm install -g @daomar/agentfleet` 全局安装，将跳过快捷方式创建。
 
 或全局安装：
 

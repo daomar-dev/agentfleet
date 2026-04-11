@@ -29,7 +29,7 @@
 ## Phase 1: Codebase Rename
 
 ### 1.1 Package Identity
-- [x] 1.1.1 Update `package.json`: `name` → `@daomar/agentfleet`, `bin` → `{ "agentfleet": "dist/cli.js", "dma": "dist/cli.js" }`, `repository.url` → `git+https://github.com/daomar-dev/agentfleet.git`, `homepage` → `https://github.com/daomar-dev/agentfleet#readme`
+- [x] 1.1.1 Update `package.json`: `name` → `@daomar/agentfleet`, `bin` → `{ "agentfleet": "dist/cli.js" }`, `repository.url` → `git+https://github.com/daomar-dev/agentfleet.git`, `homepage` → `https://github.com/daomar-dev/agentfleet#readme`
 - [x] 1.1.2 Update `web/package.json`: `name` → `@daomar/agentfleet-web`
 
 ### 1.2 CLI Entry
@@ -45,7 +45,7 @@
 - [x] 1.4.2 Update `src/services/daemon.ts`: `lattixDir` → `agentfleetDir`, PID file → `agentfleet.pid`, log file → `agentfleet.log`
 
 ### 1.5 Platform Integration
-- [x] 1.5.1 Update `src/services/shortcut.ts`: binary name checks → `agentfleet` + `dma`, wrapper creation for both binaries, npx command → `npx -y @daomar/agentfleet`
+- [x] 1.5.1 Update `src/services/shortcut.ts`: binary name checks → `agentfleet`, wrapper creation for the main binary, npx command → `npx -y @daomar/agentfleet`
 - [x] 1.5.2 Update `src/services/windows-service.ts`: task name → `AgentFleet`, VBS → `start-agentfleet.vbs`, npx command → `npx -y @daomar/agentfleet run -d`, directory → `~/.agentfleet/`
 - [x] 1.5.3 Update `src/services/macos-auto-start.ts`: label → `dev.daomar.agentfleet`, npx command → `@daomar/agentfleet`
 
@@ -53,7 +53,7 @@
 - [x] 1.6.1 Update `src/services/version-checker.ts`: registry URL → `https://registry.npmjs.org/@daomar%2fagentfleet/latest`
 
 ### 1.7 CLI i18n
-- [x] 1.7.1 Update `src/locales/en-US.json`: all `Lattix` → `AgentFleet`, all `lattix` command refs → `agentfleet`, add `dma` shortcut mentions, `npx -y lattix` → `npx -y @daomar/agentfleet`
+- [x] 1.7.1 Update `src/locales/en-US.json`: all `Lattix` → `AgentFleet`, all `lattix` command refs → `agentfleet`, `npx -y lattix` → `npx -y @daomar/agentfleet`
 - [x] 1.7.2 Update `src/locales/zh-CN.json`: same changes as en-US
 
 ### 1.8 Web i18n
@@ -113,7 +113,7 @@
 - [x] 1.13.6 Scan remaining web test files for any `lattix` references
 
 ### 1.14 Documentation
-- [x] 1.14.1 Rewrite `README.md`: brand name, all URLs, all command examples (include `dma` shortcut), GitHub/npm links, web dashboard URL, donate links
+- [x] 1.14.1 Rewrite `README.md`: brand name, all URLs, all command examples, GitHub/npm links, web dashboard URL, donate links
 - [x] 1.14.2 Rewrite `README.zh-CN.md`: same changes as README.md
 - [x] 1.14.3 Update `AGENTS.md`: any `lattix` command references
 - [x] 1.14.4 Update `CLAUDE.md`: if it references project-specific commands

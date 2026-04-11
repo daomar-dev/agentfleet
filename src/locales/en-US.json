@@ -152,7 +152,7 @@
 
   "result.written": "Results written to: {path}",
 
-  "shortcut.available": "`agentfleet` and `dma` commands are now available (shortcuts to `npx -y @daomar/agentfleet`)",
+  "shortcut.available": "`agentfleet` command is now available (shortcut to `npx -y @daomar/agentfleet`)",
   "shortcut.failed": "Shortcut registration failed: {error}",
 
   "detector.multiple_accounts": "Multiple OneDrive accounts detected. Using the first one:",

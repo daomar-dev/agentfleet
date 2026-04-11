@@ -12,7 +12,7 @@ The brand **Daomar** (刀马 · 道码) carries dual cultural meaning: the boldn
 Daomar (org/brand)
   └── AgentFleet (product)
         ├── CLI: @daomar/agentfleet
-        │     bin: agentfleet, dma
+        │     bin: agentfleet
         └── Web: agentfleet.daomar.dev
 ```
 
@@ -21,7 +21,7 @@ Daomar (org/brand)
 | Context | Format | Example |
 |---------|--------|---------|
 | npm package | lowercase scoped | `@daomar/agentfleet` |
-| CLI binary | lowercase | `agentfleet`, `dma` |
+| CLI binary | lowercase | `agentfleet` |
 | User-facing display | Title case | `AgentFleet` |
 | Config directory | dotfile lowercase | `~/.agentfleet/` |
 | OneDrive folder | Title case | `AgentFleet/` |
@@ -85,8 +85,7 @@ Each layer is independent and can be verified in isolation. The rename is purely
 {
   "name": "@daomar/agentfleet",
   "bin": {
-    "agentfleet": "dist/cli.js",
-    "dma": "dist/cli.js"
+    "agentfleet": "dist/cli.js"
   },
   "repository": {
     "url": "git+https://github.com/daomar-dev/agentfleet.git"
@@ -127,9 +126,9 @@ Rename all internal identifiers: `lattixDir` → `agentfleetDir`, `LattixConfig`
 ### Layer 4: Platform integration
 
 **`src/services/shortcut.ts`**:
-- `isGloballyInstalled()`: check for `agentfleet` and `dma` binaries.
-- `wrapperExists()`: check `agentfleet.cmd` / `agentfleet` (and `dma.cmd` / `dma`).
-- `createWrapper()`: create wrappers for both `agentfleet` and `dma`, both pointing to `npx -y @daomar/agentfleet`.
+- `isGloballyInstalled()`: check for the `agentfleet` binary.
+- `wrapperExists()`: check `agentfleet.cmd` / `agentfleet`.
+- `createWrapper()`: create the `agentfleet` wrapper pointing to `npx -y @daomar/agentfleet`.
 - Update `ShortcutResult` comments.
 
 **`src/services/windows-service.ts`**:
@@ -152,12 +151,12 @@ const body = await fetchFn('https://registry.npmjs.org/@daomar%2fagentfleet/late
 
 ### Layer 6 & 7: i18n (CLI + Web)
 
-All four locale files need systematic `Lattix` → `AgentFleet` and `lattix` → `agentfleet` replacement in user-visible strings. Command examples change from `lattix run` to `agentfleet run` (and mention `dma run` as alternative).
+All four locale files need systematic `Lattix` → `AgentFleet` and `lattix` → `agentfleet` replacement in user-visible strings. Command examples change from `lattix run` to `agentfleet run`.
 
 Key i18n string changes:
 ```
 "Lattix v{current}"           → "AgentFleet v{current}"
-"`lattix` command is now..."  → "`agentfleet` / `dma` commands are now..."
+"`lattix` command is now..."  → "`agentfleet` command is now..."
 "lattix stop"                 → "agentfleet stop"
 "npx -y lattix run"           → "npx -y @daomar/agentfleet run"
 ```
@@ -195,7 +194,7 @@ Mechanical replacement in all test files. No test logic changes. The `i18n-catal
 
 ### Layer 12: Documentation
 
-Full rewrite of `README.md` and `README.zh-CN.md` with new brand name, URLs, and commands. Add `dma` as shortcut alternative throughout.
+Full rewrite of `README.md` and `README.zh-CN.md` with new brand name, URLs, and commands.
 
 ### Layer 13: OpenSpec
 
@@ -258,5 +257,4 @@ No new tests are needed. Existing test coverage already verifies all the strings
 | npm scoped package naming issues | Low | `npm whoami` and `npm org ls daomar` confirmed working |
 | GitHub Pages custom domain propagation delay | Low | DNS is on Cloudflare (fast propagation) |
 | Entra ID redirect URI mismatch | Medium | Test OAuth flow on localhost before deploying |
-| `dma` binary name conflict with system `dma` | Very Low | No common CLI tool uses `dma`; DMA is a hardware concept, not a CLI tool |
 | Old `lattix` users confused | Very Low | Hard cut is acceptable — project is in testing phase |

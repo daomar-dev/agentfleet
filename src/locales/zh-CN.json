@@ -152,7 +152,7 @@
 
   "result.written": "结果已写入: {path}",
 
-  "shortcut.available": "`agentfleet` 和 `dma` 命令现已可用（快捷方式指向 `npx -y @daomar/agentfleet`）",
+  "shortcut.available": "`agentfleet` 命令现已可用（快捷方式指向 `npx -y @daomar/agentfleet`）",
   "shortcut.failed": "快捷方式注册失败: {error}",
 
   "detector.multiple_accounts": "检测到多个 OneDrive 账户，使用第一个：",

@@ -26,7 +26,7 @@ All 500+ references to `lattix`, `Lattix`, `LATTIX`, `code365.xyz`, and `chenxiz
 1. **Package identity** — `package.json` name, bin, repository, homepage; `web/package.json` name.
 2. **CLI entry** — `src/cli.ts` program name from `lattix` to `agentfleet`.
 3. **File system paths** — `~/.lattix/` to `~/.agentfleet/`, PID/log filenames, OneDrive subfolder `Lattix/` to `AgentFleet/`.
-4. **Platform integration** — Windows Scheduled Task name, macOS LaunchAgent label (`dev.daomar.agentfleet`), VBS script name, shortcut wrappers (`agentfleet` + `dma`).
+4. **Platform integration** — Windows Scheduled Task name, macOS LaunchAgent label (`dev.daomar.agentfleet`), VBS script name, shortcut wrapper (`agentfleet`).
 5. **Version checker** — npm registry URL updated for scoped package `@daomar/agentfleet`.
 6. **CLI i18n** — `src/locales/en-US.json` and `src/locales/zh-CN.json`: all "Lattix" display strings, all `lattix` command references.
 7. **Web i18n** — `web/src/locales/en-US.json` and `web/src/locales/zh-CN.json`: brand name, domain, commands.

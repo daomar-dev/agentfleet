@@ -4,7 +4,7 @@ Define the supported AgentFleet CLI entrypoint, commands, and user-facing invoca
 ## Requirements
 
 ### Requirement: npx-compatible CLI entrypoint
-The system SHALL provide a CLI entrypoint that can be invoked via `npx -y @daomar/agentfleet <command>`. The package.json MUST define a `bin` field mapping `agentfleet` and `dma` to the compiled CLI script.
+The system SHALL provide a CLI entrypoint that can be invoked via `npx -y @daomar/agentfleet <command>`. The package.json MUST define a `bin` field mapping `agentfleet` to the compiled CLI script.
 
 #### Scenario: Running via npx
 - **WHEN** a user runs `npx -y @daomar/agentfleet run`
