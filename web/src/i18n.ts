@@ -12,7 +12,7 @@ const catalogs: Record<SupportedLocale, MessageCatalog> = {
 export function detectLocale(): SupportedLocale {
   // 1. localStorage preference
   try {
-    const stored = localStorage.getItem('lattix-lang');
+    const stored = localStorage.getItem('agentfleet-lang');
     if (stored) {
       return mapLocale(stored);
     }
@@ -130,15 +130,15 @@ export function initI18n(): void {
   if (manifestLink) {
     try {
       const manifest = {
-        name: 'Lattix',
-        short_name: 'Lattix',
+        name: 'AgentFleet',
+        short_name: 'AgentFleet',
         description: i18n.t('meta.description'),
         lang: locale,
         start_url: '/',
         display: 'standalone',
         orientation: 'any',
-        theme_color: '#0078d4',
-        background_color: '#f5f5f5',
+        theme_color: '#d24c2a',
+        background_color: '#111817',
         icons: [
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },

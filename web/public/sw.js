@@ -1,4 +1,4 @@
-const CACHE_NAME = 'lattix-__BUILD_HASH__';
+const CACHE_NAME = 'agentfleet-__BUILD_HASH__';
 const SHELL_FILES = [
   '/',
   '/manifest.json',

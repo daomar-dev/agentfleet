@@ -18,9 +18,9 @@ function isStandaloneMode(): boolean {
 }
 
 function getConfig(): Configuration {
-  const cfg = window.LATTIX_CONFIG;
+  const cfg = window.AGENTFLEET_CONFIG;
   if (!cfg?.clientId) {
-    throw new Error('LATTIX_CONFIG.clientId is not set. Check config.js.');
+    throw new Error('AGENTFLEET_CONFIG.clientId is not set. Check config.js.');
   }
   return {
     auth: {

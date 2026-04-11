@@ -3,14 +3,14 @@ import { submitTask, listTaskFiles, discoverNodes } from '../graph';
 import { showToast } from '../utils';
 import { t, formatDate, formatRelativeTime } from '../i18n';
 import { getCache, setCache, getSetting, getTaskContent, getCachedWorkspaceExists } from '../task-cache';
-import type { TaskFile, LattixNode } from '../types';
+import type { AgentFleetNode, TaskFile } from '../types';
 
 interface CachedTask {
   task: TaskFile;
   lastModified: string;
 }
 
-function renderNodes(section: HTMLElement, nodes: LattixNode[], loading: boolean): void {
+function renderNodes(section: HTMLElement, nodes: AgentFleetNode[], loading: boolean): void {
   if (loading && nodes.length === 0) {
     section.innerHTML = `<h2>${t('home.nodesTitle')}</h2><div class="skeleton-block"></div>`;
     return;
@@ -165,7 +165,7 @@ export async function renderHome(container: HTMLElement): Promise<void> {
   nodesSection.className = 'nodes-section';
   main.appendChild(nodesSection);
 
-  const cachedNodes = getCache<LattixNode[]>('home_nodes');
+  const cachedNodes = getCache<AgentFleetNode[]>('home_nodes');
 
   // 3. Tasks section
   const tasksSection = document.createElement('section');
@@ -197,7 +197,7 @@ async function backgroundRefresh(
   submitSection: HTMLElement,
   nodesSection: HTMLElement,
   tasksSection: HTMLElement,
-  cachedNodes: LattixNode[] | null,
+  cachedNodes: AgentFleetNode[] | null,
   cachedTasks: CachedTask[] | null,
 ): Promise<void> {
   try {

@@ -4,23 +4,23 @@
 A `robots.txt` file SHALL exist at the site root allowing all user agents to crawl all public paths.
 
 #### Scenario: Crawler checks robots.txt
-- **WHEN** a crawler fetches `https://lattix.code365.xyz/robots.txt`
+- **WHEN** a crawler fetches `https://agentfleet.daomar.dev/robots.txt`
 - **THEN** it SHALL receive a valid robots.txt with `User-agent: *` and `Allow: /`
 
 #### Scenario: Sitemap reference in robots.txt
 - **WHEN** a crawler reads the robots.txt
-- **THEN** it SHALL find a `Sitemap:` directive pointing to `https://lattix.code365.xyz/sitemap.xml`
+- **THEN** it SHALL find a `Sitemap:` directive pointing to `https://agentfleet.daomar.dev/sitemap.xml`
 
 ### Requirement: sitemap.xml lists public pages
 A `sitemap.xml` file SHALL exist at the site root listing all publicly accessible pages.
 
 #### Scenario: Sitemap contains landing page
-- **WHEN** a search engine fetches `https://lattix.code365.xyz/sitemap.xml`
-- **THEN** it SHALL contain a `<url>` entry for `https://lattix.code365.xyz/`
+- **WHEN** a search engine fetches `https://agentfleet.daomar.dev/sitemap.xml`
+- **THEN** it SHALL contain a `<url>` entry for `https://agentfleet.daomar.dev/`
 
 #### Scenario: Sitemap contains donation page
 - **WHEN** a search engine fetches the sitemap
-- **THEN** it SHALL contain a `<url>` entry for `https://lattix.code365.xyz/donate.html`
+- **THEN** it SHALL contain a `<url>` entry for `https://agentfleet.daomar.dev/donate.html`
 
 #### Scenario: Sitemap excludes authenticated routes
 - **WHEN** a search engine parses the sitemap

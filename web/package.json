@@ -1,5 +1,5 @@
 {
-  "name": "lattix-web",
+  "name": "@daomar/agentfleet-web",
   "version": "0.1.0",
   "private": true,
   "type": "module",

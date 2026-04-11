@@ -11,7 +11,7 @@ All localStorage cache entries managed by `cache.ts` SHALL include the signed-in
 
 #### Scenario: Cache key format
 - **WHEN** a cache entry is stored for account with `homeAccountId` "abc123"
-- **THEN** the localStorage key SHALL follow the pattern `lattix_abc123_cache_{key}`
+- **THEN** the localStorage key SHALL follow the pattern `af_abc123_cache_{key}`
 
 ### Requirement: Settings scoped by account
 All localStorage settings entries managed by `cache.ts` SHALL include the signed-in user's account identifier in the key.
@@ -23,14 +23,14 @@ All localStorage settings entries managed by `cache.ts` SHALL include the signed
 
 #### Scenario: Settings key format
 - **WHEN** a setting is stored for account with `homeAccountId` "abc123"
-- **THEN** the localStorage key SHALL follow the pattern `lattix_abc123_pref_{key}`
+- **THEN** the localStorage key SHALL follow the pattern `af_abc123_pref_{key}`
 
 ### Requirement: Graceful fallback without account
 When no account is signed in (pre-login state), cache and settings functions SHALL fall back to an unscoped key prefix to avoid errors.
 
 #### Scenario: Cache access before login
 - **WHEN** `getCache()` is called before any account is signed in
-- **THEN** it SHALL use the fallback prefix `lattix__cache_{key}` (empty account segment)
+- **THEN** it SHALL use the fallback prefix `af__cache_{key}` (empty account segment)
 - **AND** no error SHALL be thrown
 
 ### Requirement: No cross-account data leakage on login

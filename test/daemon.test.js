@@ -5,7 +5,7 @@ const path = require('path');
 const os = require('os');
 
 function makeTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'lattix-daemon-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'agentfleet-daemon-test-'));
 }
 
 test('DaemonService writePid and readPid round-trip', () => {
@@ -115,13 +115,13 @@ test('DaemonService buildChildArgs removes --daemon and adds --_daemon-child', (
 
   const result = svc.buildChildArgs(
     ['dist/cli.js', 'run', '--daemon', '--poll-interval', '30'],
-    '/tmp/lattix.log'
+    '/tmp/agentfleet.log'
   );
 
   assert.ok(!result.includes('--daemon'), 'should not contain --daemon');
   assert.ok(result.includes('--_daemon-child'), 'should contain --_daemon-child');
   assert.ok(result.includes('--log-file'), 'should contain --log-file');
-  assert.ok(result.includes('/tmp/lattix.log'), 'should contain log path');
+  assert.ok(result.includes('/tmp/agentfleet.log'), 'should contain log path');
   assert.ok(result.includes('--poll-interval'), 'should preserve other args');
   assert.ok(result.includes('30'), 'should preserve other arg values');
 
@@ -166,10 +166,10 @@ test('DaemonService getPidPath and getDefaultLogPath', () => {
   const { DaemonService } = require('../dist/services/daemon.js');
   const svc = new DaemonService({ homedir: '/fakehome' });
 
-  assert.ok(svc.getPidPath().includes('.lattix'));
-  assert.ok(svc.getPidPath().includes('lattix.pid'));
-  assert.ok(svc.getDefaultLogPath().includes('.lattix'));
-  assert.ok(svc.getDefaultLogPath().includes('lattix.log'));
+  assert.ok(svc.getPidPath().includes('.agentfleet'));
+  assert.ok(svc.getPidPath().includes('agentfleet.pid'));
+  assert.ok(svc.getDefaultLogPath().includes('.agentfleet'));
+  assert.ok(svc.getDefaultLogPath().includes('agentfleet.log'));
 });
 
 test('DaemonService buildChildArgs removes -d shorthand', () => {
@@ -179,7 +179,7 @@ test('DaemonService buildChildArgs removes -d shorthand', () => {
 
   const result = svc.buildChildArgs(
     ['dist/cli.js', 'run', '-d', '--poll-interval', '30'],
-    '/tmp/lattix.log'
+    '/tmp/agentfleet.log'
   );
 
   assert.ok(!result.includes('-d'), 'should not contain -d');

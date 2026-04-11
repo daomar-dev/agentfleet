@@ -29,7 +29,7 @@ test('queryTaskState returns "not-installed" when PowerShell fails', () => {
 
 test('install calls Register-ScheduledTask with AtLogOn and wake triggers', () => {
   const calledCmds = [];
-  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lattix-win-service-'));
+  const homeDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agentfleet-win-service-'));
   const { mgr } = createManager({
     homedir: homeDir,
     execSyncFn: (cmd) => {
@@ -42,7 +42,7 @@ test('install calls Register-ScheduledTask with AtLogOn and wake triggers', () =
     mgr.install();
     const installCmd = calledCmds.find(c => c.includes('Register-ScheduledTask'));
     assert.ok(installCmd, 'should call Register-ScheduledTask');
-    assert.ok(installCmd.includes('Lattix'));
+    assert.ok(installCmd.includes('AgentFleet'));
     assert.ok(installCmd.includes('AtLogOn'), 'should include AtLogOn trigger');
     assert.ok(installCmd.includes('MSFT_TaskEventTrigger'), 'should include CIM event trigger');
     assert.ok(installCmd.includes('Power-Troubleshooter'), 'should include Power-Troubleshooter subscription');
@@ -60,10 +60,10 @@ test('uninstall calls Unregister-ScheduledTask', () => {
   });
   mgr.uninstall();
   assert.ok(calledCmd.includes('Unregister-ScheduledTask'));
-  assert.ok(calledCmd.includes('Lattix'));
+  assert.ok(calledCmd.includes('AgentFleet'));
 });
 
-test('getTaskName returns "Lattix"', () => {
+test('getTaskName returns "AgentFleet"', () => {
   const { mgr } = createManager({});
-  assert.equal(mgr.getTaskName(), 'Lattix');
+  assert.equal(mgr.getTaskName(), 'AgentFleet');
 });

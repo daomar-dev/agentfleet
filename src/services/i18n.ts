@@ -31,15 +31,15 @@ function loadCatalog(locale: SupportedLocale): MessageCatalog {
  * Detect the user's preferred locale.
  *
  * Precedence:
- * 1. LATTIX_LANG environment variable
+ * 1. AGENTFLEET_LANG environment variable
  * 2. OS display language via Intl.DateTimeFormat
  * 3. Falls back to en-US
  *
  * Any zh-* locale maps to zh-CN; everything else maps to en-US.
  */
 export function detectLocale(): SupportedLocale {
-  // 1. Check LATTIX_LANG env var
-  const envLang = process.env.LATTIX_LANG;
+  // 1. Check AGENTFLEET_LANG env var
+  const envLang = process.env.AGENTFLEET_LANG;
   if (envLang) {
     return mapLocale(envLang);
   }

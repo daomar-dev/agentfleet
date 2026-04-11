@@ -53,62 +53,62 @@ test('t() returns raw key when key is missing in all locales', () => {
   assert.equal(result, 'nonexistent.key.that.does.not.exist');
 });
 
-test('detectLocale() respects LATTIX_LANG environment variable', () => {
+test('detectLocale() respects AGENTFLEET_LANG environment variable', () => {
   const { detectLocale } = require('../dist/services/i18n.js');
-  const originalEnv = process.env.LATTIX_LANG;
+  const originalEnv = process.env.AGENTFLEET_LANG;
   try {
-    process.env.LATTIX_LANG = 'zh-CN';
+    process.env.AGENTFLEET_LANG = 'zh-CN';
     assert.equal(detectLocale(), 'zh-CN');
 
-    process.env.LATTIX_LANG = 'en-US';
+    process.env.AGENTFLEET_LANG = 'en-US';
     assert.equal(detectLocale(), 'en-US');
   } finally {
     if (originalEnv === undefined) {
-      delete process.env.LATTIX_LANG;
+      delete process.env.AGENTFLEET_LANG;
     } else {
-      process.env.LATTIX_LANG = originalEnv;
+      process.env.AGENTFLEET_LANG = originalEnv;
     }
   }
 });
 
 test('detectLocale() maps zh-* to zh-CN', () => {
   const { detectLocale } = require('../dist/services/i18n.js');
-  const originalEnv = process.env.LATTIX_LANG;
+  const originalEnv = process.env.AGENTFLEET_LANG;
   try {
-    process.env.LATTIX_LANG = 'zh-TW';
+    process.env.AGENTFLEET_LANG = 'zh-TW';
     assert.equal(detectLocale(), 'zh-CN');
 
-    process.env.LATTIX_LANG = 'zh-Hans';
+    process.env.AGENTFLEET_LANG = 'zh-Hans';
     assert.equal(detectLocale(), 'zh-CN');
 
-    process.env.LATTIX_LANG = 'zh';
+    process.env.AGENTFLEET_LANG = 'zh';
     assert.equal(detectLocale(), 'zh-CN');
   } finally {
     if (originalEnv === undefined) {
-      delete process.env.LATTIX_LANG;
+      delete process.env.AGENTFLEET_LANG;
     } else {
-      process.env.LATTIX_LANG = originalEnv;
+      process.env.AGENTFLEET_LANG = originalEnv;
     }
   }
 });
 
 test('detectLocale() defaults to en-US for non-Chinese locales', () => {
   const { detectLocale } = require('../dist/services/i18n.js');
-  const originalEnv = process.env.LATTIX_LANG;
+  const originalEnv = process.env.AGENTFLEET_LANG;
   try {
-    process.env.LATTIX_LANG = 'fr-FR';
+    process.env.AGENTFLEET_LANG = 'fr-FR';
     assert.equal(detectLocale(), 'en-US');
 
-    process.env.LATTIX_LANG = 'ja-JP';
+    process.env.AGENTFLEET_LANG = 'ja-JP';
     assert.equal(detectLocale(), 'en-US');
 
-    process.env.LATTIX_LANG = 'de-DE';
+    process.env.AGENTFLEET_LANG = 'de-DE';
     assert.equal(detectLocale(), 'en-US');
   } finally {
     if (originalEnv === undefined) {
-      delete process.env.LATTIX_LANG;
+      delete process.env.AGENTFLEET_LANG;
     } else {
-      process.env.LATTIX_LANG = originalEnv;
+      process.env.AGENTFLEET_LANG = originalEnv;
     }
   }
 });

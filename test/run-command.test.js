@@ -58,8 +58,8 @@ function createMockDeps(overrides = {}) {
       checkExistingDaemon() { return null; },
       writePid() {},
       removePid() {},
-      getPidPath() { return 'C:\\temp\\lattix.pid'; },
-      getDefaultLogPath() { return 'C:\\temp\\lattix.log'; },
+      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
+      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
     },
     autoStartManager: overrides.autoStartManager || {
       queryState() { return 'not-installed'; },
@@ -172,8 +172,8 @@ test('run command in daemon mode calls spawnDetached and exits', async () => {
       checkExistingDaemon() { return null; },
       writePid() {},
       removePid() {},
-      getDefaultLogPath() { return 'C:\\temp\\lattix.log'; },
-      getPidPath() { return 'C:\\temp\\lattix.pid'; },
+      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
+      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
       spawnDetached(args, logFile) {
         spawnedArgs = args;
         spawnedLogFile = logFile;
@@ -191,7 +191,7 @@ test('run command in daemon mode calls spawnDetached and exits', async () => {
 
   assert.equal(exitCode, 0, 'should exit with 0');
   assert.ok(spawnedArgs, 'should have called spawnDetached');
-  assert.equal(spawnedLogFile, 'C:\\temp\\lattix.log');
+  assert.equal(spawnedLogFile, 'C:\\temp\\agentfleet.log');
 });
 
 test('run command rejects when another instance is already running', async () => {
@@ -204,8 +204,8 @@ test('run command rejects when another instance is already running', async () =>
       checkExistingDaemon() { return 99999; },
       writePid() {},
       removePid() {},
-      getDefaultLogPath() { return 'C:\\temp\\lattix.log'; },
-      getPidPath() { return 'C:\\temp\\lattix.pid'; },
+      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
+      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
     },
   });
 
@@ -228,8 +228,8 @@ test('run command in daemon mode rejects when another instance is already runnin
       checkExistingDaemon() { return 99999; },
       writePid() {},
       removePid() {},
-      getDefaultLogPath() { return 'C:\\temp\\lattix.log'; },
-      getPidPath() { return 'C:\\temp\\lattix.pid'; },
+      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
+      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
       spawnDetached() { throw new Error('should not be called'); },
     },
   });
@@ -252,8 +252,8 @@ test('run command writes PID file in foreground mode', async () => {
       checkExistingDaemon() { return null; },
       writePid(pid) { pidWritten = pid; },
       removePid() {},
-      getPidPath() { return 'C:\\temp\\lattix.pid'; },
-      getDefaultLogPath() { return 'C:\\temp\\lattix.log'; },
+      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
+      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
     },
   });
 
@@ -295,8 +295,8 @@ test('run command shows info when scheduled task is installed and running', asyn
       checkExistingDaemon() { return 12345; },
       writePid() {},
       removePid() {},
-      getPidPath() { return 'C:\\temp\\lattix.pid'; },
-      getDefaultLogPath() { return 'C:\\temp\\lattix.log'; },
+      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
+      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
     },
     exit: (code) => { exitCode = code; throw new Error(`exit ${code}`); },
   });
@@ -306,7 +306,7 @@ test('run command shows info when scheduled task is installed and running', asyn
   assert.equal(exitCode, 0, 'should exit with 0 (informational)');
 });
 
-test('run command shows submit hint with lattix when shortcut available', async () => {
+test('run command shows submit hint with agentfleet when shortcut available', async () => {
   const { runCommand } = require('../dist/commands/run.js');
   const logs = [];
   const origLog = console.log;
@@ -323,8 +323,8 @@ test('run command shows submit hint with lattix when shortcut available', async 
 
   const hintLine = logs.find(l => l.includes('To submit a task'));
   assert.ok(hintLine, 'should print submit hint');
-  assert.ok(hintLine.includes('lattix submit'), 'should use lattix shortcut');
-  assert.ok(!hintLine.includes('npx -y lattix submit'), 'should NOT use npx form');
+  assert.ok(hintLine.includes('agentfleet submit'), 'should use agentfleet shortcut');
+  assert.ok(!hintLine.includes('npx -y @daomar/agentfleet submit'), 'should NOT use npx form');
 });
 
 test('run command shows submit hint with npx when no shortcut', async () => {
@@ -344,5 +344,5 @@ test('run command shows submit hint with npx when no shortcut', async () => {
 
   const hintLine = logs.find(l => l.includes('To submit a task'));
   assert.ok(hintLine, 'should print submit hint');
-  assert.ok(hintLine.includes('npx -y lattix submit'), 'should use npx form');
+  assert.ok(hintLine.includes('npx -y @daomar/agentfleet submit'), 'should use npx form');
 });

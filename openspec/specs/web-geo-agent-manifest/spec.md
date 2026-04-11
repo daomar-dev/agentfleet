@@ -4,7 +4,7 @@
 A JSON file SHALL exist at `web/public/.well-known/agent.json` and be served at `/.well-known/agent.json`.
 
 #### Scenario: Agent discovers manifest
-- **WHEN** an AI agent fetches `https://lattix.code365.xyz/.well-known/agent.json`
+- **WHEN** an AI agent fetches `https://agentfleet.daomar.dev/.well-known/agent.json`
 - **THEN** it SHALL receive a valid JSON response
 
 ### Requirement: agent.json schema fields
@@ -13,9 +13,9 @@ The `agent.json` manifest SHALL contain required fields: `schema_version`, `name
 #### Scenario: Required fields present
 - **WHEN** the JSON is parsed
 - **THEN** `schema_version` SHALL be a non-empty string
-- **THEN** `name` SHALL be "Lattix"
+- **THEN** `name` SHALL be "AgentFleet"
 - **THEN** `description` SHALL be a non-empty string
-- **THEN** `url` SHALL be "https://lattix.code365.xyz/"
+- **THEN** `url` SHALL be "https://agentfleet.daomar.dev/"
 - **THEN** `auth` SHALL be an object with a `type` field
 - **THEN** `capabilities` SHALL be a non-empty array
 

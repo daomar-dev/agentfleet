@@ -1,10 +1,11 @@
 {
-  "name": "lattix",
-  "version": "1.2.2",
+  "name": "@daomar/agentfleet",
+  "version": "2.0.0",
   "description": "Distributed agent orchestration, without a control plane.",
   "main": "dist/cli.js",
   "bin": {
-    "lattix": "dist/cli.js"
+    "agentfleet": "dist/cli.js",
+    "dma": "dist/cli.js"
   },
   "scripts": {
     "copy-locales": "node -e \"const fs=require('fs'),p=require('path');const s=p.join('src','locales'),d=p.join('dist','locales');fs.mkdirSync(d,{recursive:true});fs.readdirSync(s).filter(f=>f.endsWith('.json')).forEach(f=>fs.copyFileSync(p.join(s,f),p.join(d,f)))\"",
@@ -31,12 +32,12 @@
     "代理"
   ],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/chenxizhang/lattix.git"
+    "url": "git+https://github.com/daomar-dev/agentfleet.git"
   },
-  "homepage": "https://github.com/chenxizhang/lattix#readme",
+  "homepage": "https://github.com/daomar-dev/agentfleet#readme",
   "type": "commonjs",
   "engines": {
     "node": ">=18.0.0"

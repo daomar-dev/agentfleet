@@ -16,7 +16,7 @@ export function renderNavbar(container: HTMLElement): HTMLElement {
       <a href="#/" class="navbar-logo">
         <img src="/icons/icon-192.png" alt="" width="28" height="28" />
         <div class="navbar-title-group">
-          <span class="navbar-title">Lattix</span>
+          <span class="navbar-title">AgentFleet</span>
           <span class="navbar-slogan">${t('navbar.slogan')}</span>
         </div>
       </a>

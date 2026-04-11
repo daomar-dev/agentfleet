@@ -66,7 +66,7 @@ describe('per-task content caching', () => {
     await expect(getTaskContent('task-001', 'https://download.example.com/task-001.json')).rejects.toThrow('Network error');
 
     // Cache should still be empty
-    const cacheKey = `lattix_user-abc_cache_task_task-001`;
+    const cacheKey = `af_user-abc_cache_task_task-001`;
     expect(localStorage.getItem(cacheKey)).toBeNull();
   });
 

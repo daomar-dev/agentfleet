@@ -31,7 +31,7 @@ export function getShortcutResult(): ShortcutResult | undefined {
 }
 
 program
-  .name('lattix')
+  .name('agentfleet')
   .description(t('cli.description'))
   .version(packageJson.version);
 

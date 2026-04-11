@@ -29,11 +29,11 @@ const routes: Route[] = [
 ];
 
 function showUpdateToast(): void {
-  const existing = document.querySelector('.lattix-toast');
+  const existing = document.querySelector('.af-toast');
   if (existing) existing.remove();
 
   const toast = document.createElement('div');
-  toast.className = 'lattix-toast lattix-toast--info';
+  toast.className = 'af-toast af-toast--info';
   toast.textContent = t('app.updateAvailable');
   toast.style.cursor = 'pointer';
   toast.addEventListener('click', () => {

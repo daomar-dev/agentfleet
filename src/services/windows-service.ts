@@ -11,16 +11,16 @@ export interface ScheduledTaskDependencies {
 
 export type TaskState = 'installed' | 'not-installed';
 
-const TASK_NAME = 'Lattix';
+const TASK_NAME = 'AgentFleet';
 
 export class ScheduledTaskManager implements AutoStartManager {
-  private readonly lattixDir: string;
+  private readonly agentfleetDir: string;
   private readonly deps: ScheduledTaskDependencies;
 
   constructor(deps: ScheduledTaskDependencies = {}) {
     this.deps = deps;
     const home = deps.homedir ?? os.homedir();
-    this.lattixDir = path.join(home, '.lattix');
+    this.agentfleetDir = path.join(home, '.agentfleet');
   }
 
   getTaskName(): string {
@@ -53,11 +53,11 @@ export class ScheduledTaskManager implements AutoStartManager {
     const npxPath = this.findNpx();
 
     // Create a VBS launcher to run npx completely hidden (no window flash)
-    if (!fs.existsSync(this.lattixDir)) {
-      fs.mkdirSync(this.lattixDir, { recursive: true });
+    if (!fs.existsSync(this.agentfleetDir)) {
+      fs.mkdirSync(this.agentfleetDir, { recursive: true });
     }
-    const vbsPath = path.join(this.lattixDir, 'start-lattix.vbs');
-    const vbsContent = `Set WshShell = CreateObject("WScript.Shell")\nWshShell.Run """${npxPath}"" -y lattix run -d", 0, False`;
+    const vbsPath = path.join(this.agentfleetDir, 'start-agentfleet.vbs');
+    const vbsContent = `Set WshShell = CreateObject("WScript.Shell")\nWshShell.Run """${npxPath}"" -y @daomar/agentfleet run -d", 0, False`;
     fs.writeFileSync(vbsPath, vbsContent, 'utf-8');
 
     const psCmd = [
@@ -69,7 +69,7 @@ export class ScheduledTaskManager implements AutoStartManager {
       `$q = [char]34`,
       `$trigger2.Subscription = '<QueryList><Query Id=' + $q + '0' + $q + ' Path=' + $q + 'System' + $q + '><Select Path=' + $q + 'System' + $q + '>*[System[Provider[@Name=''Microsoft-Windows-Power-Troubleshooter''] and EventID=1]]</Select></Query></QueryList>'`,
       `$settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -StartWhenAvailable`,
-      `Register-ScheduledTask -TaskName '${TASK_NAME}' -Action $action -Trigger @($trigger1, $trigger2) -Settings $settings -Description 'Lattix agent orchestration' -Force`,
+      `Register-ScheduledTask -TaskName '${TASK_NAME}' -Action $action -Trigger @($trigger1, $trigger2) -Settings $settings -Description 'AgentFleet agent orchestration' -Force`,
     ].join('; ');
     this.exec(`powershell -NoProfile -Command "${psCmd}"`);
   }
@@ -77,7 +77,7 @@ export class ScheduledTaskManager implements AutoStartManager {
   uninstall(): void {
     this.exec(`powershell -NoProfile -Command "Unregister-ScheduledTask -TaskName '${TASK_NAME}' -Confirm:$false"`);
     // Clean up VBS launcher
-    const vbsPath = path.join(this.lattixDir, 'start-lattix.vbs');
+    const vbsPath = path.join(this.agentfleetDir, 'start-agentfleet.vbs');
     try { if (fs.existsSync(vbsPath)) fs.unlinkSync(vbsPath); } catch { /* ignore */ }
   }
 

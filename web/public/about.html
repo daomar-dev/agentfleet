@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>About Lattix — Distributed Agent Orchestration Without a Control Plane</title>
-  <meta name="description" content="Lattix is a free, open-source, decentralized multi-machine coding agent fabric built on OneDrive sync. Fan out coding tasks across all your machines with zero infrastructure." />
+  <title>About AgentFleet — Distributed Agent Orchestration Without a Control Plane</title>
+  <meta name="description" content="AgentFleet is a free, open-source, decentralized multi-machine coding agent fabric built on OneDrive sync. Fan out coding tasks across all your machines with zero infrastructure." />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" href="/icons/icon-192.png" />
-  <link rel="canonical" href="https://lattix.code365.xyz/about.html" />
-  <meta property="og:title" content="Lattix — Distributed Agent Orchestration" />
+  <link rel="canonical" href="https://agentfleet.daomar.dev/about.html" />
+  <meta property="og:title" content="AgentFleet — Distributed Agent Orchestration" />
   <meta property="og:description" content="Decentralized multi-machine coding agent fabric built on OneDrive sync. Zero infrastructure, zero servers." />
-  <meta property="og:url" content="https://lattix.code365.xyz/about.html" />
+  <meta property="og:url" content="https://agentfleet.daomar.dev/about.html" />
   <meta property="og:type" content="article" />
-  <meta property="og:image" content="https://lattix.code365.xyz/og-image.png" />
+  <meta property="og:image" content="https://agentfleet.daomar.dev/og-image.png" />
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "Article",
-    "headline": "Lattix — Distributed Agent Orchestration Without a Control Plane",
-    "description": "Lattix is a free, open-source, decentralized multi-machine coding agent fabric built on OneDrive sync. Any enrolled machine can dispatch work. Every machine can execute it. There is no central scheduler, broker, or control plane to keep alive.",
+    "headline": "AgentFleet — Distributed Agent Orchestration Without a Control Plane",
+    "description": "AgentFleet is a free, open-source, decentralized multi-machine coding agent fabric built on OneDrive sync. Any enrolled machine can dispatch work. Every machine can execute it. There is no central scheduler, broker, or control plane to keep alive.",
     "author": {
       "@type": "Person",
       "name": "Xizhang Chen",
@@ -27,10 +27,10 @@
     "datePublished": "2026-04-08",
     "publisher": {
       "@type": "Organization",
-      "name": "Lattix",
-      "url": "https://lattix.code365.xyz/"
+      "name": "AgentFleet",
+      "url": "https://agentfleet.daomar.dev/"
     },
-    "mainEntityOfPage": "https://lattix.code365.xyz/about.html"
+    "mainEntityOfPage": "https://agentfleet.daomar.dev/about.html"
   }
   </script>
   <style>
@@ -187,9 +187,9 @@
 </head>
 <body>
   <header>
-    <a class="logo" href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">
+    <a class="logo" href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">
       <img src="/icons/icon-192.png" alt="" />
-      <span>Lattix</span>
+      <span>AgentFleet</span>
     </a>
     <h1>Distributed Agent Orchestration Without a Control Plane</h1>
     <p>A free, open-source, decentralized multi-machine coding agent fabric built on OneDrive sync.</p>
@@ -198,8 +198,8 @@
   <main>
     <section>
       <h2>Overview</h2>
-      <p>Lattix is a decentralized, multi-machine coding agent orchestration tool. It lets you fan out coding tasks across all of your machines simultaneously. Submit a task from any machine, and every machine running Lattix will see the same task, execute it locally with its installed coding agent, and write back machine-scoped results.</p>
-      <p>Unlike traditional orchestration platforms that require a central scheduler, message broker, or cloud-hosted control plane, Lattix uses <strong>OneDrive file sync</strong> as the sole coordination mechanism. There are no servers to run, no databases to maintain, and no additional infrastructure to deploy.</p>
+      <p>AgentFleet is a decentralized, multi-machine coding agent orchestration tool. It lets you fan out coding tasks across all of your machines simultaneously. Submit a task from any machine, and every machine running AgentFleet will see the same task, execute it locally with its installed coding agent, and write back machine-scoped results.</p>
+      <p>Unlike traditional orchestration platforms that require a central scheduler, message broker, or cloud-hosted control plane, AgentFleet uses <strong>OneDrive file sync</strong> as the sole coordination mechanism. There are no servers to run, no databases to maintain, and no additional infrastructure to deploy.</p>
 
       <div class="stats">
         <div class="stat-card">
@@ -225,9 +225,9 @@
       <h2>How It Works</h2>
       <ol>
         <li>Your machines share a synced <a href="https://www.microsoft.com/en-us/microsoft-365/onedrive/online-cloud-storage" target="_blank" rel="noopener">OneDrive</a> workspace.</li>
-        <li>Lattix exposes stable local paths under <code>~/.lattix/</code>, with <code>tasks/</code> and <code>output/</code> symlinked to your OneDrive.</li>
+        <li>AgentFleet exposes stable local paths under <code>~/.agentfleet/</code>, with <code>tasks/</code> and <code>output/</code> symlinked to your OneDrive.</li>
         <li>Any machine can create a task in the shared <code>tasks/</code> directory — via CLI or the web dashboard.</li>
-        <li>Every machine running <code>lattix run</code> picks up that task independently and executes it with its locally installed coding agent.</li>
+        <li>Every machine running <code>agentfleet run</code> picks up that task independently and executes it with its locally installed coding agent.</li>
         <li>Results land in a shared <code>output/</code> directory with hostname-prefixed files to avoid collisions.</li>
       </ol>
       <p>This decentralized architecture means no single point of failure. If one machine is offline, the others still execute the task. There is no leader election, no quorum, and no consensus protocol — just file-based coordination through a battle-tested sync engine.</p>
@@ -235,13 +235,13 @@
 
     <section>
       <h2>Architecture</h2>
-      <pre><code>~/.lattix/
+      <pre><code>~/.agentfleet/
 ├── config.json          # Local machine config (not synced)
 ├── processed.json       # IDs of tasks already executed
-├── tasks/ → OneDrive    # Symlink to &lt;OneDrive&gt;\Lattix\tasks
+├── tasks/ → OneDrive    # Symlink to &lt;OneDrive&gt;\AgentFleet\tasks
 │   ├── task-001.json
 │   └── task-002.json
-└── output/ → OneDrive   # Symlink to &lt;OneDrive&gt;\Lattix\output
+└── output/ → OneDrive   # Symlink to &lt;OneDrive&gt;\AgentFleet\output
     ├── task-001/
     │   ├── DESKTOP-A-result.json
     │   └── LAPTOP-B-result.json
@@ -252,39 +252,39 @@
 
     <section>
       <h2>Security Model</h2>
-      <p>Lattix is designed with a <strong>zero-infrastructure security model</strong>:</p>
+      <p>AgentFleet is designed with a <strong>zero-infrastructure security model</strong>:</p>
       <ul>
         <li><strong>No tunnels</strong> — machines never open inbound connections. There is nothing to attack from the outside.</li>
         <li><strong>No exposed ports</strong> — no listening services, no open ports, no attack surface.</li>
         <li><strong>No data movement</strong> — data never leaves the <a href="https://learn.microsoft.com/en-us/microsoft-365/enterprise/microsoft-365-data-locations" target="_blank" rel="noopener">Microsoft 365 tenant boundary</a>.</li>
         <li><strong>No central server</strong> — coordination happens through OneDrive sync, already approved by your organization's IT policies.</li>
       </ul>
-      <p>The web dashboard authenticates via <a href="https://learn.microsoft.com/en-us/entra/identity-platform/" target="_blank" rel="noopener">Microsoft Entra ID</a> using the PKCE authorization code flow. <a href="https://learn.microsoft.com/en-us/entra/msal/overview" target="_blank" rel="noopener">MSAL.js</a> manages tokens in the browser with delegated permissions (Files.Read, Files.ReadWrite, User.Read). All API calls go directly to Microsoft Graph — no Lattix backend is involved.</p>
+      <p>The web dashboard authenticates via <a href="https://learn.microsoft.com/en-us/entra/identity-platform/" target="_blank" rel="noopener">Microsoft Entra ID</a> using the PKCE authorization code flow. <a href="https://learn.microsoft.com/en-us/entra/msal/overview" target="_blank" rel="noopener">MSAL.js</a> manages tokens in the browser with delegated permissions (Files.Read, Files.ReadWrite, User.Read). All API calls go directly to Microsoft Graph — no AgentFleet backend is involved.</p>
     </section>
 
     <section>
       <h2>Getting Started</h2>
-      <p>Install and run Lattix on your first machine:</p>
-      <pre><code>npx -y lattix run</code></pre>
+      <p>Install and run AgentFleet on your first machine:</p>
+      <pre><code>npx -y @daomar/agentfleet run</code></pre>
       <p>This auto-detects OneDrive, creates the workspace, and starts watching for tasks. Repeat on every machine you want to enroll.</p>
       <p>Submit a task from any machine:</p>
-      <pre><code>lattix submit --prompt "Add error handling to all API endpoints" --title "Error handling"</code></pre>
-      <p>Or use the <a href="https://lattix.code365.xyz/">web dashboard</a> to submit tasks and monitor results from any browser.</p>
+      <pre><code>agentfleet submit --prompt "Add error handling to all API endpoints" --title "Error handling"</code></pre>
+      <p>Or use the <a href="https://agentfleet.daomar.dev/">web dashboard</a> to submit tasks and monitor results from any browser.</p>
     </section>
 
     <section>
       <h2>Links</h2>
       <ul>
-        <li><a href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">GitHub Repository</a> — source code, issues, and documentation</li>
-        <li><a href="https://www.npmjs.com/package/lattix" target="_blank" rel="noopener">npm Package</a> — installation via npm</li>
-        <li><a href="https://lattix.code365.xyz/">Web Dashboard</a> — submit tasks and monitor nodes from your browser</li>
-        <li><a href="https://lattix.code365.xyz/donate.html">Support Lattix</a> — help sustain the project</li>
+        <li><a href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">GitHub Repository</a> — source code, issues, and documentation</li>
+        <li><a href="https://www.npmjs.com/package/@daomar/agentfleet" target="_blank" rel="noopener">npm Package</a> — installation via npm</li>
+        <li><a href="https://agentfleet.daomar.dev/">Web Dashboard</a> — submit tasks and monitor nodes from your browser</li>
+        <li><a href="https://agentfleet.daomar.dev/donate.html">Support AgentFleet</a> — help sustain the project</li>
       </ul>
     </section>
   </main>
 
   <footer>
-    <a href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">Lattix</a> — Distributed agent orchestration, without a control plane.
+    <a href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">AgentFleet</a> — Distributed agent orchestration, without a control plane.
   </footer>
 
   <script>
@@ -292,7 +292,7 @@
       var isZh = navigator.language && navigator.language.startsWith('zh');
       if (isZh) {
         document.documentElement.lang = 'zh-CN';
-        document.title = '关于 Lattix — 无需控制平面的分布式智能体编排';
+        document.title = '关于 AgentFleet — 无需控制平面的分布式智能体编排';
       }
     })();
   </script>

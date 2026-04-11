@@ -13,7 +13,7 @@ The Service Worker SHALL use a cache name that includes a build-specific identif
 
 #### Scenario: Cache name format
 - **WHEN** the Service Worker initializes
-- **THEN** the cache name SHALL follow the pattern `lattix-<build-identifier>` where `<build-identifier>` is unique per build
+- **THEN** the cache name SHALL follow the pattern `agentfleet-<build-identifier>` where `<build-identifier>` is unique per build
 
 ### Requirement: Old cache cleanup on activation
 The Service Worker SHALL delete all caches except the current build's cache during the `activate` event.

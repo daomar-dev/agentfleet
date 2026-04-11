@@ -6,8 +6,8 @@ export function renderLogin(container: HTMLElement): void {
   section.className = 'login-view';
   section.innerHTML = `
     <div class="login-card">
-      <img src="/icons/icon-192.png" alt="Lattix" class="login-logo" width="80" height="80" />
-      <h1>Lattix</h1>
+      <img src="/icons/icon-192.png" alt="AgentFleet" class="login-logo" width="80" height="80" />
+      <h1>AgentFleet</h1>
       <p>${t('login.tagline')}</p>
       <button class="btn btn-primary login-btn" id="login-btn">
         ${t('login.signIn')}

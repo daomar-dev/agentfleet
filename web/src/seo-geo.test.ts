@@ -54,7 +54,7 @@ describe('SEO: index.html meta tags', () => {
   it('contains a canonical link', () => {
     const link = dom.window.document.querySelector('link[rel="canonical"]');
     expect(link).not.toBeNull();
-    expect(link!.getAttribute('href')).toBe('https://lattix.code365.xyz/');
+    expect(link!.getAttribute('href')).toBe('https://agentfleet.daomar.dev/');
   });
 });
 
@@ -84,8 +84,8 @@ describe('SEO: JSON-LD structured data', () => {
   });
 
   it('has correct name and url', () => {
-    expect(jsonLd['name']).toBe('Lattix');
-    expect(jsonLd['url']).toBe('https://lattix.code365.xyz/');
+    expect(jsonLd['name']).toBe('AgentFleet');
+    expect(jsonLd['url']).toBe('https://agentfleet.daomar.dev/');
   });
 
   it('has applicationCategory DeveloperApplication', () => {
@@ -135,7 +135,7 @@ describe('SEO: robots.txt', () => {
   });
 
   it('contains Sitemap directive', () => {
-    expect(content).toContain('Sitemap: https://lattix.code365.xyz/sitemap.xml');
+    expect(content).toContain('Sitemap: https://agentfleet.daomar.dev/sitemap.xml');
   });
 });
 
@@ -154,15 +154,15 @@ describe('SEO: sitemap.xml', () => {
   });
 
   it('contains landing page URL', () => {
-    expect(content).toContain('<loc>https://lattix.code365.xyz/</loc>');
+    expect(content).toContain('<loc>https://agentfleet.daomar.dev/</loc>');
   });
 
   it('contains donate page URL', () => {
-    expect(content).toContain('<loc>https://lattix.code365.xyz/donate.html</loc>');
+    expect(content).toContain('<loc>https://agentfleet.daomar.dev/donate.html</loc>');
   });
 
   it('contains about page URL', () => {
-    expect(content).toContain('<loc>https://lattix.code365.xyz/about.html</loc>');
+    expect(content).toContain('<loc>https://agentfleet.daomar.dev/about.html</loc>');
   });
 
   it('does not contain hash routes', () => {
@@ -191,7 +191,7 @@ describe('GEO: llms.txt', () => {
 
   it('contains required terms', () => {
     const lower = content.toLowerCase();
-    expect(lower).toContain('lattix');
+    expect(lower).toContain('agentfleet');
     expect(lower).toContain('distributed');
     expect(lower).toContain('agent');
     expect(lower).toContain('onedrive');
@@ -199,11 +199,11 @@ describe('GEO: llms.txt', () => {
   });
 
   it('contains GitHub repository link', () => {
-    expect(content).toContain('https://github.com/chenxizhang/lattix');
+    expect(content).toContain('https://github.com/daomar-dev/agentfleet');
   });
 
   it('contains web dashboard link', () => {
-    expect(content).toContain('https://lattix.code365.xyz');
+    expect(content).toContain('https://agentfleet.daomar.dev');
   });
 
   it('is between 200 and 500 words', () => {
@@ -230,9 +230,9 @@ describe('GEO: .well-known/agent.json', () => {
 
   it('has required fields', () => {
     expect(data['schema_version']).toBeTruthy();
-    expect(data['name']).toBe('Lattix');
+    expect(data['name']).toBe('AgentFleet');
     expect(typeof data['description']).toBe('string');
-    expect(data['url']).toBe('https://lattix.code365.xyz/');
+    expect(data['url']).toBe('https://agentfleet.daomar.dev/');
     expect(data['auth']).toBeDefined();
     expect((data['auth'] as Record<string, unknown>)['type']).toBeTruthy();
   });
@@ -302,7 +302,7 @@ describe('GEO: about.html structured data', () => {
     const links = Array.from(dom.window.document.querySelectorAll('a[href]')).map((a) =>
       a.getAttribute('href')!,
     );
-    expect(links.some((l) => l.includes('github.com/chenxizhang/lattix'))).toBe(true);
+    expect(links.some((l) => l.includes('github.com/daomar-dev/agentfleet'))).toBe(true);
     expect(links.some((l) => l.includes('microsoft.com') || l.includes('learn.microsoft.com'))).toBe(true);
   });
 });
@@ -341,24 +341,24 @@ describe('SEO: initI18n OG/Twitter tag updates', () => {
   });
 
   it('updates OG and Twitter tags for zh-CN locale', async () => {
-    localStorage.setItem('lattix-lang', 'zh-CN');
+    localStorage.setItem('agentfleet-lang', 'zh-CN');
     // Re-import to get fresh singleton
     const { initI18n } = await import('./i18n');
     initI18n();
 
-    expect(document.querySelector('meta[property="og:title"]')!.getAttribute('content')).toContain('Lattix');
+    expect(document.querySelector('meta[property="og:title"]')!.getAttribute('content')).toContain('AgentFleet');
     expect(document.querySelector('meta[property="og:description"]')!.getAttribute('content')).not.toBe('English OG desc');
-    expect(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content')).toContain('Lattix');
+    expect(document.querySelector('meta[name="twitter:title"]')!.getAttribute('content')).toContain('AgentFleet');
     expect(document.querySelector('meta[name="twitter:description"]')!.getAttribute('content')).not.toBe('English Twitter desc');
   });
 
   it('keeps English meta tags for en-US locale', async () => {
-    localStorage.setItem('lattix-lang', 'en-US');
+    localStorage.setItem('agentfleet-lang', 'en-US');
     const { initI18n } = await import('./i18n');
     initI18n();
 
     // Should update to the en-US locale values (which are English)
     const ogTitle = document.querySelector('meta[property="og:title"]')!.getAttribute('content')!;
-    expect(ogTitle).toContain('Lattix');
+    expect(ogTitle).toContain('AgentFleet');
   });
 });

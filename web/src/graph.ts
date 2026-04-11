@@ -2,7 +2,6 @@ import { getToken } from './auth';
 import type { DriveItem, DriveItemsResponse, ResultFile, TaskFile } from './types';
 import { hostnameFromResultFile, generateTaskId } from './utils';
 import { buildTaskPayload } from './sanitize';
-import { showToast } from './utils';
 
 const GRAPH_BASE = 'https://graph.microsoft.com/v1.0';
 
@@ -58,7 +57,7 @@ async function graphFetch(url: string, options: RequestInit = {}): Promise<Respo
 
 export async function checkWorkspaceExists(): Promise<boolean> {
   try {
-    const resp = await graphFetch(`${GRAPH_BASE}/me/drive/root:/Lattix:/`);
+    const resp = await graphFetch(`${GRAPH_BASE}/me/drive/root:/AgentFleet:/`);
     return resp.ok;
   } catch {
     return false;
@@ -70,7 +69,7 @@ export async function listTaskFiles(
 ): Promise<{ items: DriveItem[]; nextLink?: string }> {
   const url =
     nextLink ||
-    `${GRAPH_BASE}/me/drive/root:/Lattix/tasks:/children?$top=20&$orderby=lastModifiedDateTime%20desc&$select=id,name,lastModifiedDateTime,file,folder,@microsoft.graph.downloadUrl`;
+    `${GRAPH_BASE}/me/drive/root:/AgentFleet/tasks:/children?$top=20&$orderby=lastModifiedDateTime%20desc&$select=id,name,lastModifiedDateTime,file,folder,@microsoft.graph.downloadUrl`;
 
   try {
     const resp = await graphFetch(url);
@@ -113,7 +112,7 @@ export async function listTaskResults(
 ): Promise<DriveItem[]> {
   try {
     const resp = await graphFetch(
-      `${GRAPH_BASE}/me/drive/root:/Lattix/output/${taskId}:/children?$select=id,name,lastModifiedDateTime,file,@microsoft.graph.downloadUrl`,
+      `${GRAPH_BASE}/me/drive/root:/AgentFleet/output/${taskId}:/children?$select=id,name,lastModifiedDateTime,file,@microsoft.graph.downloadUrl`,
     );
     if (resp.status === 404) return [];
     if (!resp.ok) throw new GraphError('Failed to list results', resp.status);
@@ -134,7 +133,7 @@ export async function discoverNodes(): Promise<
   // Get output folder children (task directories)
   try {
     const resp = await graphFetch(
-      `${GRAPH_BASE}/me/drive/root:/Lattix/output:/children?$top=50`,
+      `${GRAPH_BASE}/me/drive/root:/AgentFleet/output:/children?$top=50`,
     );
     if (!resp.ok) return [];
     const data: DriveItemsResponse = await resp.json();
@@ -190,7 +189,7 @@ export async function submitTask(
 
     try {
       const resp = await graphFetch(
-        `${GRAPH_BASE}/me/drive/root:/Lattix/tasks/${filename}:/content?@microsoft.graph.conflictBehavior=fail`,
+        `${GRAPH_BASE}/me/drive/root:/AgentFleet/tasks/${filename}:/content?@microsoft.graph.conflictBehavior=fail`,
         {
           method: 'PUT',
           headers: {
@@ -209,7 +208,6 @@ export async function submitTask(
         throw new GraphError('Failed to submit task', resp.status);
       }
 
-      showToast(`Task submitted: ${taskId}`, 'info');
       return taskId;
     } catch (err) {
       if (err instanceof GraphError && err.status === 409) {

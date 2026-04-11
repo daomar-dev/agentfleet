@@ -6,7 +6,7 @@ Web dashboard internationalization: locale detection, component text localizatio
 
 ### Requirement: Web locale detection
 The web dashboard SHALL detect the user's locale using the following precedence order:
-1. `localStorage.getItem('lattix-lang')` (user preference)
+1. `localStorage.getItem('agentfleet-lang')` (user preference)
 2. `navigator.language` (browser language)
 3. Falls back to `en-US`
 
@@ -21,7 +21,7 @@ If the detected locale starts with `zh`, the system SHALL use `zh-CN`. Otherwise
 - **THEN** the web dashboard SHALL display all UI text in English
 
 #### Scenario: localStorage language override
-- **WHEN** `localStorage` contains `lattix-lang` set to `zh-CN`
+- **WHEN** `localStorage` contains `agentfleet-lang` set to `zh-CN`
 - **THEN** the web dashboard SHALL use `zh-CN` regardless of `navigator.language`
 
 ### Requirement: Component text localization

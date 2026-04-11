@@ -4,11 +4,11 @@ Define where task execution results are written and how result artifacts are nam
 ## Requirements
 
 ### Requirement: Create task output directory
-The system SHALL create a directory at `~/.lattix/output/<task-id>/` for each completed or failed task to store all result artifacts.
+The system SHALL create a directory at `~/.agentfleet/output/<task-id>/` for each completed or failed task to store all result artifacts.
 
 #### Scenario: First result for a task
 - **WHEN** an agent completes a task and the output directory does not exist
-- **THEN** the system SHALL create `~/.lattix/output/<task-id>/` and write results into it
+- **THEN** the system SHALL create `~/.agentfleet/output/<task-id>/` and write results into it
 
 #### Scenario: Output directory already exists
 - **WHEN** an agent completes a task and the output directory already exists (another machine wrote results first)

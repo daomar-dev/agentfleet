@@ -5,7 +5,7 @@ import { ResultWriter } from '../services/result-writer';
 import { DaemonService } from '../services/daemon';
 import { AutoStartManager, createAutoStartManager } from '../services/auto-start';
 import { Logger } from '../services/logger';
-import { LattixConfig } from '../types';
+import { AgentFleetConfig } from '../types';
 import { bootstrap } from '../services/bootstrap';
 import { t } from '../services/i18n';
 
@@ -20,9 +20,9 @@ interface RunOptions {
 }
 
 interface RunDependencies {
-  bootstrapFn?: () => Promise<LattixConfig>;
+  bootstrapFn?: () => Promise<AgentFleetConfig>;
   setup?: Pick<SetupService, 'getOutputDir' | 'getTasksDir' | 'getProcessedPath'>;
-  createExecutor?: (config: LattixConfig) => Pick<AgentExecutor, 'execute'>;
+  createExecutor?: (config: AgentFleetConfig) => Pick<AgentExecutor, 'execute'>;
   createWriter?: (outputDir: string) => Pick<ResultWriter, 'write'>;
   createWatcher?: (
     tasksDir: string,
@@ -62,7 +62,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     }
   }
 
-  // Single-instance guard: check for an already-running Lattix process
+  // Single-instance guard: check for an already-running AgentFleet process
   const existingPid = daemonService.checkExistingDaemon();
   if (existingPid !== null) {
     console.error(`❌ ${t('run.already_running', { pid: existingPid })}`);
@@ -101,7 +101,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
 
   const setup = dependencies.setup ?? new SetupService();
 
-  let config: LattixConfig;
+  let config: AgentFleetConfig;
   try {
     const bootstrapFn = dependencies.bootstrapFn ?? (() => bootstrap({ setup: setup as SetupService }));
     config = await bootstrapFn();
@@ -157,7 +157,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     try { return require('../cli').getShortcutResult(); } catch { return undefined; }
   });
   const shortcut = getShortcutFn();
-  const cmd = shortcut?.shortcutAvailable ? 'lattix' : 'npx -y lattix';
+  const cmd = shortcut?.shortcutAvailable ? 'agentfleet' : 'npx -y @daomar/agentfleet';
   console.log(`💡 ${t('run.submit_hint', { command: cmd })}\n`);
 
   // Handle graceful shutdown

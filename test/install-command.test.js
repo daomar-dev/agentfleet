@@ -8,7 +8,7 @@ function createMockDeps(overrides = {}) {
       queryState() { return 'not-installed'; },
       install() {},
       start() {},
-      getName() { return 'Lattix'; },
+      getName() { return 'AgentFleet'; },
     },
     daemonService: {
       readPid() { return null; },

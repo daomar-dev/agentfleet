@@ -5,7 +5,7 @@ const path = require('path');
 const os = require('os');
 
 function makeTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'lattix-logger-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'agentfleet-logger-test-'));
 }
 
 test('Logger writes timestamped entries to file', async () => {

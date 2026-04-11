@@ -1,5 +1,5 @@
 ## Purpose
-Define how Lattix executes agent commands for tasks, captures process output, and enforces runtime limits.
+Define how AgentFleet executes agent commands for tasks, captures process output, and enforces runtime limits.
 
 ## Requirements
 

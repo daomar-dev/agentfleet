@@ -24,7 +24,7 @@ export class VersionChecker {
     const fetchFn = this.deps.fetchFn ?? this._defaultFetch;
 
     try {
-      const body = await fetchFn('https://registry.npmjs.org/lattix/latest');
+      const body = await fetchFn('https://registry.npmjs.org/@daomar%2fagentfleet/latest');
       const data = JSON.parse(body);
       const latest = data.version;
       return {

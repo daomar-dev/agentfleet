@@ -1,60 +1,54 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { LattixConfig, OneDriveSelection } from '../types';
+import { AgentFleetConfig, OneDriveSelection } from '../types';
 import { normalizeConfig, selectionFromConfig, selectionsEqual } from './provider-selection';
 import { t } from './i18n';
 
-const LATTIX_DIR = '.lattix';
-const LEGACY_AGENTBROKER_DIR = '.agentbroker';
-const ONEDRIVE_SUBDIR = 'Lattix';
-const LEGACY_ONEDRIVE_SUBDIR = 'AgentBroker';
+const AGENTFLEET_DIR = '.agentfleet';
+const ONEDRIVE_SUBDIR = 'AgentFleet';
 const SYMLINK_TARGETS = ['tasks', 'output'] as const;
 
 export class SetupService {
   private readonly homeDir: string;
-  private readonly lattixDir: string;
-  private readonly legacyDir: string;
+  private readonly agentfleetDir: string;
 
   constructor(homeDir: string = os.homedir()) {
     this.homeDir = homeDir;
-    this.lattixDir = path.join(this.homeDir, LATTIX_DIR);
-    this.legacyDir = path.join(this.homeDir, LEGACY_AGENTBROKER_DIR);
+    this.agentfleetDir = path.join(this.homeDir, AGENTFLEET_DIR);
   }
 
-  getLattixDir(): string {
-    return this.lattixDir;
+  getAgentFleetDir(): string {
+    return this.agentfleetDir;
   }
 
   getTasksDir(): string {
-    return path.join(this.lattixDir, 'tasks');
+    return path.join(this.agentfleetDir, 'tasks');
   }
 
   getOutputDir(): string {
-    return path.join(this.lattixDir, 'output');
+    return path.join(this.agentfleetDir, 'output');
   }
 
   getConfigPath(): string {
-    return path.join(this.lattixDir, 'config.json');
+    return path.join(this.agentfleetDir, 'config.json');
   }
 
   getProcessedPath(): string {
-    return path.join(this.lattixDir, 'processed.json');
+    return path.join(this.agentfleetDir, 'processed.json');
   }
 
   /**
    * Run full setup: create directories, symlinks, and config.
    * Returns the loaded or created config.
    */
-  setup(selection: OneDriveSelection): LattixConfig {
+  setup(selection: OneDriveSelection): AgentFleetConfig {
     const onedrivePath = selection.path;
 
-    this.migrateLegacyPaths(onedrivePath);
-
-    // 1. Create ~/.lattix if it doesn't exist
-    if (!fs.existsSync(this.lattixDir)) {
-      fs.mkdirSync(this.lattixDir, { recursive: true });
-      console.log(`✓ ${t('setup.created_dir', { path: this.lattixDir })}`);
+    // 1. Create ~/.agentfleet if it doesn't exist
+    if (!fs.existsSync(this.agentfleetDir)) {
+      fs.mkdirSync(this.agentfleetDir, { recursive: true });
+      console.log(`✓ ${t('setup.created_dir', { path: this.agentfleetDir })}`);
     }
 
     // 2. Create OneDrive subdirectories
@@ -69,7 +63,7 @@ export class SetupService {
 
     // 3. Create or validate symlinks
     for (const subdir of SYMLINK_TARGETS) {
-      const linkPath = path.join(this.lattixDir, subdir);
+      const linkPath = path.join(this.agentfleetDir, subdir);
       const targetPath = path.join(onedriveBase, subdir);
       this.ensureSymlink(linkPath, targetPath);
     }
@@ -83,45 +77,6 @@ export class SetupService {
     }
 
     return config;
-  }
-
-  private migrateLegacyPaths(onedrivePath: string): void {
-    this.migrateDirectory(
-      this.legacyDir,
-      this.lattixDir,
-      'local Lattix workspace'
-    );
-
-    this.migrateDirectory(
-      path.join(onedrivePath, LEGACY_ONEDRIVE_SUBDIR),
-      path.join(onedrivePath, ONEDRIVE_SUBDIR),
-      'OneDrive Lattix workspace'
-    );
-  }
-
-  private migrateDirectory(legacyPath: string, lattixPath: string, label: string): void {
-    if (!fs.existsSync(legacyPath)) {
-      return;
-    }
-
-    if (!fs.existsSync(lattixPath)) {
-      fs.renameSync(legacyPath, lattixPath);
-      console.log(`⟳ ${t('setup.migrated', { label, from: legacyPath, to: lattixPath })}`);
-      return;
-    }
-
-    if (this.isDirectoryEmpty(lattixPath)) {
-      fs.rmSync(lattixPath, { recursive: true, force: true });
-      fs.renameSync(legacyPath, lattixPath);
-      console.log(`⟳ ${t('setup.migrated_reused', { label, from: legacyPath, to: lattixPath })}`);
-      return;
-    }
-
-    throw new Error(t('setup.migrate_conflict', { label, legacy: legacyPath, current: lattixPath }));
-  }
-
-  private isDirectoryEmpty(dirPath: string): boolean {
-    return fs.readdirSync(dirPath).length === 0;
   }
 
   private ensureSymlink(linkPath: string, targetPath: string): void {
@@ -187,7 +142,7 @@ export class SetupService {
     fs.rmSync(targetPath, { recursive: true, force: true });
   }
 
-  loadConfig(): LattixConfig | null {
+  loadConfig(): AgentFleetConfig | null {
     const configPath = this.getConfigPath();
 
     if (!fs.existsSync(configPath)) {
@@ -195,7 +150,7 @@ export class SetupService {
     }
 
     try {
-      const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as Partial<LattixConfig>;
+      const existing = JSON.parse(fs.readFileSync(configPath, 'utf-8')) as Partial<AgentFleetConfig>;
       if (typeof existing.onedrivePath !== 'string' || existing.onedrivePath.length === 0) {
         console.warn(`⚠ ${t('setup.config_missing_path')}`);
         return null;
@@ -212,7 +167,7 @@ export class SetupService {
     }
   }
 
-  private ensureConfig(selection: OneDriveSelection): LattixConfig {
+  private ensureConfig(selection: OneDriveSelection): AgentFleetConfig {
     const configPath = this.getConfigPath();
     const existing = this.loadConfig();
 

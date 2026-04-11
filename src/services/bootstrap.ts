@@ -1,6 +1,6 @@
 import { OneDriveDetector } from './onedrive-detector';
 import { SetupService } from './setup';
-import { LattixConfig, OneDriveSelection } from '../types';
+import { AgentFleetConfig, OneDriveSelection } from '../types';
 import { createOneDriveSelection, selectionFromConfig } from './provider-selection';
 import { t } from './i18n';
 
@@ -9,7 +9,7 @@ interface BootstrapDependencies {
   setup?: Pick<SetupService, 'loadConfig' | 'setup'>;
 }
 
-export async function bootstrap(deps: BootstrapDependencies = {}): Promise<LattixConfig> {
+export async function bootstrap(deps: BootstrapDependencies = {}): Promise<AgentFleetConfig> {
   const setup = deps.setup ?? new SetupService();
   const existingConfig = setup.loadConfig();
 

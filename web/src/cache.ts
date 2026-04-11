@@ -2,7 +2,7 @@ import { getAccount } from './auth';
 
 function scopedPrefix(): string {
   const accountId = getAccount()?.homeAccountId ?? '';
-  return `lattix_${accountId}_`;
+  return `af_${accountId}_`;
 }
 
 export function getCache<T>(key: string): T | null {

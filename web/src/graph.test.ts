@@ -121,7 +121,7 @@ describe('listTaskFiles', () => {
   });
 
   it('uses provided nextLink as URL', async () => {
-    const nextLink = 'https://graph.microsoft.com/v1.0/me/drive/root:/Lattix/tasks:/children?$skiptoken=xyz';
+    const nextLink = 'https://graph.microsoft.com/v1.0/me/drive/root:/AgentFleet/tasks:/children?$skiptoken=xyz';
     global.fetch = mockFetch(200, { value: [] });
     await listTaskFiles(nextLink);
     expect(global.fetch).toHaveBeenCalledWith(nextLink, expect.anything());

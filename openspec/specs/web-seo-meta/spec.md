@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Static meta description in HTML source
-The `index.html` file SHALL contain a static `<meta name="description">` tag with an English description of Lattix visible to crawlers without JavaScript execution.
+The `index.html` file SHALL contain a static `<meta name="description">` tag with an English description of AgentFleet visible to crawlers without JavaScript execution.
 
 #### Scenario: Crawler reads HTML without JS
 - **WHEN** a crawler fetches `index.html` without executing JavaScript
@@ -11,8 +11,8 @@ The `index.html` file SHALL contain a static `<meta name="description">` tag wit
 The `index.html` file SHALL contain Open Graph meta tags: `og:title`, `og:description`, `og:image`, `og:url`, and `og:type`.
 
 #### Scenario: Link shared on social platform
-- **WHEN** a user shares `https://lattix.code365.xyz/` on Twitter, LinkedIn, Slack, or Teams
-- **THEN** the platform SHALL display a rich preview with the Lattix title, description, and OG image
+- **WHEN** a user shares `https://agentfleet.daomar.dev/` on Twitter, LinkedIn, Slack, or Teams
+- **THEN** the platform SHALL display a rich preview with the AgentFleet title, description, and OG image
 
 #### Scenario: OG image dimensions
 - **WHEN** a social platform fetches the OG image
@@ -22,11 +22,11 @@ The `index.html` file SHALL contain Open Graph meta tags: `og:title`, `og:descri
 The `index.html` file SHALL contain Twitter Card meta tags: `twitter:card`, `twitter:title`, `twitter:description`, and `twitter:image`.
 
 #### Scenario: Link shared on Twitter/X
-- **WHEN** a user shares the Lattix URL on Twitter/X
+- **WHEN** a user shares the AgentFleet URL on Twitter/X
 - **THEN** a `summary_large_image` card SHALL be displayed with title, description, and image
 
 ### Requirement: Canonical URL link
-The `index.html` file SHALL contain a `<link rel="canonical" href="https://lattix.code365.xyz/">` tag.
+The `index.html` file SHALL contain a `<link rel="canonical" href="https://agentfleet.daomar.dev/">` tag.
 
 #### Scenario: Search engine deduplication
 - **WHEN** a search engine indexes the page

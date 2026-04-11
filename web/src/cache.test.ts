@@ -17,7 +17,7 @@ describe('account-scoped cache keys', () => {
   it('includes homeAccountId in cache key', () => {
     mockGetAccount.mockReturnValue({ homeAccountId: 'user-abc' });
     setCache('home_tasks', [{ id: 1 }]);
-    expect(localStorage.getItem('lattix_user-abc_cache_home_tasks')).not.toBeNull();
+    expect(localStorage.getItem('af_user-abc_cache_home_tasks')).not.toBeNull();
   });
 
   it('different accounts produce isolated cache entries', () => {
@@ -38,7 +38,7 @@ describe('account-scoped cache keys', () => {
   it('falls back to empty scope when no account is signed in', () => {
     mockGetAccount.mockReturnValue(null);
     setCache('home_nodes', []);
-    expect(localStorage.getItem('lattix__cache_home_nodes')).not.toBeNull();
+    expect(localStorage.getItem('af__cache_home_nodes')).not.toBeNull();
     expect(getCache('home_nodes')).toEqual([]);
   });
 
@@ -52,7 +52,7 @@ describe('account-scoped settings', () => {
   it('includes homeAccountId in settings key', () => {
     mockGetAccount.mockReturnValue({ homeAccountId: 'user-abc' });
     setSetting('default_agent', 'claude');
-    expect(localStorage.getItem('lattix_user-abc_pref_default_agent')).toBe('claude');
+    expect(localStorage.getItem('af_user-abc_pref_default_agent')).toBe('claude');
   });
 
   it('settings are isolated between accounts', () => {
@@ -75,7 +75,7 @@ describe('account-scoped settings', () => {
   it('falls back to empty scope when no account is signed in', () => {
     mockGetAccount.mockReturnValue(null);
     setSetting('theme', 'dark');
-    expect(localStorage.getItem('lattix__pref_theme')).toBe('dark');
+    expect(localStorage.getItem('af__pref_theme')).toBe('dark');
     expect(getSetting('theme')).toBe('dark');
   });
 });
@@ -91,16 +91,16 @@ describe('TTL cache', () => {
     mockGetAccount.mockReturnValue({ homeAccountId: 'user-abc' });
     // Write entry with expiresAt in the past
     const entry = JSON.stringify({ data: true, expiresAt: Date.now() - 1000 });
-    localStorage.setItem('lattix_user-abc_cache_workspace', entry);
+    localStorage.setItem('af_user-abc_cache_workspace', entry);
     expect(getCacheWithTTL<boolean>('workspace')).toBeNull();
   });
 
   it('removes expired entry from localStorage', () => {
     mockGetAccount.mockReturnValue({ homeAccountId: 'user-abc' });
     const entry = JSON.stringify({ data: 'old', expiresAt: Date.now() - 1 });
-    localStorage.setItem('lattix_user-abc_cache_test_ttl', entry);
+    localStorage.setItem('af_user-abc_cache_test_ttl', entry);
     getCacheWithTTL('test_ttl');
-    expect(localStorage.getItem('lattix_user-abc_cache_test_ttl')).toBeNull();
+    expect(localStorage.getItem('af_user-abc_cache_test_ttl')).toBeNull();
   });
 
   it('returns null for missing TTL entry', () => {

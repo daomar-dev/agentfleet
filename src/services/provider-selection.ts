@@ -1,5 +1,5 @@
 import * as path from 'path';
-import { DEFAULT_CONFIG, LattixConfig, OneDriveAccountType, OneDriveSelection, SyncProvider } from '../types';
+import { DEFAULT_CONFIG, AgentFleetConfig, OneDriveAccountType, OneDriveSelection, SyncProvider } from '../types';
 import { t } from './i18n';
 
 function getPathBasename(onedrivePath: string): string {
@@ -59,8 +59,8 @@ export function createOneDriveSelection(
 }
 
 export function normalizeConfig(
-  config: Partial<LattixConfig> & Pick<LattixConfig, 'onedrivePath' | 'hostname'>
-): LattixConfig {
+  config: Partial<AgentFleetConfig> & Pick<AgentFleetConfig, 'onedrivePath' | 'hostname'>
+): AgentFleetConfig {
   const provider: SyncProvider = 'onedrive';
   const selection = createOneDriveSelection(config.onedrivePath, {
     provider,
@@ -81,7 +81,7 @@ export function normalizeConfig(
   };
 }
 
-export function selectionFromConfig(config: LattixConfig): OneDriveSelection {
+export function selectionFromConfig(config: AgentFleetConfig): OneDriveSelection {
   return createOneDriveSelection(config.onedrivePath, {
     provider: config.provider,
     accountKey: config.onedriveAccountKey,

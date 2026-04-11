@@ -29,7 +29,7 @@ describe('createI18n', () => {
     // If a key existed only in en-US, the fallback would be used.
     // We test with a known key that exists in both to verify the mechanism.
     // The raw key fallback is tested separately.
-    expect(i18n.t('meta.title')).toBe('Lattix');
+    expect(i18n.t('meta.title')).toBe('AgentFleet');
   });
 
   it('returns raw key when key is missing in all locales', () => {
@@ -95,18 +95,18 @@ describe('detectLocale', () => {
     localStorage.clear();
   });
 
-  it('returns zh-CN when localStorage has lattix-lang=zh-CN', () => {
-    localStorage.setItem('lattix-lang', 'zh-CN');
+  it('returns zh-CN when localStorage has agentfleet-lang=zh-CN', () => {
+    localStorage.setItem('agentfleet-lang', 'zh-CN');
     expect(detectLocale()).toBe('zh-CN');
   });
 
-  it('returns en-US when localStorage has lattix-lang=en-US', () => {
-    localStorage.setItem('lattix-lang', 'en-US');
+  it('returns en-US when localStorage has agentfleet-lang=en-US', () => {
+    localStorage.setItem('agentfleet-lang', 'en-US');
     expect(detectLocale()).toBe('en-US');
   });
 
   it('maps zh-* to zh-CN from localStorage', () => {
-    localStorage.setItem('lattix-lang', 'zh-TW');
+    localStorage.setItem('agentfleet-lang', 'zh-TW');
     expect(detectLocale()).toBe('zh-CN');
   });
 
@@ -175,7 +175,7 @@ describe('initI18n', () => {
   });
 
   it('sets document.documentElement.lang to the detected locale', () => {
-    localStorage.setItem('lattix-lang', 'zh-CN');
+    localStorage.setItem('agentfleet-lang', 'zh-CN');
     initI18n();
     expect(document.documentElement.lang).toBe('zh-CN');
   });
@@ -187,6 +187,6 @@ describe('initI18n', () => {
 
   it('sets document.title from the message catalog', () => {
     initI18n();
-    expect(document.title).toBe('Lattix');
+    expect(document.title).toBe('AgentFleet');
   });
 });

@@ -10,15 +10,15 @@ function createMockDeps(overrides = {}) {
     setup: {
       loadConfig() { return {}; },
       setup() { return {}; },
-      getTasksDir() { return path.join(os.tmpdir(), 'lattix-test-status-tasks-' + process.pid); },
-      getOutputDir() { return path.join(os.tmpdir(), 'lattix-test-status-output-' + process.pid); },
+      getTasksDir() { return path.join(os.tmpdir(), 'agentfleet-test-status-tasks-' + process.pid); },
+      getOutputDir() { return path.join(os.tmpdir(), 'agentfleet-test-status-output-' + process.pid); },
     },
     daemonService: {
       readPid() { return null; },
       isRunning() { return false; },
       removePid() {},
-      getDefaultLogPath() { return path.join(os.tmpdir(), 'lattix.log'); },
-      getPidPath() { return path.join(os.tmpdir(), 'lattix.pid'); },
+      getDefaultLogPath() { return path.join(os.tmpdir(), 'agentfleet.log'); },
+      getPidPath() { return path.join(os.tmpdir(), 'agentfleet.pid'); },
     },
     autoStartManager: {
       queryState() { return 'not-installed'; },
@@ -65,8 +65,8 @@ test('status shows "not running" and cleans stale PID', async () => {
         readPid() { return 99999; },
         isRunning() { return false; },
         removePid() { pidRemoved = true; },
-        getDefaultLogPath() { return path.join(os.tmpdir(), 'lattix.log'); },
-        getPidPath() { return path.join(os.tmpdir(), 'lattix.pid'); },
+        getDefaultLogPath() { return path.join(os.tmpdir(), 'agentfleet.log'); },
+        getPidPath() { return path.join(os.tmpdir(), 'agentfleet.pid'); },
       },
     }));
 
@@ -89,7 +89,7 @@ test('status shows running daemon with PID, mode, and log file', async () => {
   fs.mkdirSync(tasksDir, { recursive: true });
 
   // Create a fake log file so mode is detected as "daemon"
-  const logPath = path.join(os.tmpdir(), 'lattix-status-test.log');
+  const logPath = path.join(os.tmpdir(), 'agentfleet-status-test.log');
   fs.writeFileSync(logPath, 'test log');
 
   try {
@@ -99,7 +99,7 @@ test('status shows running daemon with PID, mode, and log file', async () => {
         isRunning() { return true; },
         removePid() {},
         getDefaultLogPath() { return logPath; },
-        getPidPath() { return path.join(os.tmpdir(), 'lattix.pid'); },
+        getPidPath() { return path.join(os.tmpdir(), 'agentfleet.pid'); },
       },
     }));
 
@@ -132,7 +132,7 @@ test('status shows running foreground when no log file exists', async () => {
         isRunning() { return true; },
         removePid() {},
         getDefaultLogPath() { return nonExistentLog; },
-        getPidPath() { return path.join(os.tmpdir(), 'lattix.pid'); },
+        getPidPath() { return path.join(os.tmpdir(), 'agentfleet.pid'); },
       },
     }));
 
@@ -161,8 +161,8 @@ test('status shows auto-start mode when scheduled task is installed', async () =
         readPid() { return 7777; },
         isRunning() { return true; },
         removePid() {},
-        getDefaultLogPath() { return path.join(os.tmpdir(), 'lattix.log'); },
-        getPidPath() { return path.join(os.tmpdir(), 'lattix.pid'); },
+        getDefaultLogPath() { return path.join(os.tmpdir(), 'agentfleet.log'); },
+        getPidPath() { return path.join(os.tmpdir(), 'agentfleet.pid'); },
       },
       autoStartManager: {
         queryState() { return 'installed'; },
@@ -193,8 +193,8 @@ test('status shows auto-start configured but not running', async () => {
         readPid() { return null; },
         isRunning() { return false; },
         removePid() {},
-        getDefaultLogPath() { return path.join(os.tmpdir(), 'lattix.log'); },
-        getPidPath() { return path.join(os.tmpdir(), 'lattix.pid'); },
+        getDefaultLogPath() { return path.join(os.tmpdir(), 'agentfleet.log'); },
+        getPidPath() { return path.join(os.tmpdir(), 'agentfleet.pid'); },
       },
       autoStartManager: {
         queryState() { return 'installed'; },

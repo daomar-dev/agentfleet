@@ -12,7 +12,7 @@ export interface DaemonDependencies {
 }
 
 export class DaemonService {
-  private readonly lattixDir: string;
+  private readonly agentfleetDir: string;
   private readonly pidPath: string;
   private readonly defaultLogPath: string;
   private readonly deps: DaemonDependencies;
@@ -20,9 +20,9 @@ export class DaemonService {
   constructor(deps: DaemonDependencies = {}) {
     this.deps = deps;
     const home = deps.homedir ?? os.homedir();
-    this.lattixDir = path.join(home, '.lattix');
-    this.pidPath = path.join(this.lattixDir, 'lattix.pid');
-    this.defaultLogPath = path.join(this.lattixDir, 'lattix.log');
+    this.agentfleetDir = path.join(home, '.agentfleet');
+    this.pidPath = path.join(this.agentfleetDir, 'agentfleet.pid');
+    this.defaultLogPath = path.join(this.agentfleetDir, 'agentfleet.log');
   }
 
   getPidPath(): string {
@@ -37,8 +37,8 @@ export class DaemonService {
    * Write the current process PID to the PID file.
    */
   writePid(pid: number): void {
-    if (!fs.existsSync(this.lattixDir)) {
-      fs.mkdirSync(this.lattixDir, { recursive: true });
+    if (!fs.existsSync(this.agentfleetDir)) {
+      fs.mkdirSync(this.agentfleetDir, { recursive: true });
     }
     fs.writeFileSync(this.pidPath, String(pid), 'utf-8');
   }

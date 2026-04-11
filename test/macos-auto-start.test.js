@@ -5,7 +5,7 @@ const path = require('path');
 const os = require('os');
 
 function createTempHome() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'lattix-macos-auto-start-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'agentfleet-macos-auto-start-'));
 }
 
 function createManager(overrides = {}) {
@@ -32,18 +32,18 @@ test('LaunchAgentManager install writes plist and starts via launchctl', () => {
 
     manager.install();
 
-    const plistPath = path.join(homeDir, 'Library', 'LaunchAgents', 'xyz.code365.lattix.plist');
+    const plistPath = path.join(homeDir, 'Library', 'LaunchAgents', 'dev.daomar.agentfleet.plist');
     assert.ok(fs.existsSync(plistPath), 'should create LaunchAgent plist');
 
     const content = fs.readFileSync(plistPath, 'utf-8');
-    assert.ok(content.includes('xyz.code365.lattix'), 'should include LaunchAgent label');
+    assert.ok(content.includes('dev.daomar.agentfleet'), 'should include LaunchAgent label');
     assert.ok(content.includes('<string>npx</string>'), 'should invoke npx');
-    assert.ok(content.includes('<string>lattix</string>'), 'should invoke lattix');
+    assert.ok(content.includes('<string>@daomar/agentfleet</string>'), 'should invoke the scoped package');
     assert.ok(content.includes('<string>run</string>'), 'should invoke run');
     assert.ok(content.includes('<string>-d</string>'), 'should invoke daemon mode');
 
     assert.ok(called.some((cmd) => cmd.includes('launchctl bootstrap gui/501')), 'should bootstrap launch agent');
-    assert.ok(called.some((cmd) => cmd.includes('launchctl kickstart -k gui/501/xyz.code365.lattix')), 'should kickstart launch agent');
+    assert.ok(called.some((cmd) => cmd.includes('launchctl kickstart -k gui/501/dev.daomar.agentfleet')), 'should kickstart launch agent');
   } finally {
     fs.rmSync(homeDir, { recursive: true, force: true });
   }
@@ -79,9 +79,9 @@ test('LaunchAgentManager uninstall unloads and removes plist', () => {
     manager.install();
     manager.uninstall();
 
-    const plistPath = path.join(homeDir, 'Library', 'LaunchAgents', 'xyz.code365.lattix.plist');
+    const plistPath = path.join(homeDir, 'Library', 'LaunchAgents', 'dev.daomar.agentfleet.plist');
     assert.equal(fs.existsSync(plistPath), false, 'should remove LaunchAgent plist');
-    assert.ok(called.some((cmd) => cmd.includes('launchctl bootout gui/501/xyz.code365.lattix')), 'should unload launch agent');
+    assert.ok(called.some((cmd) => cmd.includes('launchctl bootout gui/501/dev.daomar.agentfleet')), 'should unload launch agent');
   } finally {
     fs.rmSync(homeDir, { recursive: true, force: true });
   }

@@ -1,13 +1,13 @@
 {
-  "name": "Lattix",
-  "short_name": "Lattix",
+  "name": "AgentFleet",
+  "short_name": "AgentFleet",
   "description": "Distributed agent orchestration dashboard",
   "lang": "en-US",
   "start_url": "/",
   "display": "standalone",
   "orientation": "any",
-  "theme_color": "#0078d4",
-  "background_color": "#f5f5f5",
+  "theme_color": "#d24c2a",
+  "background_color": "#111817",
   "icons": [
     {
       "src": "/icons/icon-192.png",

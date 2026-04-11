@@ -41,8 +41,8 @@ vi.mock('@azure/msal-browser', () => {
   };
 });
 
-// Set up window.LATTIX_CONFIG before importing auth
-Object.defineProperty(window, 'LATTIX_CONFIG', {
+// Set up window.AGENTFLEET_CONFIG before importing auth
+Object.defineProperty(window, 'AGENTFLEET_CONFIG', {
   value: {
     clientId: 'test-client-id',
     authority: 'https://login.microsoftonline.com/common',

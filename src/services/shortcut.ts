@@ -4,7 +4,7 @@ import { execSync } from 'child_process';
 import { t } from './i18n';
 
 export interface ShortcutResult {
-  /** Whether a `lattix` shortcut command is available (global or wrapper) */
+  /** Whether local shortcut commands are available (global or wrapper) */
   shortcutAvailable: boolean;
   /** What action was taken */
   action: 'skipped-not-npx' | 'skipped-not-run-or-install' | 'skipped-global-exists' | 'skipped-wrapper-exists' | 'wrapper-created' | 'error';
@@ -18,6 +18,7 @@ export interface ShortcutDependencies {
 }
 
 export class ShortcutService {
+  private static readonly BINARIES = ['agentfleet', 'dma'] as const;
   private readonly deps: ShortcutDependencies;
 
   constructor(deps: ShortcutDependencies = {}) {
@@ -58,16 +59,17 @@ export class ShortcutService {
   }
 
   /**
-   * Check if `lattix` is globally installed (excluding npx cache paths).
+   * Check if AgentFleet is globally installed (excluding npx cache paths).
    */
   isGloballyInstalled(): boolean {
     try {
-      const lookupCommand = this.isWindows() ? 'where lattix' : 'which -a lattix';
-      const result = this.exec(lookupCommand).trim();
-      const paths = result.split(/\r?\n/).map(p => p.trim()).filter(Boolean);
-      // Exclude npx cache paths
-      const globalPaths = paths.filter(p => !p.includes('_npx') && !p.includes('npm-cache'));
-      return globalPaths.length > 0;
+      return ShortcutService.BINARIES.every((binary) => {
+        const lookupCommand = this.isWindows() ? `where ${binary}` : `which -a ${binary}`;
+        const result = this.exec(lookupCommand).trim();
+        const paths = result.split(/\r?\n/).map(p => p.trim()).filter(Boolean);
+        const globalPaths = paths.filter(p => !p.includes('_npx') && !p.includes('npm-cache'));
+        return globalPaths.length > 0;
+      });
     } catch {
       return false;
     }
@@ -79,14 +81,16 @@ export class ShortcutService {
   wrapperExists(): boolean {
     try {
       const binDir = this.getNpmGlobalBin();
-      return fs.existsSync(path.join(binDir, this.isWindows() ? 'lattix.cmd' : 'lattix'));
+      return ShortcutService.BINARIES.every((binary) =>
+        fs.existsSync(path.join(binDir, this.isWindows() ? `${binary}.cmd` : binary))
+      );
     } catch {
       return false;
     }
   }
 
   /**
-   * Create the lattix.cmd wrapper in the npm global bin directory.
+   * Create the AgentFleet wrappers in the npm global bin directory.
    * This directory is already in PATH, so the command is immediately available.
    */
   createWrapper(): void {
@@ -94,18 +98,22 @@ export class ShortcutService {
     fs.mkdirSync(binDir, { recursive: true });
 
     if (this.isWindows()) {
-      const wrapperPath = path.join(binDir, 'lattix.cmd');
-      fs.writeFileSync(wrapperPath, '@npx -y lattix %*\r\n', 'utf-8');
+      for (const binary of ShortcutService.BINARIES) {
+        const wrapperPath = path.join(binDir, `${binary}.cmd`);
+        fs.writeFileSync(wrapperPath, '@npx -y @daomar/agentfleet %*\r\n', 'utf-8');
+      }
       return;
     }
 
-    const wrapperPath = path.join(binDir, 'lattix');
-    fs.writeFileSync(wrapperPath, '#!/bin/sh\nnpx -y lattix "$@"\n', 'utf-8');
-    fs.chmodSync(wrapperPath, 0o755);
+    for (const binary of ShortcutService.BINARIES) {
+      const wrapperPath = path.join(binDir, binary);
+      fs.writeFileSync(wrapperPath, '#!/bin/sh\nnpx -y @daomar/agentfleet "$@"\n', 'utf-8');
+      fs.chmodSync(wrapperPath, 0o755);
+    }
   }
 
   /**
-   * Main entry point: ensure lattix shortcut is available.
+   * Main entry point: ensure local AgentFleet shortcuts are available.
    * Only runs on install/run commands invoked via npx.
    */
   ensureShortcut(): ShortcutResult {

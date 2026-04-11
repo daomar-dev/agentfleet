@@ -1,6 +1,6 @@
 schema: spec-driven
 context: |
-  Project: Lattix
+  Project: AgentFleet
   Scope: distributed agent orchestration without a control plane, focused on a CLI-driven workflow and file-based coordination.
   Tech stack: TypeScript, Node.js, CommonJS.
   Build command: npm run build

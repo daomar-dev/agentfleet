@@ -33,7 +33,7 @@ export interface OneDriveSelection {
   path: string;
 }
 
-export interface LattixConfig {
+export interface AgentFleetConfig {
   provider: SyncProvider;
   onedrivePath: string;
   onedriveAccountKey: string;
@@ -53,7 +53,7 @@ export interface ProcessedTasks {
 }
 
 export const DEFAULT_CONFIG: Omit<
-  LattixConfig,
+  AgentFleetConfig,
   'provider' | 'onedrivePath' | 'onedriveAccountKey' | 'onedriveAccountName' | 'onedriveAccountType' | 'hostname'
 > = {
   defaultAgent: 'claude-code',

@@ -64,7 +64,7 @@ export function installCommand(
         try { return require('../cli').getShortcutResult(); } catch { return undefined; }
       });
       const shortcut = getShortcutFn();
-      const cmd = shortcut?.shortcutAvailable ? 'lattix' : 'npx -y lattix';
+      const cmd = shortcut?.shortcutAvailable ? 'agentfleet' : 'npx -y @daomar/agentfleet';
       console.log(`\n💡 ${t('install.submit_hint', { command: cmd })}\n`);
     }, 3000);
   } catch (err) {

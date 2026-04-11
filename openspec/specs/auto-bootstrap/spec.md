@@ -1,13 +1,13 @@
 ## Purpose
-Define the shared bootstrap function that any command can call to ensure Lattix is fully initialized before proceeding.
+Define the shared bootstrap function that any command can call to ensure AgentFleet is fully initialized before proceeding.
 
 ## Requirements
 
-### Requirement: Auto-bootstrap ensures Lattix is initialized
-The system SHALL provide a shared bootstrap function that any command can call to ensure Lattix is fully initialized before proceeding.
+### Requirement: Auto-bootstrap ensures AgentFleet is initialized
+The system SHALL provide a shared bootstrap function that any command can call to ensure AgentFleet is fully initialized before proceeding.
 
 #### Scenario: Bootstrap with existing configuration
-- **WHEN** bootstrap is called and `~/.lattix/config.json` exists with a valid `onedrivePath`
+- **WHEN** bootstrap is called and `~/.agentfleet/config.json` exists with a valid `onedrivePath`
 - **THEN** bootstrap SHALL load the configuration, run setup to validate symlinks and directories, and return the configuration
 
 #### Scenario: Bootstrap without configuration, single OneDrive account
@@ -23,15 +23,15 @@ The system SHALL provide a shared bootstrap function that any command can call t
 - **THEN** bootstrap SHALL throw an error indicating that OneDrive is required
 
 ### Requirement: Submit command auto-bootstraps
-The `submit` command SHALL call the shared bootstrap function instead of failing when `~/.lattix/tasks/` does not exist.
+The `submit` command SHALL call the shared bootstrap function instead of failing when `~/.agentfleet/tasks/` does not exist.
 
 #### Scenario: Submitting a task without prior initialization
-- **WHEN** the user runs `lattix submit --prompt "..." --working-dir "."` and Lattix has not been initialized
+- **WHEN** the user runs `agentfleet submit --prompt "..." --working-dir "."` and AgentFleet has not been initialized
 - **THEN** the system SHALL auto-initialize (detect OneDrive, create directories, config) and then create the task file
 
 ### Requirement: Status command auto-bootstraps
-The `status` command SHALL call the shared bootstrap function instead of failing when `~/.lattix/tasks/` does not exist.
+The `status` command SHALL call the shared bootstrap function instead of failing when `~/.agentfleet/tasks/` does not exist.
 
 #### Scenario: Checking status without prior initialization
-- **WHEN** the user runs `lattix status` and Lattix has not been initialized
+- **WHEN** the user runs `agentfleet status` and AgentFleet has not been initialized
 - **THEN** the system SHALL auto-initialize and then display the task list (which will be empty)

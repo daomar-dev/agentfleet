@@ -18,7 +18,7 @@ function createSelection(oneDriveDir, overrides = {}) {
 }
 
 function createWorkspace() {
-  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lattix-setup-'));
+  const rootDir = fs.mkdtempSync(path.join(os.tmpdir(), 'agentfleet-setup-'));
   const homeDir = path.join(rootDir, 'home');
   const oneDriveDir = path.join(rootDir, 'OneDrive');
 
@@ -32,7 +32,7 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
-test('SetupService migrates legacy directories into the Lattix layout', (t) => {
+test('SetupService creates a fresh AgentFleet layout without migrating legacy directories', (t) => {
   const { rootDir, homeDir, oneDriveDir } = createWorkspace();
   t.after(() => fs.rmSync(rootDir, { recursive: true, force: true }));
 
@@ -46,54 +46,51 @@ test('SetupService migrates legacy directories into the Lattix layout', (t) => {
   fs.mkdirSync(legacyOutputTarget, { recursive: true });
   fs.symlinkSync(legacyTasksTarget, path.join(legacyHomeDir, 'tasks'), 'junction');
   fs.symlinkSync(legacyOutputTarget, path.join(legacyHomeDir, 'output'), 'junction');
-  fs.writeFileSync(
-    path.join(legacyHomeDir, 'processed.json'),
-    JSON.stringify({ processedIds: ['task-legacy'] }, null, 2)
-  );
+  fs.writeFileSync(path.join(legacyHomeDir, 'processed.json'), JSON.stringify({ processedIds: ['task-legacy'] }, null, 2));
   fs.writeFileSync(path.join(legacyTasksTarget, 'task-legacy.json'), '{}');
 
   const setup = new SetupService(homeDir);
   const config = setup.setup(createSelection(oneDriveDir));
 
-  const lattixDir = path.join(homeDir, '.lattix');
-  const lattixOneDriveDir = path.join(oneDriveDir, 'Lattix');
+  const agentfleetDir = path.join(homeDir, '.agentfleet');
+  const agentfleetOneDriveDir = path.join(oneDriveDir, 'AgentFleet');
 
   assert.equal(config.onedrivePath, oneDriveDir);
   assert.equal(config.provider, 'onedrive');
   assert.equal(config.onedriveAccountType, 'personal');
-  assert.ok(fs.existsSync(lattixDir));
-  assert.ok(fs.existsSync(lattixOneDriveDir));
-  assert.ok(!fs.existsSync(legacyHomeDir));
-  assert.ok(!fs.existsSync(legacyOneDriveDir));
-  assert.deepEqual(readJson(path.join(lattixDir, 'processed.json')).processedIds, ['task-legacy']);
+  assert.ok(fs.existsSync(agentfleetDir));
+  assert.ok(fs.existsSync(agentfleetOneDriveDir));
+  assert.ok(fs.existsSync(legacyHomeDir));
+  assert.ok(fs.existsSync(legacyOneDriveDir));
+  assert.deepEqual(readJson(path.join(agentfleetDir, 'processed.json')).processedIds, []);
   assert.equal(
-    path.resolve(fs.realpathSync(path.join(lattixDir, 'tasks'))),
-    path.resolve(path.join(lattixOneDriveDir, 'tasks'))
+    path.resolve(fs.realpathSync(path.join(agentfleetDir, 'tasks'))),
+    path.resolve(path.join(agentfleetOneDriveDir, 'tasks'))
   );
   assert.equal(
-    path.resolve(fs.realpathSync(path.join(lattixDir, 'output'))),
-    path.resolve(path.join(lattixOneDriveDir, 'output'))
+    path.resolve(fs.realpathSync(path.join(agentfleetDir, 'output'))),
+    path.resolve(path.join(agentfleetOneDriveDir, 'output'))
   );
 });
 
-test('SetupService stops when legacy and current local workspaces both contain content', (t) => {
+test('SetupService ignores legacy directories when current AgentFleet workspace exists', (t) => {
   const { rootDir, homeDir, oneDriveDir } = createWorkspace();
   t.after(() => fs.rmSync(rootDir, { recursive: true, force: true }));
 
   const legacyHomeDir = path.join(homeDir, '.agentbroker');
-  const lattixDir = path.join(homeDir, '.lattix');
+  const agentfleetDir = path.join(homeDir, '.agentfleet');
 
   fs.mkdirSync(legacyHomeDir, { recursive: true });
-  fs.mkdirSync(lattixDir, { recursive: true });
+  fs.mkdirSync(agentfleetDir, { recursive: true });
   fs.writeFileSync(path.join(legacyHomeDir, 'processed.json'), JSON.stringify({ processedIds: [] }, null, 2));
-  fs.writeFileSync(path.join(lattixDir, 'config.json'), '{}');
+  fs.writeFileSync(path.join(agentfleetDir, 'config.json'), '{}');
 
   const setup = new SetupService(homeDir);
+  const config = setup.setup(createSelection(oneDriveDir));
 
-  assert.throws(
-    () => setup.setup(createSelection(oneDriveDir)),
-    /Found both legacy and current local Lattix workspace directories\./
-  );
+  assert.equal(config.onedrivePath, oneDriveDir);
+  assert.ok(fs.existsSync(legacyHomeDir));
+  assert.ok(fs.existsSync(path.join(agentfleetDir, 'config.json')));
 });
 
 test('SetupService persists provider and selected OneDrive account metadata', (t) => {
@@ -109,7 +106,7 @@ test('SetupService persists provider and selected OneDrive account metadata', (t
     })
   );
 
-  const storedConfig = readJson(path.join(homeDir, '.lattix', 'config.json'));
+  const storedConfig = readJson(path.join(homeDir, '.agentfleet', 'config.json'));
 
   assert.equal(config.provider, 'onedrive');
   assert.equal(config.onedriveAccountKey, 'business1');
@@ -125,10 +122,10 @@ test('SetupService loadConfig backfills provider and account metadata for legacy
   const { rootDir, homeDir, oneDriveDir } = createWorkspace();
   t.after(() => fs.rmSync(rootDir, { recursive: true, force: true }));
 
-  const lattixDir = path.join(homeDir, '.lattix');
-  fs.mkdirSync(lattixDir, { recursive: true });
+  const agentfleetDir = path.join(homeDir, '.agentfleet');
+  fs.mkdirSync(agentfleetDir, { recursive: true });
   fs.writeFileSync(
-    path.join(lattixDir, 'config.json'),
+    path.join(agentfleetDir, 'config.json'),
     JSON.stringify({
       onedrivePath: oneDriveDir,
       hostname: 'LEGACY-HOST',

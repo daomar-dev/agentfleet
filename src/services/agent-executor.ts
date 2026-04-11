@@ -1,5 +1,5 @@
 import { spawn, ChildProcess } from 'child_process';
-import { TaskFile, LattixConfig } from '../types';
+import { TaskFile, AgentFleetConfig } from '../types';
 import { t } from './i18n';
 
 export interface ExecutionResult {
@@ -21,11 +21,11 @@ type QueuedTask = {
 };
 
 export class AgentExecutor {
-  private readonly config: LattixConfig;
+  private readonly config: AgentFleetConfig;
   private runningCount = 0;
   private readonly queue: QueuedTask[] = [];
 
-  constructor(config: LattixConfig) {
+  constructor(config: AgentFleetConfig) {
     this.config = config;
   }
 

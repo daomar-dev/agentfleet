@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0",
-  "name": "Lattix",
+  "name": "AgentFleet",
   "description": "Distributed agent orchestration dashboard — submit coding tasks to all enrolled machines, monitor node status, and view results. No backend; all data flows through Microsoft Graph to the user's own OneDrive.",
-  "url": "https://lattix.code365.xyz/",
+  "url": "https://agentfleet.daomar.dev/",
   "auth": {
     "type": "oauth2",
     "provider": "microsoft_entra_id",
@@ -12,7 +12,7 @@
   "capabilities": [
     {
       "name": "submit_task",
-      "description": "Submit a coding task to all enrolled Lattix machines simultaneously. Requires a prompt (instruction for the coding agent) and optionally a title and agent command override.",
+      "description": "Submit a coding task to all enrolled AgentFleet machines simultaneously. Requires a prompt (instruction for the coding agent) and optionally a title and agent command override.",
       "requires_auth": true
     },
     {
@@ -26,5 +26,5 @@
       "requires_auth": true
     }
   ],
-  "contact": "https://github.com/chenxizhang/lattix"
+  "contact": "https://github.com/daomar-dev/agentfleet"
 }

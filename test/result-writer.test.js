@@ -7,7 +7,7 @@ const path = require('node:path');
 const { ResultWriter } = require('../dist/services/result-writer.js');
 
 test('ResultWriter writes namespaced result artifacts for a task', (t) => {
-  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'lattix-results-'));
+  const outputRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'agentfleet-results-'));
   t.after(() => fs.rmSync(outputRoot, { recursive: true, force: true }));
 
   const writer = new ResultWriter(outputRoot);

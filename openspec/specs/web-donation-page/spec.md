@@ -92,11 +92,11 @@ The web dashboard's desktop navigation bar SHALL include a "Donate" link that op
 - **THEN** the tab bar SHALL contain exactly three tabs: Home, Tasks, Settings
 
 ### Requirement: Settings page donation link
-The Settings page About section SHALL include a "Support Lattix" link to `/donate.html`, inline with existing links.
+The Settings page About section SHALL include a "Support AgentFleet" link to `/donate.html`, inline with existing links.
 
 #### Scenario: About section link
 - **WHEN** the Settings page renders
-- **THEN** the About section SHALL contain a "Support Lattix" link alongside the GitHub and npm links
+- **THEN** the About section SHALL contain a "Support AgentFleet" link alongside the GitHub and npm links
 - **THEN** clicking the link SHALL open `/donate.html` in a new tab
 
 ### Requirement: GitHub funding configuration

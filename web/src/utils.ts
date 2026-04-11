@@ -51,11 +51,11 @@ export function debounce<T extends (...args: unknown[]) => void>(
 }
 
 export function showToast(message: string, type: 'error' | 'info' = 'info'): void {
-  const existing = document.querySelector('.lattix-toast');
+  const existing = document.querySelector('.af-toast');
   if (existing) existing.remove();
 
   const toast = document.createElement('div');
-  toast.className = `lattix-toast lattix-toast--${type}`;
+  toast.className = `af-toast af-toast--${type}`;
   toast.textContent = message;
   document.body.appendChild(toast);
 

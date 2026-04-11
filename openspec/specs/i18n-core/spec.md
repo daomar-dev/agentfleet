@@ -30,8 +30,8 @@ The system SHALL provide a `t(key, params?)` function that looks up a message by
 The `t()` function SHALL support parameter interpolation using `{paramName}` placeholders. When a params object is provided, each `{key}` in the message string SHALL be replaced with the corresponding value from the params object.
 
 #### Scenario: Single parameter interpolation
-- **WHEN** `t("run.already_running", { pid: 1234 })` is called and the message template is `"Lattix is already running (PID {pid})"`
-- **THEN** the function SHALL return `"Lattix is already running (PID 1234)"`
+- **WHEN** `t("run.already_running", { pid: 1234 })` is called and the message template is `"AgentFleet is already running (PID {pid})"`
+- **THEN** the function SHALL return `"AgentFleet is already running (PID 1234)"`
 
 #### Scenario: Multiple parameter interpolation
 - **WHEN** `t("status.header", { count: 5, hostname: "PC1" })` is called and the message template contains both `{count}` and `{hostname}` placeholders

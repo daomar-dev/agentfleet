@@ -1,6 +1,6 @@
 declare global {
   interface Window {
-    LATTIX_CONFIG: {
+    AGENTFLEET_CONFIG: {
       clientId: string;
       authority: string;
       redirectUri: string;
@@ -45,7 +45,7 @@ export interface DriveItemsResponse {
   '@odata.nextLink'?: string;
 }
 
-export interface LattixNode {
+export interface AgentFleetNode {
   hostname: string;
   lastActive: string;
   taskCount: number;

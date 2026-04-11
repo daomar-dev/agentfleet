@@ -4,7 +4,7 @@
 A static HTML page SHALL exist at `web/public/about.html` and be accessible without authentication at `/about.html`.
 
 #### Scenario: Unauthenticated access
-- **WHEN** a user or crawler fetches `https://lattix.code365.xyz/about.html`
+- **WHEN** a user or crawler fetches `https://agentfleet.daomar.dev/about.html`
 - **THEN** it SHALL receive a fully rendered HTML page without requiring JavaScript execution or authentication
 
 ### Requirement: GEO-optimized content structure
@@ -39,4 +39,4 @@ The `about.html` page SHALL be listed in `sitemap.xml`.
 
 #### Scenario: Sitemap entry
 - **WHEN** the sitemap is parsed
-- **THEN** it SHALL contain a `<url>` entry for `https://lattix.code365.xyz/about.html`
+- **THEN** it SHALL contain a `<url>` entry for `https://agentfleet.daomar.dev/about.html`

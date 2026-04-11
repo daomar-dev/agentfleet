@@ -1,0 +1,57 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="92" y1="58" x2="1094" y2="612" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1A2422"/>
+      <stop offset="0.55" stop-color="#111817"/>
+      <stop offset="1" stop-color="#0B1112"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(934 122) rotate(145.655) scale(394.372 288.847)">
+      <stop stop-color="#F5B35D" stop-opacity="0.32"/>
+      <stop offset="1" stop-color="#F5B35D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fleet" x1="180" y1="414" x2="518" y2="156" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D24C2A"/>
+      <stop offset="0.58" stop-color="#E7773A"/>
+      <stop offset="1" stop-color="#F5B35D"/>
+    </linearGradient>
+    <linearGradient id="trail" x1="154" y1="458" x2="512" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7EA996" stop-opacity="0.08"/>
+      <stop offset="0.5" stop-color="#C5E1D2" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#F7EAD1" stop-opacity="0.75"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="630" rx="36" fill="url(#bg)"/>
+  <rect x="28" y="28" width="1144" height="574" rx="24" stroke="#F7EAD1" stroke-opacity="0.1" stroke-width="2"/>
+  <circle cx="934" cy="122" r="260" fill="url(#sun)"/>
+
+  <g stroke-linecap="round" fill="none">
+    <path d="M150 456C232 448 302 404 366 340C424 282 482 238 548 200" stroke="url(#trail)" stroke-width="24"/>
+    <path d="M152 518C242 510 322 464 394 394C444 346 496 306 556 272" stroke="#7EA996" stroke-opacity="0.22" stroke-width="14"/>
+    <path d="M146 400C214 394 274 358 334 296C392 236 446 196 506 160" stroke="#F7EAD1" stroke-opacity="0.18" stroke-width="8"/>
+  </g>
+
+  <g transform="translate(242 420) rotate(-24)">
+    <path d="M-74 0L0 -62L138 0L0 62L-24 0Z" fill="url(#fleet)"/>
+    <path d="M6 -24L64 0L6 24L30 0Z" fill="#F7EAD1" fill-opacity="0.92"/>
+    <circle cx="-94" cy="0" r="14" fill="#7EA996"/>
+  </g>
+
+  <g transform="translate(354 330) rotate(-24)">
+    <path d="M-92 0L0 -76L172 0L0 76L-30 0Z" fill="url(#fleet)"/>
+    <path d="M8 -30L80 0L8 30L38 0Z" fill="#F7EAD1" fill-opacity="0.92"/>
+    <circle cx="-116" cy="0" r="18" fill="#7EA996"/>
+  </g>
+
+  <g transform="translate(482 228) rotate(-24)">
+    <path d="M-112 0L0 -94L210 0L0 94L-36 0Z" fill="url(#fleet)"/>
+    <path d="M10 -38L98 0L10 38L46 0Z" fill="#F7EAD1" fill-opacity="0.94"/>
+    <circle cx="-140" cy="0" r="22" fill="#7EA996"/>
+  </g>
+
+  <text x="620" y="210" fill="#7EA996" font-family="Georgia, 'Times New Roman', serif" font-size="30" letter-spacing="7">DAOMAR PRODUCT</text>
+  <text x="620" y="308" fill="#F7EAD1" font-family="Georgia, 'Times New Roman', serif" font-size="94" font-weight="700">AgentFleet</text>
+  <text x="620" y="380" fill="#F5B35D" font-family="Georgia, 'Times New Roman', serif" font-size="38">Distributed agent orchestration</text>
+  <text x="620" y="432" fill="#D8DDDA" font-family="Georgia, 'Times New Roman', serif" font-size="28">Without a control plane.</text>
+  <text x="620" y="512" fill="#C5E1D2" font-family="Georgia, 'Times New Roman', serif" font-size="26">agentfleet.daomar.dev</text>
+</svg>

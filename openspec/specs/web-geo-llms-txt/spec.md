@@ -4,15 +4,15 @@
 A `llms.txt` file SHALL exist at `web/public/llms.txt` and be served at the site root `/llms.txt`.
 
 #### Scenario: LLM fetches llms.txt
-- **WHEN** an LLM or generative engine fetches `https://lattix.code365.xyz/llms.txt`
+- **WHEN** an LLM or generative engine fetches `https://agentfleet.daomar.dev/llms.txt`
 - **THEN** it SHALL receive a plain-text response (no HTML) with `Content-Type: text/plain`
 
-### Requirement: llms.txt content describes Lattix
-The `llms.txt` file SHALL contain a plain-text description of Lattix covering: what it is, how it works, key features, target audience, and links to detailed resources.
+### Requirement: llms.txt content describes AgentFleet
+The `llms.txt` file SHALL contain a plain-text description of AgentFleet covering: what it is, how it works, key features, target audience, and links to detailed resources.
 
 #### Scenario: Content completeness
 - **WHEN** the `llms.txt` content is read
-- **THEN** it SHALL contain the terms "Lattix", "distributed", "agent", "OneDrive", and "orchestration"
+- **THEN** it SHALL contain the terms "AgentFleet", "distributed", "agent", "OneDrive", and "orchestration"
 - **THEN** it SHALL contain at least one URL linking to the GitHub repository
 - **THEN** it SHALL contain at least one URL linking to the web dashboard
 

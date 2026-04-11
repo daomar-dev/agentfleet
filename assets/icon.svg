@@ -1,42 +1,51 @@
 <svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="64" y1="64" x2="448" y2="448" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#0B1220"/>
-      <stop offset="1" stop-color="#111E38"/>
+    <linearGradient id="bg" x1="76" y1="64" x2="436" y2="452" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1A2422"/>
+      <stop offset="0.58" stop-color="#111817"/>
+      <stop offset="1" stop-color="#0B1112"/>
     </linearGradient>
-    <linearGradient id="mesh" x1="120" y1="112" x2="392" y2="392" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#35D0FF"/>
-      <stop offset="0.5" stop-color="#6C8CFF"/>
-      <stop offset="1" stop-color="#A855F7"/>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(388 112) rotate(141.76) scale(232.819)">
+      <stop stop-color="#F5B35D" stop-opacity="0.38"/>
+      <stop offset="1" stop-color="#F5B35D" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fleet" x1="146" y1="338" x2="374" y2="158" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#D24C2A"/>
+      <stop offset="0.58" stop-color="#E7773A"/>
+      <stop offset="1" stop-color="#F5B35D"/>
     </linearGradient>
-    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="10" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
+    <linearGradient id="trail" x1="118" y1="366" x2="345" y2="208" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#7EA996" stop-opacity="0.08"/>
+      <stop offset="0.5" stop-color="#C5E1D2" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#F7EAD1" stop-opacity="0.75"/>
+    </linearGradient>
   </defs>
 
-  <rect x="32" y="32" width="448" height="448" rx="120" fill="url(#bg)"/>
-  <rect x="40" y="40" width="432" height="432" rx="112" stroke="rgba(255,255,255,0.08)"/>
+  <rect x="28" y="28" width="456" height="456" rx="126" fill="url(#bg)"/>
+  <rect x="40" y="40" width="432" height="432" rx="114" stroke="#F7EAD1" stroke-opacity="0.1" stroke-width="2"/>
+  <circle cx="388" cy="112" r="176" fill="url(#glow)"/>
 
-  <g filter="url(#glow)" stroke="url(#mesh)" stroke-width="20" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M136 144L264 112L376 176L328 272L216 272L136 368L344 392"/>
-    <path d="M136 144L216 272L344 392"/>
-    <path d="M264 112L216 272"/>
-    <path d="M376 176L216 272"/>
-    <path d="M328 272L136 368"/>
-    <path d="M328 272L344 392"/>
+  <g stroke-linecap="round" fill="none">
+    <path d="M122 354C176 350 226 322 270 274C308 234 346 204 388 178" stroke="url(#trail)" stroke-width="18"/>
+    <path d="M122 392C182 386 236 354 286 306C320 274 354 246 392 224" stroke="#7EA996" stroke-opacity="0.22" stroke-width="10"/>
+    <path d="M120 316C168 312 210 286 250 244C290 202 326 176 366 152" stroke="#F7EAD1" stroke-opacity="0.18" stroke-width="6"/>
   </g>
 
-  <g fill="#F8FAFC" stroke="url(#mesh)" stroke-width="10">
-    <circle cx="136" cy="144" r="24"/>
-    <circle cx="264" cy="112" r="24"/>
-    <circle cx="376" cy="176" r="24"/>
-    <circle cx="216" cy="272" r="24"/>
-    <circle cx="328" cy="272" r="24"/>
-    <circle cx="136" cy="368" r="24"/>
-    <circle cx="344" cy="392" r="24"/>
+  <g transform="translate(180 332) rotate(-24)">
+    <path d="M-52 0L0 -44L98 0L0 44L-18 0Z" fill="url(#fleet)"/>
+    <path d="M2 -18L44 0L2 18L20 0Z" fill="#F7EAD1" fill-opacity="0.88"/>
+    <circle cx="-66" cy="0" r="10" fill="#7EA996"/>
+  </g>
+
+  <g transform="translate(256 256) rotate(-24)">
+    <path d="M-64 0L0 -54L122 0L0 54L-22 0Z" fill="url(#fleet)"/>
+    <path d="M4 -22L56 0L4 22L26 0Z" fill="#F7EAD1" fill-opacity="0.9"/>
+    <circle cx="-82" cy="0" r="12" fill="#7EA996"/>
+  </g>
+
+  <g transform="translate(336 178) rotate(-24)">
+    <path d="M-74 0L0 -62L138 0L0 62L-24 0Z" fill="url(#fleet)"/>
+    <path d="M6 -24L64 0L6 24L30 0Z" fill="#F7EAD1" fill-opacity="0.92"/>
+    <circle cx="-94" cy="0" r="14" fill="#7EA996"/>
   </g>
 </svg>

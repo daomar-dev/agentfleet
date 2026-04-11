@@ -9,7 +9,7 @@ The `index.html` file SHALL contain a `<script type="application/ld+json">` bloc
 
 #### Scenario: Structured data content accuracy
 - **WHEN** a search engine parses the JSON-LD
-- **THEN** `name` SHALL be "Lattix", `applicationCategory` SHALL be "DeveloperApplication", `operatingSystem` SHALL include "Windows", `offers.price` SHALL be "0", and `url` SHALL be "https://lattix.code365.xyz/"
+- **THEN** `name` SHALL be "AgentFleet", `applicationCategory` SHALL be "DeveloperApplication", `operatingSystem` SHALL include "Windows", `offers.price` SHALL be "0", and `url` SHALL be "https://agentfleet.daomar.dev/"
 
 ### Requirement: JSON-LD is valid JSON
 The embedded JSON-LD block SHALL be parseable as valid JSON without syntax errors.

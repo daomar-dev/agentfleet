@@ -5,7 +5,7 @@ const path = require('path');
 const os = require('os');
 
 function createTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'lattix-sc-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'agentfleet-sc-'));
 }
 
 function createService(overrides = {}) {
@@ -15,7 +15,7 @@ function createService(overrides = {}) {
   return {
     service: new ShortcutService({
       platform,
-      scriptPath: overrides.scriptPath || '/some/path/_npx/123/node_modules/.bin/lattix',
+      scriptPath: overrides.scriptPath || '/some/path/_npx/123/node_modules/.bin/agentfleet',
       argv: overrides.argv || ['node', 'dist/cli.js', 'run'],
       execSyncFn: overrides.execSyncFn || ((cmd) => {
         if (cmd.includes('npm config get prefix')) return npmPrefix + '\n';
@@ -30,14 +30,14 @@ function createService(overrides = {}) {
 // isNpxInvocation tests
 test('ShortcutService isNpxInvocation returns true when script path contains _npx', () => {
   const { service } = createService({
-    scriptPath: 'C:\\Users\\test\\AppData\\Local\\npm-cache\\_npx\\abc123\\node_modules\\.bin\\lattix',
+    scriptPath: 'C:\\Users\\test\\AppData\\Local\\npm-cache\\_npx\\abc123\\node_modules\\.bin\\agentfleet',
   });
   assert.equal(service.isNpxInvocation(), true);
 });
 
 test('ShortcutService isNpxInvocation returns false when script path does not contain _npx', () => {
   const { service } = createService({
-    scriptPath: 'C:\\Users\\test\\AppData\\Roaming\\npm\\node_modules\\lattix\\dist\\cli.js',
+    scriptPath: 'C:\\Users\\test\\AppData\\Roaming\\npm\\node_modules\\agentfleet\\dist\\cli.js',
   });
   assert.equal(service.isNpxInvocation(), false);
 });
@@ -46,7 +46,8 @@ test('ShortcutService isNpxInvocation returns false when script path does not co
 test('ShortcutService isGloballyInstalled returns true when global path exists', () => {
   const { service } = createService({
     execSyncFn: (cmd) => {
-      if (cmd.startsWith('where')) return 'C:\\Users\\test\\AppData\\Roaming\\npm\\lattix.cmd\n';
+      if (cmd === 'where agentfleet') return 'C:\\Users\\test\\AppData\\Roaming\\npm\\agentfleet.cmd\n';
+      if (cmd === 'where dma') return 'C:\\Users\\test\\AppData\\Roaming\\npm\\dma.cmd\n';
       return '';
     },
   });
@@ -56,7 +57,8 @@ test('ShortcutService isGloballyInstalled returns true when global path exists',
 test('ShortcutService isGloballyInstalled excludes npx cache paths', () => {
   const { service } = createService({
     execSyncFn: (cmd) => {
-      if (cmd.startsWith('where')) return 'C:\\Users\\test\\AppData\\Local\\npm-cache\\_npx\\abc\\node_modules\\.bin\\lattix.cmd\n';
+      if (cmd === 'where agentfleet') return 'C:\\Users\\test\\AppData\\Local\\npm-cache\\_npx\\abc\\node_modules\\.bin\\agentfleet.cmd\n';
+      if (cmd === 'where dma') return 'C:\\Users\\test\\AppData\\Local\\npm-cache\\_npx\\abc\\node_modules\\.bin\\dma.cmd\n';
       return '';
     },
   });
@@ -66,8 +68,11 @@ test('ShortcutService isGloballyInstalled excludes npx cache paths', () => {
 test('ShortcutService isGloballyInstalled returns true when both npx and global paths exist', () => {
   const { service } = createService({
     execSyncFn: (cmd) => {
-      if (cmd.startsWith('where')) {
-        return 'C:\\Users\\test\\AppData\\Local\\npm-cache\\_npx\\abc\\lattix.cmd\nC:\\Users\\test\\AppData\\Roaming\\npm\\lattix.cmd\n';
+      if (cmd === 'where agentfleet') {
+        return 'C:\\Users\\test\\AppData\\Local\\npm-cache\\_npx\\abc\\agentfleet.cmd\nC:\\Users\\test\\AppData\\Roaming\\npm\\agentfleet.cmd\n';
+      }
+      if (cmd === 'where dma') {
+        return 'C:\\Users\\test\\AppData\\Local\\npm-cache\\_npx\\abc\\dma.cmd\nC:\\Users\\test\\AppData\\Roaming\\npm\\dma.cmd\n';
       }
       return '';
     },
@@ -89,7 +94,8 @@ test('ShortcutService isGloballyInstalled uses which -a on POSIX', () => {
   const { service } = createService({
     platform: 'darwin',
     execSyncFn: (cmd) => {
-      if (cmd.startsWith('which -a')) return '/Users/test/.npm/_npx/abc/lattix\n/usr/local/bin/lattix\n';
+      if (cmd === 'which -a agentfleet') return '/Users/test/.npm/_npx/abc/agentfleet\n/usr/local/bin/agentfleet\n';
+      if (cmd === 'which -a dma') return '/Users/test/.npm/_npx/abc/dma\n/usr/local/bin/dma\n';
       return '';
     },
   });
@@ -97,7 +103,7 @@ test('ShortcutService isGloballyInstalled uses which -a on POSIX', () => {
 });
 
 // createWrapper tests
-test('ShortcutService createWrapper creates lattix.cmd in npm prefix dir', () => {
+test('ShortcutService createWrapper creates agentfleet.cmd and dma.cmd in npm prefix dir', () => {
   const npmPrefix = createTempDir();
   const { service } = createService({
     execSyncFn: (cmd) => {
@@ -108,15 +114,19 @@ test('ShortcutService createWrapper creates lattix.cmd in npm prefix dir', () =>
 
   service.createWrapper();
 
-  const wrapperPath = path.join(npmPrefix, 'lattix.cmd');
-  assert.ok(fs.existsSync(wrapperPath), 'wrapper file should exist in npm prefix');
+  const wrapperPath = path.join(npmPrefix, 'agentfleet.cmd');
+  const dmaWrapperPath = path.join(npmPrefix, 'dma.cmd');
+  assert.ok(fs.existsSync(wrapperPath), 'agentfleet wrapper should exist in npm prefix');
+  assert.ok(fs.existsSync(dmaWrapperPath), 'dma wrapper should exist in npm prefix');
   const content = fs.readFileSync(wrapperPath, 'utf-8');
-  assert.ok(content.includes('@npx -y lattix %*'), 'wrapper should delegate to npx');
+  const dmaContent = fs.readFileSync(dmaWrapperPath, 'utf-8');
+  assert.ok(content.includes('@npx -y @daomar/agentfleet %*'), 'wrapper should delegate to npx');
+  assert.ok(dmaContent.includes('@npx -y @daomar/agentfleet %*'), 'dma wrapper should delegate to npx');
 
   fs.rmSync(npmPrefix, { recursive: true, force: true });
 });
 
-test('ShortcutService createWrapper creates executable POSIX wrapper in npm prefix bin dir', () => {
+test('ShortcutService createWrapper creates executable POSIX wrappers in npm prefix bin dir', () => {
   const npmPrefix = createTempDir();
   const { service } = createService({
     platform: 'darwin',
@@ -128,10 +138,14 @@ test('ShortcutService createWrapper creates executable POSIX wrapper in npm pref
 
   service.createWrapper();
 
-  const wrapperPath = path.join(npmPrefix, 'bin', 'lattix');
+  const wrapperPath = path.join(npmPrefix, 'bin', 'agentfleet');
+  const dmaWrapperPath = path.join(npmPrefix, 'bin', 'dma');
   assert.ok(fs.existsSync(wrapperPath), 'POSIX wrapper should exist in npm prefix bin');
+  assert.ok(fs.existsSync(dmaWrapperPath), 'POSIX dma wrapper should exist in npm prefix bin');
   const content = fs.readFileSync(wrapperPath, 'utf-8');
-  assert.ok(content.includes('npx -y lattix "$@"'), 'POSIX wrapper should delegate to npx');
+  const dmaContent = fs.readFileSync(dmaWrapperPath, 'utf-8');
+  assert.ok(content.includes('npx -y @daomar/agentfleet "$@"'), 'POSIX wrapper should delegate to npx');
+  assert.ok(dmaContent.includes('npx -y @daomar/agentfleet "$@"'), 'POSIX dma wrapper should delegate to npx');
   const mode = fs.statSync(wrapperPath).mode & 0o777;
   assert.equal(mode, 0o755);
 
@@ -166,7 +180,8 @@ test('ShortcutService wrapperExists returns true after createWrapper', () => {
 test('ShortcutService wrapperExists returns true for POSIX wrapper', () => {
   const npmPrefix = createTempDir();
   fs.mkdirSync(path.join(npmPrefix, 'bin'), { recursive: true });
-  fs.writeFileSync(path.join(npmPrefix, 'bin', 'lattix'), '#!/bin/sh\nnpx -y lattix "$@"\n');
+  fs.writeFileSync(path.join(npmPrefix, 'bin', 'agentfleet'), '#!/bin/sh\nnpx -y @daomar/agentfleet "$@"\n');
+  fs.writeFileSync(path.join(npmPrefix, 'bin', 'dma'), '#!/bin/sh\nnpx -y @daomar/agentfleet "$@"\n');
 
   const { service } = createService({
     platform: 'darwin',
@@ -182,7 +197,7 @@ test('ShortcutService wrapperExists returns true for POSIX wrapper', () => {
 // ensureShortcut integration tests
 test('ShortcutService ensureShortcut skips when not npx invocation', () => {
   const { service } = createService({
-    scriptPath: 'C:\\global\\lattix\\dist\\cli.js',
+    scriptPath: 'C:\\global\\agentfleet\\dist\\cli.js',
   });
   const result = service.ensureShortcut();
   assert.equal(result.action, 'skipped-not-npx');
@@ -199,7 +214,8 @@ test('ShortcutService ensureShortcut skips when command is not run or install', 
 test('ShortcutService ensureShortcut skips when globally installed', () => {
   const { service } = createService({
     execSyncFn: (cmd) => {
-      if (cmd.startsWith('where')) return 'C:\\Users\\test\\AppData\\Roaming\\npm\\lattix.cmd\n';
+      if (cmd === 'where agentfleet') return 'C:\\Users\\test\\AppData\\Roaming\\npm\\agentfleet.cmd\n';
+      if (cmd === 'where dma') return 'C:\\Users\\test\\AppData\\Roaming\\npm\\dma.cmd\n';
       return '';
     },
   });
@@ -210,7 +226,8 @@ test('ShortcutService ensureShortcut skips when globally installed', () => {
 
 test('ShortcutService ensureShortcut skips when wrapper already exists', () => {
   const npmPrefix = createTempDir();
-  fs.writeFileSync(path.join(npmPrefix, 'lattix.cmd'), '@npx -y lattix %*\r\n');
+  fs.writeFileSync(path.join(npmPrefix, 'agentfleet.cmd'), '@npx -y @daomar/agentfleet %*\r\n');
+  fs.writeFileSync(path.join(npmPrefix, 'dma.cmd'), '@npx -y @daomar/agentfleet %*\r\n');
 
   const { service } = createService({
     execSyncFn: (cmd) => {
@@ -239,8 +256,10 @@ test('ShortcutService ensureShortcut creates wrapper in npm prefix and reports a
   assert.equal(result.shortcutAvailable, true);
 
   // Verify wrapper was created in npm prefix
-  const wrapperPath = path.join(npmPrefix, 'lattix.cmd');
-  assert.ok(fs.existsSync(wrapperPath), 'wrapper file should be created in npm prefix');
+  const wrapperPath = path.join(npmPrefix, 'agentfleet.cmd');
+  const dmaWrapperPath = path.join(npmPrefix, 'dma.cmd');
+  assert.ok(fs.existsSync(wrapperPath), 'agentfleet wrapper file should be created in npm prefix');
+  assert.ok(fs.existsSync(dmaWrapperPath), 'dma wrapper file should be created in npm prefix');
 
   fs.rmSync(npmPrefix, { recursive: true, force: true });
 });
@@ -259,8 +278,10 @@ test('ShortcutService ensureShortcut creates POSIX wrapper in npm prefix bin and
   assert.equal(result.action, 'wrapper-created');
   assert.equal(result.shortcutAvailable, true);
 
-  const wrapperPath = path.join(npmPrefix, 'bin', 'lattix');
-  assert.ok(fs.existsSync(wrapperPath), 'POSIX wrapper file should be created in npm prefix bin');
+  const wrapperPath = path.join(npmPrefix, 'bin', 'agentfleet');
+  const dmaWrapperPath = path.join(npmPrefix, 'bin', 'dma');
+  assert.ok(fs.existsSync(wrapperPath), 'POSIX agentfleet wrapper file should be created in npm prefix bin');
+  assert.ok(fs.existsSync(dmaWrapperPath), 'POSIX dma wrapper file should be created in npm prefix bin');
 
   fs.rmSync(npmPrefix, { recursive: true, force: true });
 });

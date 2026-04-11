@@ -26,8 +26,8 @@ export function renderSettings(container: HTMLElement): void {
       <p class="settings-desc">${t('settings.aboutDesc')}</p>
       <p class="settings-desc"><strong>${t('settings.secureByDesign')}</strong> ${t('settings.aboutSecurity')}</p>
       <p>
-        <a href="https://github.com/chenxizhang/lattix" target="_blank" rel="noopener">${t('settings.github')}</a> ·
-        <a href="https://www.npmjs.com/package/lattix" target="_blank" rel="noopener">${t('settings.npm')}</a> ·
+        <a href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">${t('settings.github')}</a> ·
+        <a href="https://www.npmjs.com/package/@daomar/agentfleet" target="_blank" rel="noopener">${t('settings.npm')}</a> ·
         <a href="/donate.html" target="_blank" rel="noopener">${t('settings.donate')}</a>
       </p>
     </section>

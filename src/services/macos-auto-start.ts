@@ -10,7 +10,7 @@ export interface LaunchAgentDependencies {
   execSyncFn?: (cmd: string, opts?: object) => string;
 }
 
-const LABEL = 'xyz.code365.lattix';
+const LABEL = 'dev.daomar.agentfleet';
 
 export class LaunchAgentManager implements AutoStartManager {
   private readonly launchAgentsDir: string;
@@ -94,7 +94,7 @@ export class LaunchAgentManager implements AutoStartManager {
       '  <array>',
       '    <string>npx</string>',
       '    <string>-y</string>',
-      '    <string>lattix</string>',
+      '    <string>@daomar/agentfleet</string>',
       '    <string>run</string>',
       '    <string>-d</string>',
       '  </array>',

@@ -5,7 +5,7 @@ const path = require('path');
 const os = require('os');
 
 function createTempDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'lattix-tw-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'agentfleet-tw-'));
 }
 
 function writeTask(dir, id, extraFields = {}) {
