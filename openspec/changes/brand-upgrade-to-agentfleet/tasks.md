@@ -152,16 +152,16 @@
 - [x] 3.2.1 Tag release: `git tag v2.0.0` (major version bump for brand change)
 - [x] 3.2.2 Push tag: `git push origin v2.0.0`
 - [x] 3.2.3 Verify GitHub Actions `publish.yml` workflow publishes `@daomar/agentfleet` to npm
-- [ ] 3.2.4 Verify: `npx @daomar/agentfleet --help` works
-- [ ] 3.2.5 Verify: `npx @daomar/agentfleet run` creates `~/.agentfleet/` and works end-to-end
+- [x] 3.2.4 Verify: `npx @daomar/agentfleet --help` works
+- [x] 3.2.5 Verify: `npx @daomar/agentfleet run` creates `~/.agentfleet/` and works end-to-end
 
 ### 3.3 OAuth Verification
 - [ ] 3.3.1 Open `https://agentfleet.daomar.dev/` in browser, test Microsoft login flow
 - [ ] 3.3.2 Verify dashboard loads with correct branding after login
 
 ### 3.4 Old Package Cleanup
-- [ ] 3.4.1 Deprecate old npm package: `npm deprecate lattix "This package has moved to @daomar/agentfleet. Install with: npm install -g @daomar/agentfleet"`
-- [ ] 3.4.2 Archive old GitHub repo: update `chenxizhang/lattix` README with migration notice, then archive via `gh repo archive chenxizhang/lattix --yes`
+- [x] 3.4.1 Deprecate old npm package: `npm deprecate lattix "This package has moved to @daomar/agentfleet. Install with: npm install -g @daomar/agentfleet"`
+- [x] 3.4.2 Archive old GitHub repo: update `chenxizhang/lattix` README with migration notice, then archive via `gh repo archive chenxizhang/lattix --confirm`
 
 ### 3.5 Brand Page Verification
 - [x] 3.5.1 Verify `https://daomar.dev/` loads the brand landing page
