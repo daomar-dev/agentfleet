@@ -9,17 +9,17 @@
 
 ### 0.2 Cloudflare DNS
 - [ ] 0.2.1 Login to Cloudflare CLI: `wrangler login`
-- [ ] 0.2.2 Add CNAME record: `agentfleet.daomar.dev` → `daomar-dev.github.io`
-- [ ] 0.2.3 Configure `daomar.dev` root domain: either A records to GitHub Pages IPs (185.199.108-111.153) or redirect rule to GitHub org
-- [ ] 0.2.4 Verify DNS propagation for `agentfleet.daomar.dev`
+- [x] 0.2.2 Add CNAME record: `agentfleet.daomar.dev` → `daomar-dev.github.io`
+- [x] 0.2.3 Configure `daomar.dev` root domain: either A records to GitHub Pages IPs (185.199.108-111.153) or redirect rule to GitHub org
+- [x] 0.2.4 Verify DNS propagation for `agentfleet.daomar.dev`
 
 ### 0.3 Daomar Brand Landing Page
 - [x] 0.3.1 Create minimal `index.html` for `daomar-dev.github.io` with brand story (刀马 · 道码), AgentFleet product link, and GitHub org link
 - [x] 0.3.2 Add CNAME file with `daomar.dev`
-- [ ] 0.3.3 Push to `daomar-dev/daomar-dev.github.io` and verify `daomar.dev` loads
+- [x] 0.3.3 Push to `daomar-dev/daomar-dev.github.io` and verify `daomar.dev` loads
 
 ### 0.4 Entra ID (Azure AD)
-- [ ] 0.4.1 Add SPA redirect URI `https://agentfleet.daomar.dev/` to existing App Registration (client ID `b94f9687-adcf-48ea-9861-c4ce4b5c01a0`)
+- [x] 0.4.1 Add SPA redirect URI `https://agentfleet.daomar.dev/` to existing App Registration (client ID `b94f9687-adcf-48ea-9861-c4ce4b5c01a0`)
 - [ ] 0.4.2 Verify OAuth flow works with new redirect URI (can defer to Phase 3 verification)
 
 ### 0.5 npm Preparation
@@ -146,7 +146,7 @@
 - [x] 3.1.1 Set git remote to `daomar-dev/agentfleet`: `git remote set-url origin https://github.com/daomar-dev/agentfleet.git`
 - [x] 3.1.2 Push all branches and tags: `git push -u origin main --tags`
 - [x] 3.1.3 Verify GitHub Actions `deploy-pages` workflow runs and succeeds
-- [ ] 3.1.4 Verify `https://agentfleet.daomar.dev/` loads correctly
+- [x] 3.1.4 Verify `https://agentfleet.daomar.dev/` loads correctly
 
 ### 3.2 npm Publish
 - [x] 3.2.1 Tag release: `git tag v2.0.0` (major version bump for brand change)
@@ -164,8 +164,8 @@
 - [ ] 3.4.2 Archive old GitHub repo: update `chenxizhang/lattix` README with migration notice, then archive via `gh repo archive chenxizhang/lattix --yes`
 
 ### 3.5 Brand Page Verification
-- [ ] 3.5.1 Verify `https://daomar.dev/` loads the brand landing page
-- [ ] 3.5.2 Verify AgentFleet link on brand page points to `agentfleet.daomar.dev`
+- [x] 3.5.1 Verify `https://daomar.dev/` loads the brand landing page
+- [x] 3.5.2 Verify AgentFleet link on brand page points to `agentfleet.daomar.dev`
 
 ### 3.6 Final Documentation Sweep
 - [ ] 3.6.1 Final `grep -ri "lattix\|code365\.xyz\|chenxizhang/lattix" .` to catch any remaining references (excluding `openspec/changes/archive/` and `.git/`)
