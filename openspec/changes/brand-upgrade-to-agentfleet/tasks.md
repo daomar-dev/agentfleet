@@ -8,7 +8,7 @@
 - [x] 0.1.5 Create `daomar-dev/daomar-dev.github.io` repo for the brand landing page
 
 ### 0.2 Cloudflare DNS
-- [ ] 0.2.1 Login to Cloudflare CLI: `wrangler login`
+- [x] 0.2.1 Login to Cloudflare CLI: `wrangler login`
 - [x] 0.2.2 Add CNAME record: `agentfleet.daomar.dev` → `daomar-dev.github.io`
 - [x] 0.2.3 Configure `daomar.dev` root domain: either A records to GitHub Pages IPs (185.199.108-111.153) or redirect rule to GitHub org
 - [x] 0.2.4 Verify DNS propagation for `agentfleet.daomar.dev`
@@ -169,4 +169,4 @@
 
 ### 3.6 Final Documentation Sweep
 - [x] 3.6.1 Final `grep -ri "lattix\|code365\.xyz\|chenxizhang/lattix" .` to catch any remaining references (excluding `openspec/changes/archive/` and `.git/`)
-- [ ] 3.6.2 Clean up any investigation report files generated during planning (if present in repo root)
+- [x] 3.6.2 Clean up any investigation report files generated during planning (if present in repo root)
