@@ -20,7 +20,7 @@
 
 ### 0.4 Entra ID (Azure AD)
 - [x] 0.4.1 Add SPA redirect URI `https://agentfleet.daomar.dev/` to existing App Registration (client ID `b94f9687-adcf-48ea-9861-c4ce4b5c01a0`)
-- [ ] 0.4.2 Verify OAuth flow works with new redirect URI (can defer to Phase 3 verification)
+- [x] 0.4.2 Verify OAuth flow works with new redirect URI (can defer to Phase 3 verification)
 
 ### 0.5 npm Preparation
 - [x] 0.5.1 Verify npm org access: `npm org ls daomar`
@@ -156,8 +156,8 @@
 - [x] 3.2.5 Verify: `npx @daomar/agentfleet run` creates `~/.agentfleet/` and works end-to-end
 
 ### 3.3 OAuth Verification
-- [ ] 3.3.1 Open `https://agentfleet.daomar.dev/` in browser, test Microsoft login flow
-- [ ] 3.3.2 Verify dashboard loads with correct branding after login
+- [x] 3.3.1 Open `https://agentfleet.daomar.dev/` in browser, test Microsoft login flow
+- [x] 3.3.2 Verify dashboard loads with correct branding after login
 
 ### 3.4 Old Package Cleanup
 - [x] 3.4.1 Deprecate old npm package: `npm deprecate lattix "This package has moved to @daomar/agentfleet. Install with: npm install -g @daomar/agentfleet"`
@@ -168,5 +168,5 @@
 - [x] 3.5.2 Verify AgentFleet link on brand page points to `agentfleet.daomar.dev`
 
 ### 3.6 Final Documentation Sweep
-- [ ] 3.6.1 Final `grep -ri "lattix\|code365\.xyz\|chenxizhang/lattix" .` to catch any remaining references (excluding `openspec/changes/archive/` and `.git/`)
+- [x] 3.6.1 Final `grep -ri "lattix\|code365\.xyz\|chenxizhang/lattix" .` to catch any remaining references (excluding `openspec/changes/archive/` and `.git/`)
 - [ ] 3.6.2 Clean up any investigation report files generated during planning (if present in repo root)
