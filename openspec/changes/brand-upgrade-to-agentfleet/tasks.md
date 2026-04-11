@@ -151,7 +151,7 @@
 ### 3.2 npm Publish
 - [x] 3.2.1 Tag release: `git tag v2.0.0` (major version bump for brand change)
 - [x] 3.2.2 Push tag: `git push origin v2.0.0`
-- [ ] 3.2.3 Verify GitHub Actions `publish.yml` workflow publishes `@daomar/agentfleet` to npm
+- [x] 3.2.3 Verify GitHub Actions `publish.yml` workflow publishes `@daomar/agentfleet` to npm
 - [ ] 3.2.4 Verify: `npx @daomar/agentfleet --help` works
 - [ ] 3.2.5 Verify: `npx @daomar/agentfleet run` creates `~/.agentfleet/` and works end-to-end
 
