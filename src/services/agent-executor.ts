@@ -81,17 +81,31 @@ export class AgentExecutor {
     agentCommand: string
   ): Promise<Omit<ExecutionResult, 'taskId' | 'startedAt' | 'completedAt' | 'agentCommand'>> {
     return new Promise((resolve) => {
-      // Build full command: replace {prompt} placeholder, or append prompt at end
-      const quotedPrompt = JSON.stringify(task.prompt);
-      const fullCommand = agentCommand.includes('{prompt}')
-        ? agentCommand.replace('{prompt}', quotedPrompt)
-        : `${agentCommand} ${quotedPrompt}`;
+      // Build argv: split command template into parts, handle {prompt} placeholder
+      const parts = agentCommand.split(/\s+/).filter((p) => p.length > 0);
+      const executable = parts[0];
+      let args = parts.slice(1);
+
+      // Replace {prompt} placeholder or append prompt as last arg
+      const placeholderIdx = args.indexOf('{prompt}');
+      if (placeholderIdx !== -1) {
+        // Replace the placeholder with the raw prompt (no shell quoting needed)
+        args[placeholderIdx] = task.prompt;
+      } else if (agentCommand.includes('{prompt}')) {
+        // {prompt} is part of a larger token (e.g. "--prompt={prompt}")
+        args = args.map((arg) =>
+          arg.includes('{prompt}') ? arg.replace('{prompt}', task.prompt) : arg
+        );
+      } else {
+        // No placeholder: append prompt as separate arg
+        args.push(task.prompt);
+      }
 
       let proc: ChildProcess;
       try {
-        proc = spawn(fullCommand, [], {
+        proc = spawn(executable, args, {
           cwd: task.workingDirectory || process.cwd(),
-          shell: true,
+          shell: false,
           stdio: ['ignore', 'pipe', 'pipe'],
           windowsHide: true,
         });

@@ -1,3 +1,4 @@
+/** @deprecated v2 service. Use ProtocolEngine poll-claim loop in v3. */
 import * as fs from 'fs';
 import * as path from 'path';
 import * as chokidar from 'chokidar';

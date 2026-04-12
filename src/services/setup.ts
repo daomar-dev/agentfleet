@@ -1,3 +1,4 @@
+/** @deprecated v2 service. Use SyncBackend + `agentfleet init` in v3. */
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';

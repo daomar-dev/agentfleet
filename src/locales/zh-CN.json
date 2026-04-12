@@ -158,5 +158,36 @@
   "detector.multiple_accounts": "检测到多个 OneDrive 账户，使用第一个：",
   "detector.detected": "已检测到 OneDrive: {path}",
 
+  "backend.unknown": "未知的后端: {name}",
+  "backend.missing_config": "后端 '{backend}' 需要配置字段: {field}",
+
+  "init.unknown_backend": "未知的后端 '{name}'。可用: {available}",
+  "init.config_exists": "配置已存在于 {path}。使用 --force 覆盖。",
+  "init.already_initialized": "Fleet 已在此路径初始化。",
+  "init.v2_detected": "发现 {count} 个 v2 格式的任务（无协议状态字段）。v3 将其视为 'pending'。",
+  "init.success": "Fleet 已初始化于 {path}（代理 ID: {agentId}）",
+  "init.description": "初始化新的 AgentFleet 工作区",
+  "init.option_backend": "用于文件同步的后端",
+  "init.option_path": "共享 Fleet 目录的路径",
+
+  "protocol.claim_attempt": "正在尝试认领任务 {taskId}",
+  "protocol.claim_won": "成功认领任务 {taskId}",
+  "protocol.claim_lost": "任务 {taskId} 被 {winnerId} 认领",
+  "protocol.heartbeat": "任务 {taskId} 心跳",
+  "protocol.stale_claim_recovered": "已恢复过期认领: 任务 {taskId}",
+  "protocol.stale_heartbeat_recovered": "已恢复过期心跳: 任务 {taskId}",
+
+  "config.not_found": "未找到 AgentFleet 配置文件: {path}。请先运行 `agentfleet init`。",
+  "config.v2_detected": "发现 v2 配置。请运行 `agentfleet init --force` 升级到 v3。",
+
+  "run.task_rejected": "任务 {taskId} 已拒绝: {reason}",
+  "run.heartbeat_failed": "任务 {taskId} 心跳失败: {message}",
+  "run.execution_error": "任务 {taskId} 执行出错: {message}",
+  "run.poll_error": "轮询周期出错: {message}",
+  "run.no_config": "未找到 v3 配置。请先运行 `agentfleet init`。",
+  "run.convergence_waiting": "正在等待任务 {taskId} 的 {seconds}秒 收敛窗口...",
+
+  "submit.created": "任务 {taskId} 已通过 v3 协议创建",
+
   "logger.no_user_facing_strings": ""
 }

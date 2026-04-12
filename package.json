@@ -1,6 +1,6 @@
 {
   "name": "@daomar/agentfleet",
-  "version": "2.0.2",
+  "version": "3.0.0",
   "description": "Distributed agent orchestration, without a control plane.",
   "main": "dist/cli.js",
   "bin": {
@@ -11,7 +11,7 @@
     "build": "tsc && npm run copy-locales",
     "start": "node dist/cli.js",
     "dev": "tsc --watch",
-    "test": "npm run build && node --test test/*.test.js",
+    "test": "npm run build && node --test --test-force-exit test/*.test.js test/conformance/*.test.js",
     "web:dev": "cd web && npm run dev",
     "web:build": "cd web && npm run build",
     "web:test": "cd web && npx vitest run"

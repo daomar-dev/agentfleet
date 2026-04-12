@@ -1,11 +1,12 @@
-import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as crypto from 'crypto';
-import { TaskFile } from '../types';
-import { SetupService } from '../services/setup';
-import { bootstrap } from '../services/bootstrap';
+import { ProtocolTaskFile } from '../types';
 import { t } from '../services/i18n';
+import { loadConfig } from '../services/config';
+import { getBackend } from '../backends/index';
+import type { AgentFleetConfigV3 } from '../types';
+import type { SyncBackend } from '../backends/types';
 
 interface SubmitOptions {
   prompt: string;
@@ -14,38 +15,59 @@ interface SubmitOptions {
   agent?: string;
 }
 
-export async function submitCommand(options: SubmitOptions): Promise<void> {
-  const setup = new SetupService();
+interface SubmitDependencies {
+  loadConfigFn?: () => Promise<AgentFleetConfigV3>;
+  createBackend?: (name: string, config: Record<string, unknown>) => SyncBackend;
+}
 
-  await bootstrap({ setup });
+export async function submitCommand(
+  options: SubmitOptions,
+  _command?: unknown,
+  dependencies: SubmitDependencies = {},
+): Promise<void> {
+  // Load v3 config
+  const loadConfigFn = dependencies.loadConfigFn ?? loadConfig;
+  let config: AgentFleetConfigV3;
+  try {
+    config = await loadConfigFn();
+  } catch (err) {
+    console.error(`❌ ${(err as Error).message}`);
+    process.exitCode = 1;
+    return;
+  }
 
-  const tasksDir = setup.getTasksDir();
+  // Create backend
+  const createBackendFn = dependencies.createBackend ?? getBackend;
+  const backend = createBackendFn(config.backend, config.backendConfig);
+  await backend.initialize();
 
   // Generate unique task ID
-  const timestamp = new Date().toISOString().replace(/[-:T]/g, '').substring(0, 14);
-  const random = crypto.randomBytes(3).toString('hex');
-  const taskId = `task-${timestamp}-${random}`;
+  const taskId = crypto.randomUUID();
 
-  const task: TaskFile = {
+  const now = new Date().toISOString();
+  const task: ProtocolTaskFile = {
     id: taskId,
     prompt: options.prompt,
+    status: 'pending',
+    priority: 0,
+    createdAt: now,
+    updatedAt: now,
+    submittedBy: os.hostname(),
     title: options.title,
     workingDirectory: path.resolve(options.workingDir),
-    createdAt: new Date().toISOString(),
-    createdBy: os.hostname(),
+    protocol_version: 1,
   };
 
   if (options.agent) {
     task.command = options.agent;
   }
 
-  const taskPath = path.join(tasksDir, `${taskId}.json`);
-  fs.writeFileSync(taskPath, JSON.stringify(task, null, 2));
+  // Write via SyncBackend
+  await backend.writeFile(`tasks/${taskId}.json`, JSON.stringify(task, null, 2));
 
   console.log(`✅ ${t('submit.task_submitted', { taskId })}`);
   console.log(`   ${t('submit.title', { title: options.title || t('submit.title_none') })}`);
   console.log(`   ${t('submit.prompt', { prompt: options.prompt.substring(0, 80) + (options.prompt.length > 80 ? '...' : '') })}`);
   console.log(`   ${t('submit.working_dir', { path: task.workingDirectory || '' })}`);
-  console.log(`   ${t('submit.file', { path: taskPath })}`);
-  console.log(`\n${t('submit.sync_hint')}`);
+  console.log(`   ${t('submit.created', { taskId })}`);
 }

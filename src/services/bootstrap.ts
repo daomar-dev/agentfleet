@@ -1,3 +1,4 @@
+/** @deprecated v2 service. Use `loadConfig()` + `getBackend()` in v3. */
 import { OneDriveDetector } from './onedrive-detector';
 import { SetupService } from './setup';
 import { AgentFleetConfig, OneDriveSelection } from '../types';

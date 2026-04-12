@@ -7,6 +7,7 @@ import { statusCommand } from './commands/status';
 import { stopCommand } from './commands/stop';
 import { installCommand } from './commands/install';
 import { uninstallCommand } from './commands/uninstall';
+import { initCommand } from './commands/init';
 import { VersionChecker } from './services/version-checker';
 import { t } from './services/i18n';
 
@@ -73,6 +74,14 @@ program
   .command('uninstall')
   .description(t('cli.uninstall_description'))
   .action(uninstallCommand);
+
+program
+  .command('init')
+  .description(t('init.description'))
+  .requiredOption('--backend <name>', t('init.option_backend'), 'local-folder')
+  .requiredOption('--path <dir>', t('init.option_path'))
+  .option('--force', 'Overwrite existing configuration')
+  .action(initCommand);
 
 // Version check in help output (async fetch before parse)
 if (process.argv.includes('--help') || process.argv.includes('-h')) {

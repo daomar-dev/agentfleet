@@ -158,5 +158,36 @@
   "detector.multiple_accounts": "Multiple OneDrive accounts detected. Using the first one:",
   "detector.detected": "OneDrive detected: {path}",
 
+  "backend.unknown": "Unknown backend: {name}",
+  "backend.missing_config": "Backend '{backend}' requires config field: {field}",
+
+  "init.unknown_backend": "Unknown backend '{name}'. Available: {available}",
+  "init.config_exists": "Config already exists at {path}. Use --force to overwrite.",
+  "init.already_initialized": "Fleet is already initialized at this path.",
+  "init.v2_detected": "Found {count} v2-format task(s) without protocol status. They will be treated as 'pending' by v3.",
+  "init.success": "Fleet initialized at {path} (agent ID: {agentId})",
+  "init.description": "Initialize a new AgentFleet workspace",
+  "init.option_backend": "Backend to use for file sync",
+  "init.option_path": "Path to the shared fleet directory",
+
+  "protocol.claim_attempt": "Attempting claim on task {taskId}",
+  "protocol.claim_won": "Won claim for task {taskId}",
+  "protocol.claim_lost": "Lost claim for task {taskId} to {winnerId}",
+  "protocol.heartbeat": "Heartbeat for task {taskId}",
+  "protocol.stale_claim_recovered": "Recovered stale claim for task {taskId}",
+  "protocol.stale_heartbeat_recovered": "Recovered stale heartbeat for task {taskId}",
+
+  "config.not_found": "No AgentFleet config found at {path}. Run `agentfleet init` first.",
+  "config.v2_detected": "Found v2 config. Run `agentfleet init --force` to upgrade to v3.",
+
+  "run.task_rejected": "Task {taskId} rejected: {reason}",
+  "run.heartbeat_failed": "Heartbeat failed for task {taskId}: {message}",
+  "run.execution_error": "Execution error for task {taskId}: {message}",
+  "run.poll_error": "Poll cycle error: {message}",
+  "run.no_config": "No v3 config found. Run `agentfleet init` first.",
+  "run.convergence_waiting": "Waiting {seconds}s for convergence on task {taskId}...",
+
+  "submit.created": "Task {taskId} created via v3 protocol",
+
   "logger.no_user_facing_strings": ""
 }

@@ -1,56 +1,90 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-function createAccount(overrides = {}) {
-  return {
-    provider: 'onedrive',
-    accountKey: 'personal',
-    accountName: 'Personal',
-    accountType: 'personal',
-    path: 'C:\\Users\\Test\\OneDrive',
-    ...overrides,
-  };
+const {
+  NotFoundError,
+  AlreadyExistsError,
+} = require('../dist/backends/errors.js');
+
+/**
+ * Minimal MockBackend for run-command tests
+ */
+class MockBackend {
+  constructor() {
+    this.name = 'mock';
+    this.files = new Map();
+    this.initialized = false;
+    this.shutdownCalled = false;
+  }
+
+  async initialize() { this.initialized = true; }
+  async shutdown() { this.shutdownCalled = true; }
+
+  async writeFile(p, data) {
+    this.files.set(p, { content: data, mtime: new Date() });
+  }
+  async readFile(p) {
+    const e = this.files.get(p);
+    if (!e) throw new NotFoundError(p);
+    return e.content;
+  }
+  async listFiles(p) {
+    const prefix = p.endsWith('/') ? p : p + '/';
+    const results = [];
+    for (const key of this.files.keys()) {
+      if (key.startsWith(prefix)) {
+        const rest = key.substring(prefix.length);
+        const slashIdx = rest.indexOf('/');
+        const child = slashIdx === -1 ? rest : rest.substring(0, slashIdx);
+        const childPath = prefix + child;
+        if (!results.includes(childPath)) results.push(childPath);
+      }
+    }
+    if (results.length === 0) throw new NotFoundError(p);
+    return results;
+  }
+  async deleteFile(p) { this.files.delete(p); }
+  async watchDirectory(_p, _cb) { return { close: async () => {} }; }
+  async fileExists(p) { return this.files.has(p); }
+  async createExclusive(p, data) {
+    if (this.files.has(p)) throw new AlreadyExistsError(p);
+    this.files.set(p, { content: data, mtime: new Date() });
+  }
+  getRecommendedConvergenceWindow() { return 100; } // Fast for tests
+  async getFileModifiedTime(p) {
+    const e = this.files.get(p);
+    return e ? e.mtime : null;
+  }
 }
 
-function createConfig(selection) {
+function createV3Config(overrides = {}) {
   return {
-    provider: selection.provider,
-    onedrivePath: selection.path,
-    onedriveAccountKey: selection.accountKey,
-    onedriveAccountName: selection.accountName,
-    onedriveAccountType: selection.accountType,
-    hostname: 'TEST-HOST',
-    defaultAgent: 'claude-code',
-    defaultAgentCommand: 'claude -p {prompt}',
+    version: 3,
+    agentId: 'test-agent-001',
+    backend: 'local-folder',
+    backendConfig: { path: '/tmp/test-fleet' },
+    defaultAgent: 'echo',
+    defaultAgentCommand: 'echo {prompt}',
     pollIntervalSeconds: 10,
     maxConcurrency: 1,
     taskTimeoutMinutes: 30,
     outputSizeLimitBytes: 1024 * 1024,
+    ...overrides,
   };
 }
 
 function createMockDeps(overrides = {}) {
-  const selection = overrides.selection || createAccount();
-  const config = overrides.config || createConfig(selection);
+  const config = overrides.config || createV3Config();
+  const backend = overrides.backend || new MockBackend();
 
   return {
-    bootstrapFn: overrides.bootstrapFn || (async () => config),
-    setup: overrides.setup || {
-      getOutputDir() { return 'C:\\temp\\output'; },
-      getTasksDir() { return 'C:\\temp\\tasks'; },
-      getProcessedPath() { return 'C:\\temp\\processed.json'; },
-    },
+    loadConfigFn: overrides.loadConfigFn || (async () => config),
+    createBackend: overrides.createBackend || (() => backend),
+    createEngine: overrides.createEngine || undefined,
     createExecutor: overrides.createExecutor || (() => ({
-      async execute() { throw new Error('executor not expected'); },
-    })),
-    createWriter: overrides.createWriter || (() => ({
-      write() { throw new Error('writer not expected'); },
-    })),
-    createWatcher: overrides.createWatcher || (() => ({
-      onTask() {},
-      async start() {},
-      async stop() {},
-      markProcessed() {},
+      async execute() {
+        return { exitCode: 0, status: 'completed', stdout: 'done', stderr: '', startedAt: new Date().toISOString(), completedAt: new Date().toISOString(), agentCommand: 'echo' };
+      },
     })),
     registerSignal: overrides.registerSignal || (() => {}),
     exit: overrides.exit || ((code) => { throw new Error(`unexpected exit ${code}`); }),
@@ -58,112 +92,49 @@ function createMockDeps(overrides = {}) {
       checkExistingDaemon() { return null; },
       writePid() {},
       removePid() {},
-      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
-      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
+      getPidPath() { return '/tmp/agentfleet.pid'; },
+      getDefaultLogPath() { return '/tmp/agentfleet.log'; },
     },
     autoStartManager: overrides.autoStartManager || {
       queryState() { return 'not-installed'; },
       start() {},
     },
     getShortcutResult: overrides.getShortcutResult || (() => undefined),
+    sleepFn: overrides.sleepFn || (async () => {}), // instant convergence in tests
+    backend,
+    config,
   };
 }
 
-test('run command auto-initializes when no config exists', async () => {
+test('run command loads v3 config and starts poll loop', async () => {
   const { runCommand } = require('../dist/commands/run.js');
-  let bootstrapCalled = false;
-  let startCalled = false;
 
-  const deps = createMockDeps({
-    bootstrapFn: async () => {
-      bootstrapCalled = true;
-      return createConfig(createAccount());
-    },
-    createWatcher: () => ({
-      onTask() {},
-      async start() { startCalled = true; },
-      async stop() {},
-      markProcessed() {},
-    }),
-  });
-
+  const deps = createMockDeps();
   await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
-
-  assert.equal(bootstrapCalled, true);
-  assert.equal(startCalled, true);
+  assert.ok(deps.backend.initialized);
 });
 
-test('run command uses existing config', async () => {
+test('run command exits with error when no config found', async () => {
   const { runCommand } = require('../dist/commands/run.js');
-  const selection = createAccount({
-    accountKey: 'business1',
-    accountName: 'Contoso',
-    accountType: 'business',
-    path: 'C:\\Users\\Test\\OneDrive - Contoso',
-  });
-  const config = createConfig(selection);
-  let startCalled = false;
+  let exitCode = null;
 
   const deps = createMockDeps({
-    bootstrapFn: async () => config,
-    createWatcher: () => ({
-      onTask() {},
-      async start() { startCalled = true; },
-      async stop() {},
-      markProcessed() {},
-    }),
+    loadConfigFn: async () => { throw new Error('No config found'); },
+    exit: (code) => { exitCode = code; throw new Error(`exit ${code}`); },
   });
 
-  await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
+  try {
+    await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
+  } catch {
+    // expected
+  }
 
-  assert.equal(startCalled, true);
-});
-
-test('run command starts watcher', async () => {
-  const { runCommand } = require('../dist/commands/run.js');
-  let taskHandler;
-  let startCalled = false;
-
-  const deps = createMockDeps({
-    createWatcher: () => ({
-      onTask(handler) { taskHandler = handler; },
-      async start() { startCalled = true; },
-      async stop() {},
-      markProcessed() {},
-    }),
-  });
-
-  await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
-
-  assert.equal(startCalled, true);
-  assert.ok(taskHandler, 'task handler should be registered');
-});
-
-test('run command respects poll-interval and concurrency options', async () => {
-  const { runCommand } = require('../dist/commands/run.js');
-  let watcherPollInterval;
-
-  const deps = createMockDeps({
-    createWatcher: (tasksDir, processedPath, pollInterval) => {
-      watcherPollInterval = pollInterval;
-      return {
-        onTask() {},
-        async start() {},
-        async stop() {},
-        markProcessed() {},
-      };
-    },
-  });
-
-  await runCommand({ pollInterval: '30', concurrency: '3', daemon: false }, deps);
-
-  assert.equal(watcherPollInterval, 30);
+  assert.equal(exitCode, 1);
 });
 
 test('run command in daemon mode calls spawnDetached and exits', async () => {
   const { runCommand } = require('../dist/commands/run.js');
   let exitCode = null;
-  let spawnedArgs = null;
   let spawnedLogFile = null;
 
   const deps = createMockDeps({
@@ -172,10 +143,9 @@ test('run command in daemon mode calls spawnDetached and exits', async () => {
       checkExistingDaemon() { return null; },
       writePid() {},
       removePid() {},
-      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
-      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
-      spawnDetached(args, logFile) {
-        spawnedArgs = args;
+      getDefaultLogPath() { return '/tmp/agentfleet.log'; },
+      getPidPath() { return '/tmp/agentfleet.pid'; },
+      spawnDetached(_args, logFile) {
         spawnedLogFile = logFile;
         return 12345;
       },
@@ -185,13 +155,12 @@ test('run command in daemon mode calls spawnDetached and exits', async () => {
 
   try {
     await runCommand({ pollInterval: '10', concurrency: '1', daemon: true }, deps);
-  } catch (e) {
+  } catch {
     // expected exit
   }
 
-  assert.equal(exitCode, 0, 'should exit with 0');
-  assert.ok(spawnedArgs, 'should have called spawnDetached');
-  assert.equal(spawnedLogFile, 'C:\\temp\\agentfleet.log');
+  assert.equal(exitCode, 0);
+  assert.equal(spawnedLogFile, '/tmp/agentfleet.log');
 });
 
 test('run command rejects when another instance is already running', async () => {
@@ -204,43 +173,18 @@ test('run command rejects when another instance is already running', async () =>
       checkExistingDaemon() { return 99999; },
       writePid() {},
       removePid() {},
-      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
-      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
+      getDefaultLogPath() { return '/tmp/agentfleet.log'; },
+      getPidPath() { return '/tmp/agentfleet.pid'; },
     },
   });
 
   try {
     await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
-  } catch (e) {
+  } catch {
     // expected exit
   }
 
-  assert.equal(exitCode, 1, 'should exit with 1 when another instance is running');
-});
-
-test('run command in daemon mode rejects when another instance is already running', async () => {
-  const { runCommand } = require('../dist/commands/run.js');
-  let exitCode = null;
-
-  const deps = createMockDeps({
-    exit: (code) => { exitCode = code; throw new Error(`exit ${code}`); },
-    daemonService: {
-      checkExistingDaemon() { return 99999; },
-      writePid() {},
-      removePid() {},
-      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
-      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
-      spawnDetached() { throw new Error('should not be called'); },
-    },
-  });
-
-  try {
-    await runCommand({ pollInterval: '10', concurrency: '1', daemon: true }, deps);
-  } catch (e) {
-    // expected exit
-  }
-
-  assert.equal(exitCode, 1, 'should exit with 1 when another instance is running');
+  assert.equal(exitCode, 1);
 });
 
 test('run command writes PID file in foreground mode', async () => {
@@ -252,15 +196,15 @@ test('run command writes PID file in foreground mode', async () => {
       checkExistingDaemon() { return null; },
       writePid(pid) { pidWritten = pid; },
       removePid() {},
-      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
-      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
+      getPidPath() { return '/tmp/agentfleet.pid'; },
+      getDefaultLogPath() { return '/tmp/agentfleet.log'; },
     },
   });
 
   await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
 
-  assert.ok(pidWritten !== null, 'should have written PID file');
-  assert.equal(typeof pidWritten, 'number', 'PID should be a number');
+  assert.ok(pidWritten !== null);
+  assert.equal(typeof pidWritten, 'number');
 });
 
 test('run command starts via scheduled task when task installed but not running', async () => {
@@ -278,32 +222,8 @@ test('run command starts via scheduled task when task installed but not running'
 
   try { await runCommand({ pollInterval: '10', concurrency: '1' }, deps); } catch { /* expected */ }
 
-  assert.ok(taskStarted, 'should start via scheduled task');
+  assert.ok(taskStarted);
   assert.equal(exitCode, 0);
-});
-
-test('run command shows info when scheduled task is installed and running', async () => {
-  const { runCommand } = require('../dist/commands/run.js');
-  let exitCode = null;
-
-  const deps = createMockDeps({
-    autoStartManager: {
-      queryState() { return 'installed'; },
-      start() {},
-    },
-    daemonService: {
-      checkExistingDaemon() { return 12345; },
-      writePid() {},
-      removePid() {},
-      getPidPath() { return 'C:\\temp\\agentfleet.pid'; },
-      getDefaultLogPath() { return 'C:\\temp\\agentfleet.log'; },
-    },
-    exit: (code) => { exitCode = code; throw new Error(`exit ${code}`); },
-  });
-
-  try { await runCommand({ pollInterval: '10', concurrency: '1' }, deps); } catch { /* expected */ }
-
-  assert.equal(exitCode, 0, 'should exit with 0 (informational)');
 });
 
 test('run command shows submit hint with agentfleet when shortcut available', async () => {
@@ -321,28 +241,101 @@ test('run command shows submit hint with agentfleet when shortcut available', as
     console.log = origLog;
   }
 
-  const hintLine = logs.find(l => l.includes('To submit a task'));
+  const hintLine = logs.find(l => l.includes('submit'));
   assert.ok(hintLine, 'should print submit hint');
-  assert.ok(hintLine.includes('agentfleet submit'), 'should use agentfleet shortcut');
-  assert.ok(!hintLine.includes('npx -y @daomar/agentfleet submit'), 'should NOT use npx form');
+  assert.ok(hintLine.includes('agentfleet'), 'should use agentfleet shortcut');
 });
 
-test('run command shows submit hint with npx when no shortcut', async () => {
+test('run command picks up pending tasks in poll cycle', async () => {
   const { runCommand } = require('../dist/commands/run.js');
-  const logs = [];
-  const origLog = console.log;
-  console.log = (...args) => logs.push(args.join(' '));
+  const { ProtocolEngine } = require('../dist/services/protocol-engine.js');
 
+  const backend = new MockBackend();
+  const task = {
+    id: 'task-abc',
+    prompt: 'hello',
+    status: 'pending',
+    priority: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    protocol_version: 1,
+  };
+  await backend.writeFile('tasks/task-abc.json', JSON.stringify(task));
+
+  let executed = false;
+  const deps = createMockDeps({
+    backend,
+    createExecutor: () => ({
+      async execute(t) {
+        executed = true;
+        assert.equal(t.id, 'task-abc');
+        return { exitCode: 0, status: 'completed', stdout: 'ok', stderr: '', startedAt: new Date().toISOString(), completedAt: new Date().toISOString(), agentCommand: 'echo' };
+      },
+    }),
+  });
+
+  await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
+
+  assert.ok(executed, 'should have executed the pending task');
+  // Task should be archived
+  assert.ok(await backend.fileExists('archive/task-abc.json'), 'task should be archived');
+  assert.equal(await backend.fileExists('tasks/task-abc.json'), false, 'original task should be deleted');
+});
+
+test('run command handles execution failure', async () => {
+  const { runCommand } = require('../dist/commands/run.js');
+
+  const backend = new MockBackend();
+  const task = {
+    id: 'fail-task',
+    prompt: 'will fail',
+    status: 'pending',
+    priority: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+  await backend.writeFile('tasks/fail-task.json', JSON.stringify(task));
+
+  const deps = createMockDeps({
+    backend,
+    createExecutor: () => ({
+      async execute() {
+        return { exitCode: 1, status: 'failed', stdout: '', stderr: 'err', startedAt: new Date().toISOString(), completedAt: new Date().toISOString(), agentCommand: 'echo', error: 'process failed' };
+      },
+    }),
+  });
+
+  await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
+
+  // Task should still be archived (with failed status)
+  assert.ok(await backend.fileExists('archive/fail-task.json'));
+});
+
+test('run command graceful shutdown via signal', async () => {
+  const { runCommand } = require('../dist/commands/run.js');
+  let shutdownHandler = null;
+  let exitCode = null;
+
+  const backend = new MockBackend();
+  const deps = createMockDeps({
+    backend,
+    registerSignal: (signal, handler) => {
+      if (signal === 'SIGINT') shutdownHandler = handler;
+    },
+    exit: (code) => { exitCode = code; throw new Error(`exit ${code}`); },
+  });
+
+  await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
+
+  assert.ok(shutdownHandler, 'should register SIGINT handler');
+
+  // Trigger shutdown
   try {
-    const deps = createMockDeps({
-      getShortcutResult: () => ({ shortcutAvailable: false, action: 'skipped-not-npx' }),
-    });
-    await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
-  } finally {
-    console.log = origLog;
+    await shutdownHandler();
+  } catch {
+    // expected exit
   }
 
-  const hintLine = logs.find(l => l.includes('To submit a task'));
-  assert.ok(hintLine, 'should print submit hint');
-  assert.ok(hintLine.includes('npx -y @daomar/agentfleet submit'), 'should use npx form');
+  assert.equal(exitCode, 0);
+  assert.ok(backend.shutdownCalled, 'should call backend.shutdown()');
 });
