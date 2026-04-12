@@ -2,6 +2,7 @@ import { initI18n, t } from './i18n';
 import { initAuth, isAuthenticated } from './auth';
 import { registerRoutes, startRouter } from './router';
 import { renderLogin } from './components/login';
+import { renderLanding } from './components/landing';
 import { renderHome } from './components/home';
 import { renderTaskList } from './components/task-list';
 import { renderTaskDetail } from './components/task-detail';
@@ -54,7 +55,7 @@ async function main(): Promise<void> {
     console.error('Auth init failed:', err);
   }
 
-  registerRoutes(routes, renderLogin);
+  registerRoutes(routes, renderLanding);
   startRouter();
 
   // Register service worker and listen for updates

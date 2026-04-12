@@ -1,55 +1,206 @@
 <p align="center">
-  <img src="assets/icon.svg" alt="AgentFleet 图标" width="160" />
+  <img src="assets/icon.svg" alt="AgentFleet" width="160" />
 </p>
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+<h3 align="center">分布式智能体编排，无需控制平面。</h3>
 
-# AgentFleet
+<p align="center">
+  将编码任务分发到所有机器 — 无需服务器、无需配置、无需基础设施。
+</p>
 
-> 分布式智能体编排，无需控制平面。
+<p align="center">
+  <a href="https://www.npmjs.com/package/@daomar/agentfleet"><img src="https://img.shields.io/npm/v/@daomar/agentfleet" alt="npm version" /></a>
+  <a href="https://github.com/daomar-dev/agentfleet/actions"><img src="https://img.shields.io/github/actions/workflow/status/daomar-dev/agentfleet/release.yml" alt="build status" /></a>
+  <a href="https://www.npmjs.com/package/@daomar/agentfleet"><img src="https://img.shields.io/npm/dm/@daomar/agentfleet" alt="npm downloads" /></a>
+  <a href="https://github.com/daomar-dev/agentfleet/blob/main/LICENSE"><img src="https://img.shields.io/github/license/daomar-dev/agentfleet" alt="license" /></a>
+</p>
 
-AgentFleet 是一个基于 OneDrive 同步构建的去中心化、多机器编码智能体编排工具。任何已注册的机器都可以分发工作，每台机器都可以执行任务。没有中央调度器、代理或控制平面需要维护。
+<p align="center">
+  <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-## 概述
+---
 
-AgentFleet 让您可以将编码任务同时分发到所有机器上。从任意机器提交任务，所有运行 AgentFleet 的机器都会看到同一个任务，使用本地安装的编码智能体独立执行，并将机器级别的结果写回。
+<p align="center">
+  <em>演示 GIF 即将推出 — 先看 <a href="#快速开始">快速开始</a> 立即体验</em>
+</p>
 
-**工作原理：**
+<!-- TODO: 录制完成后替换为实际 demo GIF（任务 4.2）
+<p align="center">
+  <img src="assets/demo.gif" alt="AgentFleet 演示" width="720" />
+</p>
+-->
+
+---
+
+## 为什么选择 AgentFleet？
+
+大多数分布式任务系统需要服务器、消息代理或云基础设施。AgentFleet 不需要这些 — 它使用 **OneDrive 同步** 作为协调层。
+
+<table>
+  <tr>
+    <th></th>
+    <th>AgentFleet</th>
+    <th>SSH 脚本</th>
+    <th>Ansible</th>
+    <th>云 CI</th>
+  </tr>
+  <tr>
+    <td><strong>基础设施</strong></td>
+    <td>无（OneDrive）</td>
+    <td>每台机器需 SSH 服务器</td>
+    <td>控制节点 + SSH</td>
+    <td>云服务商账户</td>
+  </tr>
+  <tr>
+    <td><strong>网络</strong></td>
+    <td>无需入站连接</td>
+    <td>开放 SSH 端口</td>
+    <td>开放 SSH 端口</td>
+    <td>互联网访问</td>
+  </tr>
+  <tr>
+    <td><strong>安全性</strong></td>
+    <td>继承 M365 策略</td>
+    <td>密钥管理</td>
+    <td>密钥管理</td>
+    <td>云 IAM</td>
+  </tr>
+  <tr>
+    <td><strong>配置时间</strong></td>
+    <td>< 1 分钟</td>
+    <td>数小时</td>
+    <td>数小时</td>
+    <td>数分钟到数小时</td>
+  </tr>
+  <tr>
+    <td><strong>AI 智能体支持</strong></td>
+    <td>内置（任意 CLI 智能体）</td>
+    <td>手动脚本</td>
+    <td>自定义 Playbook</td>
+    <td>自定义流水线</td>
+  </tr>
+  <tr>
+    <td><strong>防火墙内可用</strong></td>
+    <td>是</td>
+    <td>否</td>
+    <td>否</td>
+    <td>视情况而定</td>
+  </tr>
+</table>
+
+## 核心价值
+
+**零服务器** — 无调度器、无消息代理、无数据库。OneDrive 是唯一的活动部件。
+
+**零配置** — 运行一条命令即可启动。AgentFleet 自动检测 OneDrive 并完成所有设置。
+
+**企业级安全** — 无隧道、无开放端口、数据不离开 Microsoft 365 租户。您的 IT 策略已涵盖一切。
+
+## 快速开始
+
+```bash
+# 1. 在每台机器上启动 AgentFleet（自动检测 OneDrive）
+npx -y @daomar/agentfleet run
+
+# 2. 从任意机器提交任务
+agentfleet submit --prompt "Add error handling to all API endpoints" --title "Error handling"
+
+# 3. 结果会出现在每台机器上 — 查看结果
+agentfleet status
+```
+
+就是这样。每台运行 `agentfleet run` 的机器都会获取任务，使用本地安装的编码智能体执行，并写回结果。
+
+## 工作原理
+
+```text
+  机器 A                       机器 B                       机器 C
+  ┌──────────┐                ┌──────────┐                ┌──────────┐
+  │agentfleet│                │agentfleet│                │agentfleet│
+  │   run    │                │   run    │                │   run    │
+  └────┬─────┘                └────┬─────┘                └────┬─────┘
+       │                           │                           │
+       └───────────┐    ┌──────────┘    ┌──────────────────────┘
+                   ▼    ▼              ▼
+              ┌─────────────────────────────┐
+              │     OneDrive 同步层          │
+              │  ┌───────┐   ┌──────────┐  │
+              │  │tasks/ │   │ output/  │  │
+              │  └───────┘   └──────────┘  │
+              └─────────────────────────────┘
+```
+
 1. 您的机器共享一个同步的 OneDrive 工作区。
 2. AgentFleet 在 `~/.agentfleet/` 下提供稳定的本地路径。
 3. 任何机器都可以在共享的 `tasks/` 目录中创建任务。
 4. 每台运行 `agentfleet run` 的机器都会独立处理该任务。
-5. 结果保存在共享的 `output/` 目录中，使用主机名前缀的文件以避免冲突。
+5. 结果保存在 `output/` 中，使用主机名前缀的文件 — 不会冲突。
 
-无需服务器、数据库或控制平面——仅通过同步实现分布式协调。
+## 使用场景
 
-## 前提条件
+### 多机器代码审查
 
-- **Windows** 及 PowerShell，或 **macOS**
-- **Node.js** >= 18
-- **OneDrive** 已安装并同步，使用个人账户、商业账户或两者兼有
-- 编码智能体 CLI（例如 GitHub Copilot CLI 或 Claude Code）
+在所有开发机器上同时运行相同的编码智能体提示。每台机器使用自己的智能体（Claude Code、GitHub Copilot CLI、Cursor 等）并写入独立结果，方便您对比输出。
 
-## 安装
+```bash
+agentfleet submit \
+  --prompt "Review this codebase for security vulnerabilities and suggest fixes" \
+  --title "Security audit" \
+  --working-dir /path/to/project
+```
+
+### 分布式重构
+
+将大型重构任务分发到多台机器，每台机器在自己本地的项目副本上工作。适用于拥有多个工作站或想并行尝试不同智能体配置的场景。
+
+```bash
+agentfleet submit \
+  --prompt "Migrate all class components to functional components with hooks" \
+  --title "React migration" \
+  --working-dir /path/to/project
+```
+
+## Web 仪表板
+
+基于浏览器的仪表板 **[agentfleet.daomar.dev](https://agentfleet.daomar.dev/)** 让您可以从任何设备提交任务、监控节点、查看结果 — 包括移动端（可安装为 PWA）。
+
+## 安全与合规
+
+- **无隧道** — 机器永远不会打开入站连接。无可攻击的入口。
+- **无暴露端口** — 没有监听服务、没有攻击面。
+- **无数据移动** — 数据存储在您自己的 OneDrive 中。永远不会离开 M365 租户边界。
+- **无中央服务器** — 通过 OneDrive 同步协调，已获得 IT 审批。
+- **Web 仪表板** — 使用 PKCE 的 Microsoft Entra ID 认证，仅委派权限。
+
+## 详细文档
+
+<details>
+<summary><strong>安装选项</strong></summary>
+
+### npx（推荐）
 
 ```bash
 npx -y @daomar/agentfleet run
 ```
 
-首次运行时，AgentFleet 会自动在 npm 全局目录中创建 `agentfleet` 快捷命令，因此您可以直接使用该命令，无需重启终端即可生效。如果您已通过 `npm install -g @daomar/agentfleet` 全局安装，将跳过快捷方式创建。
+首次运行时，AgentFleet 会在 npm 全局目录中创建 `agentfleet` 快捷命令。
 
-或全局安装：
+### 全局安装
 
 ```bash
 npm install -g @daomar/agentfleet
 agentfleet run
 ```
 
-## 使用方法
+</details>
+
+<details>
+<summary><strong>CLI 参考</strong></summary>
 
 ### 运行
 
-在当前机器上启动 AgentFleet。首次使用时，它会自动检测 OneDrive 并创建必要的符号链接和配置。后续运行时，它会加载现有配置并启动任务监视器。只有在 AgentFleet 启动**之后**到达的任务才会被处理——已有的任务永远不会被重放，即使在重启或新机器上也是如此。
+在当前机器上启动 AgentFleet：
 
 ```bash
 agentfleet run
@@ -58,136 +209,80 @@ agentfleet run
 选项：
 - `--poll-interval <seconds>` — 轮询间隔（默认：`10`）
 - `--concurrency <number>` — 最大并发智能体进程数（默认：`1`）
-- `--daemon` 或 `-d` — 作为后台守护进程运行（与终端分离）
-- `--log-file <path>` — 作为守护进程运行时的日志文件路径（默认：`~/.agentfleet/agentfleet.log`）
+- `--daemon` 或 `-d` — 作为后台守护进程运行
+- `--log-file <path>` — 守护进程模式的日志文件路径（默认：`~/.agentfleet/agentfleet.log`）
 
-#### 守护进程模式
-
-在后台运行 AgentFleet，使其在关闭终端后继续运行：
+### 守护进程模式
 
 ```bash
 agentfleet run --daemon
 ```
 
-这将生成一个分离的进程，将其 PID 写入 `~/.agentfleet/agentfleet.pid`，并将所有输出重定向到 `~/.agentfleet/agentfleet.log`。同一时间只允许一个守护进程实例。
+生成分离的进程，将 PID 写入 `~/.agentfleet/agentfleet.pid`。同一时间只允许一个实例。
 
-使用自定义日志文件：
-
-```bash
-agentfleet run --daemon --log-file /tmp/agentfleet.log
-```
-
-> **注意：** 同一时间只允许一个 AgentFleet 实例运行，无论是前台模式、守护进程模式还是自动启动模式。
-
-#### 登录时自动启动
-
-对于需要 AgentFleet 常驻运行的机器，设置登录时自动启动：
+### 登录时自动启动
 
 ```bash
-npx -y @daomar/agentfleet install
+npx -y @daomar/agentfleet install    # 安装自启动
+npx -y @daomar/agentfleet uninstall  # 卸载自启动
 ```
 
-这会安装与当前平台对应的登录自启动项，并使用最新发布版本运行 `npx -y @daomar/agentfleet run -d`。安装后守护进程会立即启动。在受支持的平台上无需管理员权限。
-
-- **Windows：** 安装名为 `AgentFleet` 的计划任务，在登录时启动，并会在系统从睡眠或休眠唤醒后再次触发。
-- **macOS：** 安装名为 `dev.daomar.agentfleet` 的 LaunchAgent，在登录时启动，并在安装后立即拉起守护进程。
-
-**卸载自动启动：**
-
-```bash
-npx -y @daomar/agentfleet uninstall
-```
-
-这将停止正在运行的实例并删除当前平台上的自启动项。
-
-### 停止
-
-停止正在运行的 AgentFleet 实例：
-
-```bash
-agentfleet stop
-```
-
-这会向运行中的进程发送 SIGTERM 信号并清理 PID 文件。适用于所有运行模式（前台、守护进程、自动启动）。如果配置了自动启动，AgentFleet 将在下次登录时重新启动；在 Windows 的计划任务模式下，还会在从睡眠或休眠唤醒后重新触发。
-
-AgentFleet 会检查 OneDrive 商业版和个人版账户。
-
-- 如果恰好有一个支持的账户可用，AgentFleet 会自动使用它。
-- 如果个人版和商业版 OneDrive 同时可用，AgentFleet 会选择第一个检测到的。
-- 在 macOS 上，会优先检查 `~/Library/CloudStorage/OneDrive*`，然后回退到旧版 `~/OneDrive*` 路径。
-
-这将创建 `~/.agentfleet/` 并将其 `tasks/` 和 `output/` 目录指向您选定的 OneDrive 工作区中的 `AgentFleet/`。
+- **Windows：** 名为 `AgentFleet` 的计划任务，登录和唤醒时触发
+- **macOS：** 名为 `dev.daomar.agentfleet` 的 LaunchAgent
 
 ### 提交任务
 
-创建一个所有已注册机器都将执行的任务：
-
 ```bash
-agentfleet submit --prompt "Add error handling to all API endpoints" --title "Error handling" --working-dir "C:\work\myproject"
+agentfleet submit --prompt "..." --title "..." --working-dir /path
 ```
 
 选项：
 - `--prompt <text>` — 给编码智能体的指令（必填）
 - `--title <text>` — 简短的任务标题
-- `--working-dir <path>` — 智能体的工作目录（默认：当前目录）
-- `--agent <command>` — 覆盖默认的智能体命令模板
+- `--working-dir <path>` — 工作目录（默认：当前目录）
+- `--agent <command>` — 覆盖智能体命令模板
 
 ### 查看状态
 
-显示版本信息、运行中的 AgentFleet 进程信息（PID、模式、日志文件），并列出所有任务及其各机器的结果：
-
 ```bash
-agentfleet status
+agentfleet status                        # 所有任务概览
+agentfleet status task-20260402-abc123   # 单个任务详情
 ```
 
-状态输出显示：
-- **版本**：当前版本和 npm 上的最新版本（如果过时会提示升级）
-- **进程信息**：PID、运行模式（前台 / 守护进程 / 登录时自动启动）、日志文件位置
-- **任务**：所有任务及每台机器的执行结果
-
-查看特定任务的详细信息：
+### 停止
 
 ```bash
-agentfleet status task-20260402120000-abc123
+agentfleet stop
 ```
 
-## 架构
+</details>
+
+<details>
+<summary><strong>架构详情</strong></summary>
 
 ```text
 ~/.agentfleet/
 ├── config.json          # 本机配置（不同步）
 ├── processed.json       # 已在本机执行的任务 ID
-├── agentfleet.pid           # PID 文件（任何模式运行时存在）
-├── agentfleet.log           # 日志文件（守护进程和自动启动模式）
-├── tasks/ → OneDrive    # 指向选定的 <OneDrive>\AgentFleet\tasks 的符号链接
+├── agentfleet.pid       # PID 文件（运行时存在）
+├── agentfleet.log       # 日志文件（守护进程和自动启动模式）
+├── tasks/ → OneDrive    # 指向 <OneDrive>\AgentFleet\tasks 的符号链接
 │   ├── task-001.json
 │   └── task-002.json
-└── output/ → OneDrive   # 指向选定的 <OneDrive>\AgentFleet\output 的符号链接
+└── output/ → OneDrive   # 指向 <OneDrive>\AgentFleet\output 的符号链接
     ├── task-001/
     │   ├── DESKTOP-A-result.json
     │   ├── DESKTOP-A-stdout.log
-    │   ├── LAPTOP-B-result.json
-    │   └── LAPTOP-B-stdout.log
+    │   └── LAPTOP-B-result.json
     └── task-002/
         └── ...
 ```
 
-平台相关的自启动文件位于 `~/.agentfleet/` 之外：
+平台相关的自启动文件：
 - **Windows：** `~/.agentfleet/start-agentfleet.vbs`
 - **macOS：** `~/Library/LaunchAgents/dev.daomar.agentfleet.plist`
 
-## 安全与合规
-
-AgentFleet 采用零基础设施安全模型设计：
-
-- **无隧道** — 机器永远不会打开入站连接或隧道。外部没有任何可攻击的入口。
-- **无暴露端口** — 没有监听服务、没有开放端口、没有攻击面。每台机器仅通过 OneDrive 现有的、已认证的通道同步文件。
-- **无数据移动** — AgentFleet 不传输、复制或中转任何数据。任务文件和结果存储在用户自己的 OneDrive（商业版或个人版）中。数据永远不会离开 Microsoft 365 租户边界。
-- **无中央服务器** — 没有 AgentFleet 后端、代理或控制平面。协调完全通过 OneDrive 同步完成，该同步已获得您组织 IT 策略的批准和管理。
-
-这种架构意味着 AgentFleet 继承了您现有 OneDrive 和 Microsoft 365 环境的安全性、合规性和数据驻留保证——无需额外审计、安全加固或维护。
-
-## 任务文件格式
+### 任务文件格式
 
 ```json
 {
@@ -200,60 +295,49 @@ AgentFleet 采用零基础设施安全模型设计：
 }
 ```
 
-任务文件一旦写入即不可变。AgentFleet 只处理守护进程启动后到达的任务——旧任务永远不会被重放，确保安全重启和新机器接入。
+任务文件一旦写入即不可变。只处理守护进程启动后到达的任务。
 
-## 开发
+### 前提条件
 
-构建 CLI：
+- **Windows** 及 PowerShell，或 **macOS**
+- **Node.js** >= 18
+- **OneDrive** 已安装并同步
+- 编码智能体 CLI（如 Claude Code、GitHub Copilot CLI、Cursor）
 
-```bash
-npm run build
-```
+### OneDrive 检测
 
-运行自动化测试套件：
+AgentFleet 会检查 OneDrive 商业版和个人版账户：
+- 如果恰好有一个账户可用，自动使用。
+- 如果两者都可用，使用第一个检测到的。
+- 在 macOS 上，优先检查 `~/Library/CloudStorage/OneDrive*`，然后是 `~/OneDrive*`。
 
-```bash
-npm test
-```
+</details>
 
-测试套件涵盖任务监视器启动行为、快捷方式注册、Windows 计划任务与 macOS LaunchAgent 的自启动行为、守护进程管理、run/install/stop/uninstall 命令、CLI 品牌标识、引导程序、OneDrive 检测、提供者选择、结果写入和旧工作区迁移。
-
-## Web 仪表板
-
-基于浏览器的仪表板可在 **[https://agentfleet.daomar.dev/](https://agentfleet.daomar.dev/)** 访问。
+<details>
+<summary><strong>Web 仪表板详情</strong></summary>
 
 ### 功能
 
-- **提交任务** — 从任何浏览器同时向所有 AgentFleet 机器提交任务
-- **监控节点** — 查看哪些机器处于活跃状态、最后活动时间和任务数量
-- **浏览任务历史** — 分页显示所有已提交任务及其状态指标
-- **查看任务结果** — 每台机器的结果，包括退出码、耗时和时间戳
-- **移动端友好** — 渐进式 Web 应用（PWA），可安装在 iOS 和 Android 上
+- **提交任务** — 从任何浏览器向所有机器提交任务
+- **监控节点** — 活跃机器、最后活动时间、任务数量
+- **浏览任务历史** — 分页显示，带状态指标
+- **查看结果** — 每台机器的退出码、耗时、时间戳
+- **PWA** — 可安装在 iOS 和 Android 上
 
 ### 访问
 
-在浏览器中打开 **[https://agentfleet.daomar.dev/](https://agentfleet.daomar.dev/)**，使用拥有 AgentFleet 所在 OneDrive 的 Microsoft 账户登录。
+在 [agentfleet.daomar.dev](https://agentfleet.daomar.dev/) 使用拥有 OneDrive 的 Microsoft 账户登录。
 
-> **重要：** 请使用与您机器 OneDrive 同步**相同的 Microsoft 账户**登录。如果您的 OneDrive 关联的是 `user@example.com`，请使用该账户登录。
+### 安全
 
-### 安全模型
-
-- **认证：** Microsoft Entra ID 使用 PKCE 授权码流——浏览器中不存储任何密钥
-- **令牌存储：** MSAL.js 在 `localStorage` 中管理令牌，以实现跨浏览器会话和 PWA 重新打开的持久登录
-- **权限：** `Files.Read`、`Files.ReadWrite` 和 `User.Read`（委派权限——仅可访问已登录用户的文件）
-- **输入清理：** 提交前会从任务提示中剥离 Shell 元字符；UI 中不暴露 `workingDirectory` 字段；高级用户可指定可选的智能体命令
-- **内容安全策略：** 通过 HTTP 头强制执行；将脚本、样式和连接限制为仅受信来源
-- **无后端：** 所有 API 调用直接从浏览器发送到 Microsoft Graph——不涉及 AgentFleet 服务器
-
-### 移动端安装（PWA）
-
-**iOS (Safari)：** 打开 [https://agentfleet.daomar.dev/](https://agentfleet.daomar.dev/) → 点击**分享**按钮 → **添加到主屏幕**
-
-**Android (Chrome)：** 打开 [https://agentfleet.daomar.dev/](https://agentfleet.daomar.dev/) → 点击 **⋮** 菜单 → **添加到主屏幕**（或等待安装提示）
+- **认证：** Microsoft Entra ID 使用 PKCE — 浏览器中不存储密钥
+- **令牌：** MSAL.js 在 `localStorage` 中管理令牌
+- **权限：** `Files.Read`、`Files.ReadWrite`、`User.Read`（委派权限）
+- **输入清理：** 从提示中剥离 Shell 元字符
+- **CSP：** 通过 HTTP 头强制执行
+- **无后端：** 浏览器直接调用 Microsoft Graph
 
 ### Entra ID 应用注册
-
-Web 仪表板使用预注册的 Microsoft Entra ID 应用：
 
 | 属性 | 值 |
 |---|---|
@@ -263,7 +347,10 @@ Web 仪表板使用预注册的 Microsoft Entra ID 应用：
 | 重定向 URI | `https://agentfleet.daomar.dev/`、`http://localhost:5173/` |
 | 权限 | `Files.Read`、`Files.ReadWrite`、`User.Read`（委派权限） |
 
-如需自托管仪表板，请注册您自己的 Entra ID 应用并使用您的 `clientId` 更新 `web/public/config.js`。请参阅 [Microsoft 文档](https://learn.microsoft.com/zh-cn/entra/identity-platform/quickstart-register-app)了解应用注册步骤。
+### 移动端安装（PWA）
+
+**iOS：** Safari → 分享 → 添加到主屏幕  
+**Android：** Chrome → ⋮ → 添加到主屏幕
 
 ### 本地开发
 
@@ -274,6 +361,25 @@ npm run dev        # 在 http://localhost:5173 启动开发服务器
 npm run build      # 生产构建到 web/dist/
 npm test           # 运行单元测试（Vitest）
 ```
+
+</details>
+
+<details>
+<summary><strong>开发</strong></summary>
+
+```bash
+npm run build      # 构建 CLI
+npm test           # 运行 CLI 测试
+cd web && npm test # 运行 Web 测试
+```
+
+详见 [CONTRIBUTING.md](CONTRIBUTING.md) 了解完整的开发环境设置。
+
+</details>
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=daomar-dev/agentfleet&type=Date)](https://star-history.com/#daomar-dev/agentfleet&Date)
 
 ## 支持
 
@@ -303,7 +409,14 @@ AgentFleet 是免费的开源项目。如果它对您的工作有帮助，欢迎
   </tr>
 </table>
 
-所有赞赏者将在此页面获得致谢。
+## 链接
+
+- [GitHub](https://github.com/daomar-dev/agentfleet) — 源代码、Issues、讨论
+- [npm](https://www.npmjs.com/package/@daomar/agentfleet) — 通过 npm 安装
+- [Web 仪表板](https://agentfleet.daomar.dev/) — 从任何浏览器提交任务
+- [关于](https://agentfleet.daomar.dev/about.html) — 架构深入解析
+- [贡献指南](CONTRIBUTING.md) — 开发环境设置与规范
+- [更新日志](CHANGELOG.md) — 版本历史
 
 ## 许可证
 

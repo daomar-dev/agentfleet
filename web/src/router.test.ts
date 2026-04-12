@@ -43,14 +43,31 @@ describe('startRouter', () => {
     vi.mocked(isAuthenticated).mockReturnValue(true);
   });
 
-  it('renders login view when unauthenticated', () => {
+  it('renders landing page (loginRenderer) when unauthenticated', () => {
     vi.mocked(isAuthenticated).mockReturnValue(false);
-    const loginRenderer = vi.fn((el: HTMLElement) => {
-      el.innerHTML = '<div class="login">Login</div>';
+    const landingRenderer = vi.fn((el: HTMLElement) => {
+      el.innerHTML = '<div class="landing">Landing</div>';
     });
-    registerRoutes([], loginRenderer);
+    registerRoutes([], landingRenderer);
     startRouter();
-    expect(loginRenderer).toHaveBeenCalled();
+    expect(landingRenderer).toHaveBeenCalled();
+    expect(container.querySelector('.landing')).not.toBeNull();
+    document.body.removeChild(container);
+  });
+
+  it('renders dashboard home when authenticated, not landing page', () => {
+    vi.mocked(isAuthenticated).mockReturnValue(true);
+    const landingRenderer = vi.fn();
+    const homeRenderer = vi.fn();
+    const homeHandler = vi.fn(() => homeRenderer);
+    registerRoutes(
+      [{ pattern: /^\/$/, handler: homeHandler }],
+      landingRenderer,
+    );
+    window.location.hash = '#/';
+    startRouter();
+    expect(landingRenderer).not.toHaveBeenCalled();
+    expect(homeHandler).toHaveBeenCalled();
     document.body.removeChild(container);
   });
 

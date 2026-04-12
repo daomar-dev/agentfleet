@@ -1,55 +1,206 @@
 <p align="center">
-  <img src="assets/icon.svg" alt="AgentFleet icon" width="160" />
+  <img src="assets/icon.svg" alt="AgentFleet" width="160" />
 </p>
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+<h3 align="center">Distributed agent orchestration, without a control plane.</h3>
 
-# AgentFleet
+<p align="center">
+  Fan out coding tasks across all your machines — no servers, no config, no infrastructure.
+</p>
 
-> Distributed agent orchestration, without a control plane.
+<p align="center">
+  <a href="https://www.npmjs.com/package/@daomar/agentfleet"><img src="https://img.shields.io/npm/v/@daomar/agentfleet" alt="npm version" /></a>
+  <a href="https://github.com/daomar-dev/agentfleet/actions"><img src="https://img.shields.io/github/actions/workflow/status/daomar-dev/agentfleet/release.yml" alt="build status" /></a>
+  <a href="https://www.npmjs.com/package/@daomar/agentfleet"><img src="https://img.shields.io/npm/dm/@daomar/agentfleet" alt="npm downloads" /></a>
+  <a href="https://github.com/daomar-dev/agentfleet/blob/main/LICENSE"><img src="https://img.shields.io/github/license/daomar-dev/agentfleet" alt="license" /></a>
+</p>
 
-AgentFleet is a decentralized, multi-machine coding agent fabric built on top of OneDrive sync. Any enrolled machine can dispatch work. Every machine can execute it. There is no central scheduler, broker, or control plane to keep alive.
+<p align="center">
+  <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a>
+</p>
 
-## Overview
+---
 
-AgentFleet lets you fan out coding tasks across all of your machines simultaneously. Submit a task from any machine, and every machine running AgentFleet will see the same task, execute it locally with its installed coding agent, and write back machine-scoped results.
+<p align="center">
+  <em>Demo GIF coming soon — see <a href="#quick-start">Quick Start</a> to try it now</em>
+</p>
 
-**How it works:**
+<!-- TODO: Replace with actual demo GIF once recorded (task 4.2)
+<p align="center">
+  <img src="assets/demo.gif" alt="AgentFleet demo" width="720" />
+</p>
+-->
+
+---
+
+## Why AgentFleet?
+
+Most distributed task systems need servers, brokers, or cloud infrastructure. AgentFleet needs none of that — it uses **OneDrive sync** as the coordination layer.
+
+<table>
+  <tr>
+    <th></th>
+    <th>AgentFleet</th>
+    <th>SSH Scripts</th>
+    <th>Ansible</th>
+    <th>Cloud CI</th>
+  </tr>
+  <tr>
+    <td><strong>Infrastructure</strong></td>
+    <td>None (OneDrive)</td>
+    <td>SSH server per machine</td>
+    <td>Control node + SSH</td>
+    <td>Cloud provider account</td>
+  </tr>
+  <tr>
+    <td><strong>Network</strong></td>
+    <td>No inbound connections</td>
+    <td>Open SSH ports</td>
+    <td>Open SSH ports</td>
+    <td>Internet access</td>
+  </tr>
+  <tr>
+    <td><strong>Security</strong></td>
+    <td>Inherits M365 policies</td>
+    <td>Key management</td>
+    <td>Key management</td>
+    <td>Cloud IAM</td>
+  </tr>
+  <tr>
+    <td><strong>Setup Time</strong></td>
+    <td>< 1 minute</td>
+    <td>Hours</td>
+    <td>Hours</td>
+    <td>Minutes to hours</td>
+  </tr>
+  <tr>
+    <td><strong>AI Agent Support</strong></td>
+    <td>Built-in (any CLI agent)</td>
+    <td>Manual scripting</td>
+    <td>Custom playbooks</td>
+    <td>Custom pipelines</td>
+  </tr>
+  <tr>
+    <td><strong>Works Behind Firewalls</strong></td>
+    <td>Yes</td>
+    <td>No</td>
+    <td>No</td>
+    <td>Depends</td>
+  </tr>
+</table>
+
+## Value Propositions
+
+**Zero Servers** — No schedulers, no brokers, no databases. OneDrive is the only moving part.
+
+**Zero Config** — Run one command and you're live. AgentFleet auto-detects OneDrive and sets up everything.
+
+**Enterprise Security** — No tunnels, no open ports, no data leaves your Microsoft 365 tenant. Your IT policies already cover it.
+
+## Quick Start
+
+```bash
+# 1. Start AgentFleet on each machine (auto-detects OneDrive)
+npx -y @daomar/agentfleet run
+
+# 2. Submit a task from any machine
+agentfleet submit --prompt "Add error handling to all API endpoints" --title "Error handling"
+
+# 3. Results appear on every machine — check them
+agentfleet status
+```
+
+That's it. Every machine running `agentfleet run` picks up the task, executes it with its locally installed coding agent, and writes back results.
+
+## How It Works
+
+```text
+  Machine A                    Machine B                    Machine C
+  ┌──────────┐                ┌──────────┐                ┌──────────┐
+  │agentfleet│                │agentfleet│                │agentfleet│
+  │   run    │                │   run    │                │   run    │
+  └────┬─────┘                └────┬─────┘                └────┬─────┘
+       │                           │                           │
+       └───────────┐    ┌──────────┘    ┌──────────────────────┘
+                   ▼    ▼              ▼
+              ┌─────────────────────────────┐
+              │     OneDrive Sync Layer     │
+              │  ┌───────┐   ┌──────────┐  │
+              │  │tasks/ │   │ output/  │  │
+              │  └───────┘   └──────────┘  │
+              └─────────────────────────────┘
+```
+
 1. Your machines share a synced OneDrive workspace.
 2. AgentFleet exposes stable local paths under `~/.agentfleet/`.
 3. Any machine can create a task in the shared `tasks/` directory.
 4. Every machine running `agentfleet run` picks up that task independently.
-5. Results land in a shared `output/` directory with hostname-prefixed files to avoid collisions.
+5. Results land in `output/` with hostname-prefixed files — no collisions.
 
-No servers, no databases, no control plane — just distributed coordination through sync.
+## Use Cases
 
-## Prerequisites
+### Multi-Machine Code Review
 
-- **Windows** with PowerShell, or **macOS**
-- **Node.js** >= 18
-- **OneDrive** installed and syncing, with either a personal account, a business account, or both
-- A coding agent CLI (for example GitHub Copilot CLI or Claude Code)
+Run the same coding agent prompt on a project across all your development machines simultaneously. Each machine applies its own agent (Claude Code, GitHub Copilot CLI, Cursor, etc.) and writes independent results, so you can compare outputs side by side.
 
-## Installation
+```bash
+agentfleet submit \
+  --prompt "Review this codebase for security vulnerabilities and suggest fixes" \
+  --title "Security audit" \
+  --working-dir /path/to/project
+```
+
+### Distributed Refactoring
+
+Fan out a large refactoring task across multiple machines, each working on its own local clone of the project. Useful when you have multiple workstations or want to try different agent configurations in parallel.
+
+```bash
+agentfleet submit \
+  --prompt "Migrate all class components to functional components with hooks" \
+  --title "React migration" \
+  --working-dir /path/to/project
+```
+
+## Web Dashboard
+
+A browser-based dashboard at **[agentfleet.daomar.dev](https://agentfleet.daomar.dev/)** lets you submit tasks, monitor nodes, and view results from any device — including mobile (installable as PWA).
+
+## Security & Compliance
+
+- **No tunnels** — Machines never open inbound connections. Nothing to attack.
+- **No exposed ports** — No listening services, no attack surface.
+- **No data movement** — Data stays in your own OneDrive. Never leaves the M365 tenant boundary.
+- **No central server** — Coordination through OneDrive sync, already approved by your IT.
+- **Web dashboard** — Microsoft Entra ID auth with PKCE, delegated permissions only.
+
+## Full Documentation
+
+<details>
+<summary><strong>Installation options</strong></summary>
+
+### npx (recommended)
 
 ```bash
 npx -y @daomar/agentfleet run
 ```
 
-On first run, AgentFleet automatically creates an `agentfleet` shortcut command in your npm global directory, so you can use it directly without restarting the terminal. If you've already installed globally via `npm install -g @daomar/agentfleet`, shortcut creation is skipped.
+On first run, AgentFleet creates an `agentfleet` shortcut in your npm global directory.
 
-Or install globally:
+### Global install
 
 ```bash
 npm install -g @daomar/agentfleet
 agentfleet run
 ```
 
-## Usage
+</details>
+
+<details>
+<summary><strong>CLI reference</strong></summary>
 
 ### Run
 
-Start AgentFleet on this machine. On first use, it auto-detects OneDrive and creates the necessary symlinks and config. On subsequent runs, it loads the existing config and starts the task watcher. Only tasks that arrive **after** AgentFleet starts will be processed — existing tasks are never replayed, even after a restart or on a new machine.
+Start AgentFleet on this machine:
 
 ```bash
 agentfleet run
@@ -57,137 +208,81 @@ agentfleet run
 
 Options:
 - `--poll-interval <seconds>` — Polling interval (default: `10`)
-- `--concurrency <number>` — Maximum concurrent agent processes (default: `1`)
-- `--daemon` or `-d` — Run as a background daemon process (detached from the terminal)
-- `--log-file <path>` — Log file path when running as a daemon (default: `~/.agentfleet/agentfleet.log`)
+- `--concurrency <number>` — Max concurrent agent processes (default: `1`)
+- `--daemon` or `-d` — Run as background daemon
+- `--log-file <path>` — Log file path for daemon mode (default: `~/.agentfleet/agentfleet.log`)
 
-#### Daemon Mode
-
-Run AgentFleet in the background so it persists after you close the terminal:
+### Daemon Mode
 
 ```bash
 agentfleet run --daemon
 ```
 
-This spawns a detached process, writes its PID to `~/.agentfleet/agentfleet.pid`, and redirects all output to `~/.agentfleet/agentfleet.log`. Only one daemon instance is allowed at a time.
+Spawns a detached process, writes PID to `~/.agentfleet/agentfleet.pid`. Only one instance allowed at a time.
 
-To use a custom log file:
-
-```bash
-agentfleet run --daemon --log-file /tmp/agentfleet.log
-```
-
-> **Note:** Only one AgentFleet instance is allowed at a time, whether foreground, daemon, or auto-start.
-
-#### Auto-Start on Login
-
-For machines that need AgentFleet to run permanently, set up auto-start on login:
+### Auto-Start on Login
 
 ```bash
-npx -y @daomar/agentfleet install
+npx -y @daomar/agentfleet install    # Install auto-start
+npx -y @daomar/agentfleet uninstall  # Remove auto-start
 ```
 
-This installs a platform-appropriate auto-start registration that runs `npx -y @daomar/agentfleet run -d` using the latest published version. The daemon starts immediately after installation. No administrator privileges are required on supported platforms.
+- **Windows:** Scheduled Task named `AgentFleet`, triggers on login and wake
+- **macOS:** LaunchAgent named `dev.daomar.agentfleet`
 
-- **Windows:** installs a Scheduled Task named `AgentFleet`, starts on login, and re-triggers after wake from sleep or hibernation.
-- **macOS:** installs a LaunchAgent named `dev.daomar.agentfleet`, starts on login, and starts the daemon immediately after installation.
-
-**Uninstall auto-start:**
+### Submit
 
 ```bash
-npx -y @daomar/agentfleet uninstall
+agentfleet submit --prompt "..." --title "..." --working-dir /path
 ```
 
-This stops the running instance and removes the current platform's auto-start registration.
+Options:
+- `--prompt <text>` — Instruction for the coding agent (required)
+- `--title <text>` — Short task title
+- `--working-dir <path>` — Working directory (default: cwd)
+- `--agent <command>` — Override agent command template
+
+### Status
+
+```bash
+agentfleet status                        # Overview of all tasks
+agentfleet status task-20260402-abc123   # Detail for one task
+```
 
 ### Stop
-
-Stop the running AgentFleet instance:
 
 ```bash
 agentfleet stop
 ```
 
-This sends SIGTERM to the running process and cleans up the PID file. Works for all run modes (foreground, daemon, auto-start). If auto-start is configured, AgentFleet will restart on the next login. On Windows, Scheduled Task mode also restarts after wake from sleep or hibernation.
+</details>
 
-AgentFleet checks both OneDrive for Business and personal OneDrive accounts.
-
-- If exactly one supported account is available, AgentFleet uses it automatically.
-- If both personal and business OneDrive are available, AgentFleet picks the first one detected.
-- On macOS, detection checks `~/Library/CloudStorage/OneDrive*` first, then legacy `~/OneDrive*` paths.
-
-This creates `~/.agentfleet/` and points its `tasks/` and `output/` directories at your selected OneDrive workspace under `AgentFleet/`.
-
-### Submit a Task
-
-Create a task that every enrolled machine will execute:
-
-```bash
-agentfleet submit --prompt "Add error handling to all API endpoints" --title "Error handling" --working-dir "C:\work\myproject"
-```
-
-Options:
-- `--prompt <text>` — The instruction for the coding agent (required)
-- `--title <text>` — Short task title
-- `--working-dir <path>` — Working directory for the agent (default: current directory)
-- `--agent <command>` — Override the default agent command template
-
-### Check Status
-
-Show version info, running AgentFleet process info (PID, mode, log file), and list all tasks with their machine results:
-
-```bash
-agentfleet status
-```
-
-The status output shows:
-- **Version**: Current version and latest version on npm (with upgrade prompt if outdated)
-- **Process info**: PID, run mode (foreground / daemon / auto-start on login), log file location
-- **Tasks**: All tasks with execution results per machine
-
-View details for a specific task:
-
-```bash
-agentfleet status task-20260402120000-abc123
-```
-
-## Architecture
+<details>
+<summary><strong>Architecture details</strong></summary>
 
 ```text
 ~/.agentfleet/
 ├── config.json          # Local machine config (not synced)
 ├── processed.json       # IDs of tasks already executed on this machine
-├── agentfleet.pid           # PID file (present when running in any mode)
-├── agentfleet.log           # Log file (daemon and auto-start modes)
-├── tasks/ → OneDrive    # Symlink to the selected <OneDrive>\AgentFleet\tasks
+├── agentfleet.pid       # PID file (present when running)
+├── agentfleet.log       # Log file (daemon and auto-start modes)
+├── tasks/ → OneDrive    # Symlink to <OneDrive>\AgentFleet\tasks
 │   ├── task-001.json
 │   └── task-002.json
-└── output/ → OneDrive   # Symlink to the selected <OneDrive>\AgentFleet\output
+└── output/ → OneDrive   # Symlink to <OneDrive>\AgentFleet\output
     ├── task-001/
     │   ├── DESKTOP-A-result.json
     │   ├── DESKTOP-A-stdout.log
-    │   ├── LAPTOP-B-result.json
-    │   └── LAPTOP-B-stdout.log
+    │   └── LAPTOP-B-result.json
     └── task-002/
         └── ...
 ```
 
-Platform-specific auto-start files live outside `~/.agentfleet/`:
+Platform-specific auto-start files:
 - **Windows:** `~/.agentfleet/start-agentfleet.vbs`
 - **macOS:** `~/Library/LaunchAgents/dev.daomar.agentfleet.plist`
 
-## Security & Compliance
-
-AgentFleet is designed with a zero-infrastructure security model:
-
-- **No tunnels** — Machines never open inbound connections or tunnels. There is nothing to attack from the outside.
-- **No exposed ports** — No listening services, no open ports, no attack surface. Each machine only syncs files through OneDrive's existing, authenticated channel.
-- **No data movement** — AgentFleet does not transfer, copy, or relay any data. Task files and results live in the user's own OneDrive (Business or Personal). Data never leaves the Microsoft 365 tenant boundary.
-- **No central server** — There is no AgentFleet backend, broker, or control plane. Coordination happens entirely through OneDrive sync, which is already approved and managed by your organization's IT policies.
-
-This architecture means AgentFleet inherits the security, compliance, and data residency guarantees of your existing OneDrive and Microsoft 365 environment — with nothing additional to audit, secure, or maintain.
-
-## Task File Format
+### Task File Format
 
 ```json
 {
@@ -200,60 +295,49 @@ This architecture means AgentFleet inherits the security, compliance, and data r
 }
 ```
 
-Task files are immutable once written. AgentFleet only processes tasks that arrive after the daemon starts — old tasks are never replayed, ensuring safe restarts and new machine onboarding.
+Task files are immutable once written. Only tasks arriving after the daemon starts are processed.
 
-## Development
+### Prerequisites
 
-Build the CLI:
+- **Windows** with PowerShell, or **macOS**
+- **Node.js** >= 18
+- **OneDrive** installed and syncing
+- A coding agent CLI (e.g., Claude Code, GitHub Copilot CLI, Cursor)
 
-```bash
-npm run build
-```
+### OneDrive Detection
 
-Run the automated test suite:
+AgentFleet checks both OneDrive for Business and personal accounts:
+- If one account is available, it is used automatically.
+- If both are available, the first detected is used.
+- On macOS, `~/Library/CloudStorage/OneDrive*` is checked first, then `~/OneDrive*`.
 
-```bash
-npm test
-```
+</details>
 
-The test suite covers task-watcher startup behavior, shortcut registration, Windows scheduled-task and macOS LaunchAgent auto-start behavior, daemon management, run/install/stop/uninstall commands, CLI branding, bootstrap, OneDrive detection, provider selection, result writing, and legacy workspace migration.
+<details>
+<summary><strong>Web dashboard details</strong></summary>
 
-## Web Dashboard
+### Features
 
-A browser-based dashboard is available at **[https://agentfleet.daomar.dev/](https://agentfleet.daomar.dev/)**.
-
-### What it does
-
-- **Submit tasks** to all your AgentFleet machines simultaneously from any browser
-- **Monitor nodes** — see which machines are active, their last activity, and task counts
-- **Browse task history** — paginated list of all submitted tasks with status indicators
-- **View task results** — per-machine results with exit codes, duration, and timestamps
-- **Mobile-friendly** — progressive web app (PWA) installable on iOS and Android
+- **Submit tasks** to all machines from any browser
+- **Monitor nodes** — active machines, last activity, task counts
+- **Browse task history** — paginated with status indicators
+- **View results** — per-machine exit codes, duration, timestamps
+- **PWA** — installable on iOS and Android
 
 ### Access
 
-Open **[https://agentfleet.daomar.dev/](https://agentfleet.daomar.dev/)** in your browser and sign in with the Microsoft account that owns the OneDrive where AgentFleet is installed.
+Sign in at [agentfleet.daomar.dev](https://agentfleet.daomar.dev/) with the Microsoft account that owns the OneDrive.
 
-> **Important:** Sign in with the **same Microsoft account** used by your machines' OneDrive sync. If your OneDrive is linked to `user@example.com`, log in with that account.
+### Security
 
-### Security model
+- **Auth:** Microsoft Entra ID with PKCE — no secrets in the browser
+- **Tokens:** MSAL.js manages tokens in `localStorage`
+- **Permissions:** `Files.Read`, `Files.ReadWrite`, `User.Read` (delegated)
+- **Input sanitization:** Shell metacharacters stripped from prompts
+- **CSP:** Enforced via HTTP header
+- **No backend:** Browser → Microsoft Graph directly
 
-- **Authentication:** Microsoft Entra ID with PKCE authorization code flow — no secrets stored in the browser
-- **Token storage:** MSAL.js manages tokens in `localStorage` for persistent login across browser sessions and PWA reopens
-- **Permissions:** `Files.Read`, `Files.ReadWrite`, and `User.Read` (delegated — only the signed-in user's files are accessible)
-- **Input sanitization:** Shell metacharacters are stripped from task prompts before submission; `workingDirectory` field is not exposed in the UI; an optional agent command can be specified by power users
-- **Content Security Policy:** Enforced via HTTP header; restricts scripts, styles, and connections to trusted origins only
-- **No backend:** All API calls go directly from the browser to Microsoft Graph — no AgentFleet server is involved
-
-### Mobile install (PWA)
-
-**iOS (Safari):** Open [https://agentfleet.daomar.dev/](https://agentfleet.daomar.dev/) → tap the **Share** button → **Add to Home Screen**
-
-**Android (Chrome):** Open [https://agentfleet.daomar.dev/](https://agentfleet.daomar.dev/) → tap the **⋮** menu → **Add to Home screen** (or wait for the install prompt)
-
-### Entra ID app registration
-
-The web dashboard uses a pre-registered Microsoft Entra ID application:
+### Entra ID App Registration
 
 | Property | Value |
 |---|---|
@@ -263,17 +347,39 @@ The web dashboard uses a pre-registered Microsoft Entra ID application:
 | Redirect URIs | `https://agentfleet.daomar.dev/`, `http://localhost:5173/` |
 | Permissions | `Files.Read`, `Files.ReadWrite`, `User.Read` (delegated) |
 
-To self-host the dashboard, register your own Entra ID app and update `web/public/config.js` with your `clientId`. See [Microsoft documentation](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) for app registration steps.
+### Mobile Install (PWA)
 
-### Local development
+**iOS:** Safari → Share → Add to Home Screen  
+**Android:** Chrome → ⋮ → Add to Home Screen
+
+### Local Development
 
 ```bash
 cd web
 npm install
-npm run dev        # Start dev server at http://localhost:5173
+npm run dev        # Dev server at http://localhost:5173
 npm run build      # Production build to web/dist/
-npm test           # Run unit tests (Vitest)
+npm test           # Unit tests (Vitest)
 ```
+
+</details>
+
+<details>
+<summary><strong>Development</strong></summary>
+
+```bash
+npm run build      # Build CLI
+npm test           # Run CLI tests
+cd web && npm test # Run web tests
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for full development setup.
+
+</details>
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=daomar-dev/agentfleet&type=Date)](https://star-history.com/#daomar-dev/agentfleet&Date)
 
 ## Support
 
@@ -303,7 +409,14 @@ AgentFleet is free and open-source. If it helps your workflow, consider supporti
   </tr>
 </table>
 
-All supporters will be recognized on this page.
+## Links
+
+- [GitHub](https://github.com/daomar-dev/agentfleet) — Source code, issues, discussions
+- [npm](https://www.npmjs.com/package/@daomar/agentfleet) — Install via npm
+- [Web Dashboard](https://agentfleet.daomar.dev/) — Submit tasks from any browser
+- [About](https://agentfleet.daomar.dev/about.html) — Architecture deep-dive
+- [Contributing](CONTRIBUTING.md) — Development setup and guidelines
+- [Changelog](CHANGELOG.md) — Version history
 
 ## License
 

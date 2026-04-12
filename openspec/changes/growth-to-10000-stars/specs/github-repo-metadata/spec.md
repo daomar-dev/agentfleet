@@ -36,7 +36,7 @@ The repository SHALL contain a `CONTRIBUTING.md` file at the root that explains 
 - **THEN** they SHALL find a `CONTRIBUTING.md` with setup instructions, test commands, and contribution workflow guidance
 
 ### Requirement: GitHub Releases for each version
-Each npm-published version SHALL have a corresponding GitHub Release with a tag matching the version number (e.g., `v1.2.2`), a title, and release notes summarizing changes.
+Each npm-published version SHALL have a corresponding GitHub Release with a tag matching the version number (e.g., `v2.0.2`), a title, and release notes summarizing changes.
 
 #### Scenario: Release exists for latest version
 - **WHEN** a user views the Releases section of the GitHub repository
