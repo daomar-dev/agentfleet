@@ -47,9 +47,9 @@
 
 - [x] 6.1 Create `CHANGELOG.md` at repository root with entries for all published versions (v1.0.9 through v2.0.2)
 - [x] 6.2 Create `CONTRIBUTING.md` with: dev setup instructions, build/test commands, PR workflow, coding conventions, first-issue guidance
-- [ ] 6.3 Create GitHub Releases for each published version (at minimum the latest v2.0.2) with release notes — manual via `gh release create` or GitHub UI
-- [ ] 6.4 Add GitHub Topics to repository: `agent`, `orchestration`, `distributed`, `onedrive`, `devtools`, `ai`, `coding-agent`, `typescript` — manual via GitHub Settings
-- [ ] 6.5 Enable GitHub Discussions on the repository — manual via GitHub Settings
+- [x] 6.3 Create GitHub Releases for each published version (at minimum the latest v2.0.2) with release notes — manual via `gh release create` or GitHub UI
+- [x] 6.4 Add GitHub Topics to repository: `agent`, `orchestration`, `distributed`, `onedrive`, `devtools`, `ai`, `coding-agent`, `typescript` — manual via GitHub Settings
+- [x] 6.5 Enable GitHub Discussions on the repository — manual via GitHub Settings
 - [x] 6.6 Add GitHub Actions workflow for automated release creation on version tag push (`.github/workflows/release.yml`)
 
 ## 7. About Page Cross-Linking
@@ -124,7 +124,7 @@
 - [ ] 13.3 Submit PR to `awesome-developer-tools`
 - [ ] 13.4 Submit to AlternativeTo as alternative to Ansible / cloud CI tools
 - [ ] 13.5 Verify GitHub Topics are configured (from task 6.4) and repo appears in topic discovery pages
-- [ ] 13.6 Add Star History chart to README (from task 5.6) — verify it renders correctly on GitHub
+- [x] 13.6 Add Star History chart to README (from task 5.6) — verify it renders correctly on GitHub
 
 ## 14. Viral Amplification + Milestones (Wave 3)
 
