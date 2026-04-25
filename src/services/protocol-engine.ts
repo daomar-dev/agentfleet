@@ -84,11 +84,12 @@ export class ProtocolEngine {
         if (!parsed.status) {
           parsed.status = 'pending';
         }
-        if (!parsed.updatedAt) {
-          parsed.updatedAt = parsed.createdAt ?? new Date().toISOString();
-        }
+        const fallbackNow = new Date().toISOString();
         if (!parsed.createdAt) {
-          parsed.createdAt = new Date().toISOString();
+          parsed.createdAt = fallbackNow;
+        }
+        if (!parsed.updatedAt) {
+          parsed.updatedAt = parsed.createdAt;
         }
 
         // Validate minimum fields

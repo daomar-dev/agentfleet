@@ -146,10 +146,12 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
 
   let running = 0;
   let shuttingDown = false;
+  let polling = false;
 
   // Poll-claim loop
   async function pollCycle(): Promise<void> {
-    if (shuttingDown) return;
+    if (shuttingDown || polling) return;
+    polling = true;
 
     try {
       // 1. Check stale claims and heartbeats
@@ -268,6 +270,8 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
       }
     } catch (err) {
       console.error(`⚠️ ${t('run.poll_error', { message: (err as Error).message })}`);
+    } finally {
+      polling = false;
     }
   }
 
@@ -289,8 +293,9 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
   console.log(`💡 ${t('run.submit_hint', { command: cmd })}\n`);
 
   // Optional: watch tasks dir for immediate scan triggers
+  let watchHandle: { close: () => void } | undefined;
   try {
-    await backend.watchDirectory('tasks', () => {
+    watchHandle = await backend.watchDirectory('tasks', () => {
       if (!shuttingDown) pollCycle();
     });
   } catch {
@@ -310,6 +315,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     console.log(`\n${t('run.shutting_down')}`);
     shuttingDown = true;
     clearInterval(pollTimer);
+    if (watchHandle) watchHandle.close();
     await backend.shutdown();
     daemonService.removePid();
     if (logger) logger.restore();

@@ -2,6 +2,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { AgentExecutor } = require('../dist/services/agent-executor.js');
 
+// Suppress console output to prevent Node.js test runner deserialization errors
+// when AgentExecutor spawns child processes whose output can corrupt the TAP stream
+const _origLog = console.log;
+const _origWarn = console.warn;
+console.log = () => {};
+console.warn = () => {};
+
 function makeConfig(overrides = {}) {
   return {
     provider: 'onedrive',

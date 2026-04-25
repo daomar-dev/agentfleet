@@ -133,12 +133,18 @@ export class DaemonService {
     const logFd = fs.openSync(logPath, 'a');
     const spawnFn = this.deps.spawnFn ?? spawn;
 
-    const child = spawnFn(execPath, childArgs, {
-      detached: true,
-      stdio: ['ignore', logFd, logFd],
-      env: process.env,
-      windowsHide: true,
-    });
+    let child;
+    try {
+      child = spawnFn(execPath, childArgs, {
+        detached: true,
+        stdio: ['ignore', logFd, logFd],
+        env: process.env,
+        windowsHide: true,
+      });
+    } catch (err) {
+      fs.closeSync(logFd);
+      throw err;
+    }
 
     child.unref();
     const childPid = child.pid!;

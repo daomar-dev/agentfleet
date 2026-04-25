@@ -188,6 +188,9 @@
   "run.convergence_waiting": "正在等待任务 {taskId} 的 {seconds}秒 收敛窗口...",
 
   "submit.created": "任务 {taskId} 已通过 v3 协议创建",
+  "submit.error": "提交任务失败: {message}",
+
+  "config.unsupported_version": "{path} 的配置版本不受支持。请运行 `agentfleet init --force` 重新创建。",
 
   "logger.no_user_facing_strings": ""
 }

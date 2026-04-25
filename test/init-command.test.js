@@ -178,7 +178,7 @@ test('init detects v2 tasks', async () => {
 
   // Should have detected 1 v2 task
   assert.ok(
-    logs.some((l) => l.includes('1')),
+    logs.some((l) => l.includes('v2') && l.includes('1')),
     'should mention v2 task count',
   );
   await fs.rm(tmp, { recursive: true });

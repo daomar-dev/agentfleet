@@ -31,7 +31,7 @@ export async function submitCommand(
   try {
     config = await loadConfigFn();
   } catch (err) {
-    console.error(`❌ ${(err as Error).message}`);
+    console.error(`❌ ${t('submit.error', { message: (err as Error).message })}`);
     process.exitCode = 1;
     return;
   }

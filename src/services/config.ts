@@ -42,7 +42,7 @@ export async function loadConfig(deps: ConfigLoaderDeps = {}): Promise<AgentFlee
   }
 
   if ((config as AgentFleetConfigV3).version !== 3) {
-    throw new Error(t('config.not_found', { path: configPath }));
+    throw new Error(t('config.unsupported_version', { path: configPath }));
   }
 
   return config as AgentFleetConfigV3;

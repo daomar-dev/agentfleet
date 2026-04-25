@@ -188,6 +188,9 @@
   "run.convergence_waiting": "Waiting {seconds}s for convergence on task {taskId}...",
 
   "submit.created": "Task {taskId} created via v3 protocol",
+  "submit.error": "Failed to submit task: {message}",
+
+  "config.unsupported_version": "Config at {path} has an unsupported version. Run `agentfleet init --force` to recreate.",
 
   "logger.no_user_facing_strings": ""
 }
