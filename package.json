@@ -1,6 +1,6 @@
 {
   "name": "@daomar/agentfleet",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Distributed agent orchestration, without a control plane.",
   "main": "dist/cli.js",
   "bin": {

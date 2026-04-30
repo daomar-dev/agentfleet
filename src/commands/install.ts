@@ -1,23 +1,35 @@
 import { AutoStartManager, createAutoStartManager } from '../services/auto-start';
 import { DaemonService } from '../services/daemon';
 import { ShortcutResult } from '../services/shortcut';
+import { loadConfig } from '../services/config';
 import { t } from '../services/i18n';
+import type { AgentFleetConfigV3 } from '../types';
 
 interface InstallDependencies {
   autoStartManager?: AutoStartManager;
   daemonService?: DaemonService;
   exit?: (code: number) => never;
   getShortcutResult?: () => ShortcutResult | undefined;
+  loadConfigFn?: () => Promise<AgentFleetConfigV3>;
 }
 
-export function installCommand(
+export async function installCommand(
   _options?: unknown,
   _cmdObj?: unknown,
   dependencies: InstallDependencies = {}
-): void {
+): Promise<void> {
   const autoStartManager = dependencies.autoStartManager ?? createAutoStartManager();
   const daemonService = dependencies.daemonService ?? new DaemonService();
   const exit = dependencies.exit ?? ((code: number) => process.exit(code)) as (code: number) => never;
+
+  // Check v3 config exists
+  const loadConfigFn = dependencies.loadConfigFn ?? loadConfig;
+  try {
+    await loadConfigFn();
+  } catch {
+    console.error(`❌ ${t('run.no_config')}`);
+    return exit(1);
+  }
 
   if (!autoStartManager.isSupported()) {
     console.error(`❌ ${t('autostart.unsupported', { platform: process.platform })}`);

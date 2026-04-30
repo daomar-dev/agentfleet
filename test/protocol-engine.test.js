@@ -1,604 +1,248 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-
 const { ProtocolEngine } = require('../dist/services/protocol-engine.js');
-const {
-  NotFoundError,
-  AlreadyExistsError,
-} = require('../dist/backends/errors.js');
+const { NotFoundError, AlreadyExistsError } = require('../dist/backends/errors.js');
 
-/**
- * In-memory MockBackend implementing SyncBackend.
- * Stores files as Map<string, { content: string, mtime: Date }>.
- */
+// In-memory mock backend
 class MockBackend {
   constructor() {
     this.name = 'mock';
     this.files = new Map();
-    this.convergenceWindow = 5000;
+    this.initialized = false;
   }
-
-  async initialize() {}
+  async initialize() { this.initialized = true; }
   async shutdown() {}
-
-  _resolve(relativePath) {
-    return relativePath;
+  async writeFile(path, data) { this.files.set(path, data); }
+  async readFile(path) {
+    if (!this.files.has(path)) throw new NotFoundError(path);
+    return this.files.get(path);
   }
-
-  async writeFile(relativePath, data) {
-    this.files.set(relativePath, { content: data, mtime: new Date() });
-  }
-
-  async readFile(relativePath) {
-    const entry = this.files.get(relativePath);
-    if (!entry) throw new NotFoundError(relativePath);
-    return entry.content;
-  }
-
-  async listFiles(relativePath) {
-    const prefix = relativePath.endsWith('/') ? relativePath : relativePath + '/';
-    const results = [];
+  async listFiles(dir) {
+    const prefix = dir.endsWith('/') ? dir : dir + '/';
+    const immediate = new Set();
     for (const key of this.files.keys()) {
       if (key.startsWith(prefix)) {
-        // Only immediate children (one level deep)
-        const rest = key.substring(prefix.length);
+        const rest = key.slice(prefix.length);
         const slashIdx = rest.indexOf('/');
-        const child = slashIdx === -1 ? rest : rest.substring(0, slashIdx);
-        const childPath = prefix + child;
-        if (!results.includes(childPath)) {
-          results.push(childPath);
+        if (slashIdx === -1) {
+          immediate.add(key);
+        } else {
+          immediate.add(prefix + rest.slice(0, slashIdx));
         }
       }
     }
-    if (results.length === 0) {
-      // Check if prefix itself exists as a "directory" (has nested files)
-      let hasChildren = false;
+    if (immediate.size === 0 && !this.files.has(dir)) {
+      // Check if any file starts with this prefix — if not, dir doesn't exist
+      let hasAny = false;
       for (const key of this.files.keys()) {
-        if (key.startsWith(prefix)) { hasChildren = true; break; }
+        if (key.startsWith(prefix)) { hasAny = true; break; }
       }
-      if (!hasChildren) {
-        // Check if it's an explicitly created empty dir
-        if (!this.files.has(relativePath + '/__dir__')) {
-          throw new NotFoundError(relativePath);
-        }
-      }
+      if (!hasAny) throw new NotFoundError(dir);
     }
-    return results;
+    return [...immediate];
   }
-
-  async deleteFile(relativePath) {
-    this.files.delete(relativePath);
+  async deleteFile(path) { this.files.delete(path); }
+  async fileExists(path) { return this.files.has(path); }
+  async createExclusive(path, data) {
+    if (this.files.has(path)) throw new AlreadyExistsError(path);
+    this.files.set(path, data);
   }
-
-  async watchDirectory(relativePath, callback) {
-    return { close: async () => {} };
+  getRecommendedConvergenceWindow() { return 100; }
+  async getFileModifiedTime(path) {
+    if (!this.files.has(path)) return null;
+    return new Date();
   }
-
-  async fileExists(relativePath) {
-    return this.files.has(relativePath);
-  }
-
-  async createExclusive(relativePath, data) {
-    if (this.files.has(relativePath)) {
-      throw new AlreadyExistsError(relativePath);
-    }
-    this.files.set(relativePath, { content: data, mtime: new Date() });
-  }
-
-  getRecommendedConvergenceWindow() {
-    return this.convergenceWindow;
-  }
-
-  async getFileModifiedTime(relativePath) {
-    const entry = this.files.get(relativePath);
-    return entry ? entry.mtime : null;
-  }
-
-  /** Test helper: set mtime to a specific time */
-  _setMtime(relativePath, date) {
-    const entry = this.files.get(relativePath);
-    if (entry) entry.mtime = date;
-  }
+  async watchDirectory() { return { close: async () => {} }; }
 }
 
-function makeEngine(backend, agentId, options) {
-  return new ProtocolEngine(backend || new MockBackend(), agentId || 'agent-a', options);
-}
-
-function makeTask(overrides = {}) {
-  return {
-    id: 'task-1',
-    prompt: 'do something',
-    status: 'pending',
-    priority: 0,
-    createdAt: '2024-01-01T00:00:00.000Z',
-    updatedAt: '2024-01-01T00:00:00.000Z',
+function seedTask(backend, id, overrides = {}) {
+  const task = {
+    id, prompt: `Do ${id}`, status: 'pending', priority: 0,
+    createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     ...overrides,
   };
+  backend.files.set(`tasks/${id}.json`, JSON.stringify(task));
+  return task;
 }
 
-async function seedTask(backend, task) {
-  const t = makeTask(task);
-  await backend.writeFile(`tasks/${t.id}.json`, JSON.stringify(t));
-  return t;
-}
+// --- scan ---
 
-// --- scan tests ---
-
-test('scan returns empty when no tasks directory', async () => {
+test('scan returns empty when no tasks dir', async () => {
   const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
+  const engine = new ProtocolEngine(backend, 'agent-a');
   const { tasks, errors } = await engine.scan();
-  assert.deepEqual(tasks, []);
-  assert.deepEqual(errors, []);
+  assert.equal(tasks.length, 0);
+  assert.equal(errors.length, 0);
 });
 
-test('scan returns pending tasks', async () => {
+test('scan returns pending tasks sorted by priority desc then createdAt asc', async () => {
   const backend = new MockBackend();
-  await seedTask(backend, { id: 'task-1', status: 'pending' });
-  await seedTask(backend, { id: 'task-2', status: 'pending' });
-  const engine = makeEngine(backend, 'agent-a');
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  seedTask(backend, 'low', { priority: 0, createdAt: '2024-01-01T00:00:00Z' });
+  seedTask(backend, 'high', { priority: 10, createdAt: '2024-01-02T00:00:00Z' });
+  seedTask(backend, 'low-older', { priority: 0, createdAt: '2024-01-01T00:00:01Z' });
   const { tasks } = await engine.scan();
-  assert.equal(tasks.length, 2);
+  assert.equal(tasks.length, 3);
+  assert.equal(tasks[0].id, 'high');
+  assert.equal(tasks[1].id, 'low');
+  assert.equal(tasks[2].id, 'low-older');
 });
 
 test('scan filters out non-pending tasks', async () => {
   const backend = new MockBackend();
-  await seedTask(backend, { id: 'task-1', status: 'pending' });
-  await seedTask(backend, { id: 'task-2', status: 'running' });
-  await seedTask(backend, { id: 'task-3', status: 'completed' });
-  const engine = makeEngine(backend, 'agent-a');
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  seedTask(backend, 'pending-1');
+  seedTask(backend, 'completed-1', { status: 'completed' });
+  seedTask(backend, 'running-1', { status: 'running' });
   const { tasks } = await engine.scan();
   assert.equal(tasks.length, 1);
-  assert.equal(tasks[0].id, 'task-1');
+  assert.equal(tasks[0].id, 'pending-1');
 });
 
-test('scan sorts by priority desc then createdAt asc', async () => {
+test('scan treats v2 tasks (no status) as pending', async () => {
   const backend = new MockBackend();
-  await seedTask(backend, { id: 'low-old', priority: 1, createdAt: '2024-01-01T00:00:00Z' });
-  await seedTask(backend, { id: 'high-new', priority: 10, createdAt: '2024-01-02T00:00:00Z' });
-  await seedTask(backend, { id: 'high-old', priority: 10, createdAt: '2024-01-01T00:00:00Z' });
-  const engine = makeEngine(backend, 'agent-a');
-  const { tasks } = await engine.scan();
-  assert.equal(tasks[0].id, 'high-old');
-  assert.equal(tasks[1].id, 'high-new');
-  assert.equal(tasks[2].id, 'low-old');
-});
-
-test('scan handles v2 tasks (no status field)', async () => {
-  const backend = new MockBackend();
-  const v2Task = { id: 'v2-task', prompt: 'hello' };
-  await backend.writeFile('tasks/v2-task.json', JSON.stringify(v2Task));
-  const engine = makeEngine(backend, 'agent-a');
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  backend.files.set('tasks/v2-task.json', JSON.stringify({ id: 'v2-task', prompt: 'do stuff' }));
   const { tasks } = await engine.scan();
   assert.equal(tasks.length, 1);
   assert.equal(tasks[0].status, 'pending');
 });
 
-test('scan reports parse errors but continues', async () => {
+test('scan reports errors for invalid JSON', async () => {
   const backend = new MockBackend();
-  await seedTask(backend, { id: 'good-task' });
-  await backend.writeFile('tasks/bad.json', 'not json{{{');
-  const engine = makeEngine(backend, 'agent-a');
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  backend.files.set('tasks/bad.json', 'not json');
   const { tasks, errors } = await engine.scan();
-  assert.equal(tasks.length, 1);
+  assert.equal(tasks.length, 0);
   assert.equal(errors.length, 1);
   assert.ok(errors[0].includes('bad.json'));
 });
 
-test('scan reports tasks missing required fields', async () => {
+test('scan reports errors for tasks missing required fields', async () => {
   const backend = new MockBackend();
-  const noId = { prompt: 'hello', status: 'pending', createdAt: '2024-01-01T00:00:00Z', updatedAt: '2024-01-01T00:00:00Z' };
-  await backend.writeFile('tasks/noid.json', JSON.stringify(noId));
-  const engine = makeEngine(backend, 'agent-a');
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  backend.files.set('tasks/no-prompt.json', JSON.stringify({ id: 'x' }));
   const { tasks, errors } = await engine.scan();
   assert.equal(tasks.length, 0);
   assert.equal(errors.length, 1);
-  assert.ok(errors[0].includes('missing required'));
 });
 
-test('scan ignores non-json files', async () => {
+test('scan fills in missing createdAt and updatedAt', async () => {
   const backend = new MockBackend();
-  await seedTask(backend, { id: 'task-1' });
-  await backend.writeFile('tasks/README.md', '# readme');
-  const engine = makeEngine(backend, 'agent-a');
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  backend.files.set('tasks/bare.json', JSON.stringify({ id: 'bare', prompt: 'test', status: 'pending' }));
   const { tasks } = await engine.scan();
   assert.equal(tasks.length, 1);
+  assert.ok(tasks[0].createdAt);
+  assert.equal(tasks[0].createdAt, tasks[0].updatedAt);
 });
 
-// --- attemptClaim tests ---
+// --- readTask ---
 
-test('attemptClaim returns true on success', async () => {
+test('readTask returns task by ID', async () => {
   const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  const result = await engine.attemptClaim('task-1');
-  assert.equal(result, true);
-  assert.ok(await backend.fileExists('claims/task-1/agent-a'));
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  seedTask(backend, 'task-1');
+  const task = await engine.readTask('task-1');
+  assert.equal(task.id, 'task-1');
 });
 
-test('attemptClaim returns false if claim already exists', async () => {
+test('readTask returns null for missing task', async () => {
   const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  await engine.attemptClaim('task-1');
-  const result = await engine.attemptClaim('task-1');
-  assert.equal(result, false);
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  const task = await engine.readTask('nonexistent');
+  assert.equal(task, null);
 });
 
-test('attemptClaim writes valid ClaimFile JSON', async () => {
+// --- listAllTasks ---
+
+test('listAllTasks returns tasks of any status', async () => {
   const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  await engine.attemptClaim('task-1');
-  const content = await backend.readFile('claims/task-1/agent-a');
-  const claim = JSON.parse(content);
-  assert.equal(claim.agentId, 'agent-a');
-  assert.ok(claim.claimedAt);
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  seedTask(backend, 't1', { status: 'pending' });
+  seedTask(backend, 't2', { status: 'completed' });
+  seedTask(backend, 't3', { status: 'failed' });
+  const { tasks } = await engine.listAllTasks();
+  assert.equal(tasks.length, 3);
 });
 
-// --- resolveClaimWinner tests ---
+// --- writeResult ---
 
-test('resolveClaimWinner picks lowest agentId', async () => {
+test('writeResult writes to results/{taskId}/{agentId}.json', async () => {
   const backend = new MockBackend();
-  // agent-b claims first, agent-a claims second
-  const engineB = makeEngine(backend, 'agent-b');
-  const engineA = makeEngine(backend, 'agent-a');
-  await engineB.attemptClaim('task-1');
-  await engineA.attemptClaim('task-1');
-
-  const resultA = await engineA.resolveClaimWinner('task-1');
-  assert.equal(resultA.won, true);
-  assert.equal(resultA.winnerId, 'agent-a');
-
-  const resultB = await engineB.resolveClaimWinner('task-1');
-  assert.equal(resultB.won, false);
-  assert.equal(resultB.winnerId, 'agent-a');
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  const result = { taskId: 'task-1', agentId: 'agent-a', status: 'completed', exitCode: 0, completedAt: new Date().toISOString(), durationMs: 1000 };
+  await engine.writeResult('task-1', result);
+  assert.ok(backend.files.has('results/task-1/agent-a.json'));
+  const written = JSON.parse(backend.files.get('results/task-1/agent-a.json'));
+  assert.equal(written.status, 'completed');
 });
 
-test('resolveClaimWinner loser deletes own claim', async () => {
-  const backend = new MockBackend();
-  const engineA = makeEngine(backend, 'agent-a');
-  const engineB = makeEngine(backend, 'agent-b');
-  await engineA.attemptClaim('task-1');
-  await engineB.attemptClaim('task-1');
+// --- listResults ---
 
-  await engineB.resolveClaimWinner('task-1');
-  // agent-b's claim should be deleted
-  assert.equal(await backend.fileExists('claims/task-1/agent-b'), false);
-  // agent-a's claim should remain
-  assert.equal(await backend.fileExists('claims/task-1/agent-a'), true);
+test('listResults returns agent IDs with results', async () => {
+  const backend = new MockBackend();
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  backend.files.set('results/task-1/agent-a.json', '{}');
+  backend.files.set('results/task-1/agent-b.json', '{}');
+  const agents = await engine.listResults('task-1');
+  assert.equal(agents.length, 2);
+  assert.ok(agents.includes('agent-a'));
+  assert.ok(agents.includes('agent-b'));
 });
 
-test('resolveClaimWinner returns not-won for no claims', async () => {
+test('listResults returns empty for task with no results', async () => {
   const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  const result = await engine.resolveClaimWinner('task-1');
-  assert.equal(result.won, false);
-  assert.equal(result.winnerId, '');
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  const agents = await engine.listResults('no-results');
+  assert.equal(agents.length, 0);
 });
 
-// --- updateTaskStatus tests ---
+// --- readResult ---
 
-test('updateTaskStatus changes status in task file', async () => {
+test('readResult returns specific agent result', async () => {
   const backend = new MockBackend();
-  await seedTask(backend, { id: 'task-1', status: 'pending' });
-  const engine = makeEngine(backend, 'agent-a');
-
-  await engine.updateTaskStatus('task-1', 'claimed');
-
-  const content = await backend.readFile('tasks/task-1.json');
-  const task = JSON.parse(content);
-  assert.equal(task.status, 'claimed');
-  assert.ok(task.updatedAt);
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  backend.files.set('results/task-1/agent-b.json', JSON.stringify({ taskId: 'task-1', agentId: 'agent-b', status: 'completed', exitCode: 0 }));
+  const r = await engine.readResult('task-1', 'agent-b');
+  assert.equal(r.agentId, 'agent-b');
 });
 
-test('updateTaskStatus throws NotFoundError for missing task', async () => {
+test('readResult returns null for missing result', async () => {
   const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  await assert.rejects(
-    () => engine.updateTaskStatus('missing', 'claimed'),
-    (err) => err instanceof NotFoundError,
-  );
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  const r = await engine.readResult('task-1', 'nobody');
+  assert.equal(r, null);
 });
 
-// --- writeHeartbeat tests ---
+// --- hasResult ---
 
-test('writeHeartbeat creates heartbeat file', async () => {
+test('hasResult returns true when result exists', async () => {
   const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  await engine.writeHeartbeat('task-1');
-  const content = await backend.readFile('heartbeats/task-1');
-  const hb = JSON.parse(content);
-  assert.equal(hb.agentId, 'agent-a');
-  assert.equal(hb.taskId, 'task-1');
-  assert.ok(hb.timestamp);
-  assert.ok(hb.pid > 0);
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  backend.files.set('results/task-1/agent-a.json', '{}');
+  assert.equal(await engine.hasResult('task-1'), true);
 });
 
-test('writeHeartbeat overwrites existing heartbeat', async () => {
+test('hasResult returns false when no result', async () => {
   const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  await engine.writeHeartbeat('task-1');
-  const before = JSON.parse(await backend.readFile('heartbeats/task-1'));
-
-  // Small delay to get different timestamp
-  await new Promise((r) => setTimeout(r, 10));
-  await engine.writeHeartbeat('task-1');
-  const after = JSON.parse(await backend.readFile('heartbeats/task-1'));
-
-  assert.ok(after.timestamp >= before.timestamp);
+  const engine = new ProtocolEngine(backend, 'agent-a');
+  assert.equal(await engine.hasResult('task-1'), false);
 });
 
-// --- checkStaleClaims tests ---
+// --- config getters ---
 
-test('checkStaleClaims returns empty when no claims', async () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a', { claimAgeTimeoutMs: 100 });
-  const stale = await engine.checkStaleClaims();
-  assert.deepEqual(stale, []);
+test('getAgentId returns configured agent ID', () => {
+  const engine = new ProtocolEngine(new MockBackend(), 'my-agent');
+  assert.equal(engine.getAgentId(), 'my-agent');
 });
 
-test('checkStaleClaims detects stale claim without heartbeat', async () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a', { claimAgeTimeoutMs: 100 });
-
-  // Create a claim
-  await engine.attemptClaim('task-1');
-  // Age the claim
-  backend._setMtime('claims/task-1/agent-a', new Date(Date.now() - 200));
-
-  const stale = await engine.checkStaleClaims();
-  assert.deepEqual(stale, ['task-1']);
-  // Claim should be deleted
-  assert.equal(await backend.fileExists('claims/task-1/agent-a'), false);
+test('getPollIntervalMs returns default 10000', () => {
+  const engine = new ProtocolEngine(new MockBackend(), 'a');
+  assert.equal(engine.getPollIntervalMs(), 10000);
 });
 
-test('checkStaleClaims ignores claims with heartbeat', async () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a', { claimAgeTimeoutMs: 100 });
-
-  await engine.attemptClaim('task-1');
-  backend._setMtime('claims/task-1/agent-a', new Date(Date.now() - 200));
-  // But there's a heartbeat, so not stale
-  await engine.writeHeartbeat('task-1');
-
-  const stale = await engine.checkStaleClaims();
-  assert.deepEqual(stale, []);
-});
-
-test('checkStaleClaims ignores fresh claims', async () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a', { claimAgeTimeoutMs: 10000 });
-
-  await engine.attemptClaim('task-1');
-  // Claim is fresh, should not be stale
-
-  const stale = await engine.checkStaleClaims();
-  assert.deepEqual(stale, []);
-});
-
-// --- checkStaleHeartbeats tests ---
-
-test('checkStaleHeartbeats returns empty when no heartbeats', async () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a', { heartbeatStaleMs: 100 });
-  const stale = await engine.checkStaleHeartbeats();
-  assert.deepEqual(stale, []);
-});
-
-test('checkStaleHeartbeats detects stale heartbeat', async () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a', { heartbeatStaleMs: 100 });
-
-  await engine.writeHeartbeat('task-1');
-  backend._setMtime('heartbeats/task-1', new Date(Date.now() - 200));
-
-  const stale = await engine.checkStaleHeartbeats();
-  assert.deepEqual(stale, ['task-1']);
-  // Heartbeat should be cleaned up
-  assert.equal(await backend.fileExists('heartbeats/task-1'), false);
-});
-
-test('checkStaleHeartbeats ignores fresh heartbeats', async () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a', { heartbeatStaleMs: 10000 });
-
-  await engine.writeHeartbeat('task-1');
-
-  const stale = await engine.checkStaleHeartbeats();
-  assert.deepEqual(stale, []);
-});
-
-// --- archiveTask tests ---
-
-test('archiveTask writes result, archive, and cleans up', async () => {
-  const backend = new MockBackend();
-  await seedTask(backend, { id: 'task-1', status: 'running' });
-  await backend.createExclusive('claims/task-1/agent-a', '{}');
-  await backend.writeFile('heartbeats/task-1', '{}');
-
-  const engine = makeEngine(backend, 'agent-a');
-  const result = {
-    taskId: 'task-1',
-    agentId: 'agent-a',
-    status: 'completed',
-    exitCode: 0,
-    completedAt: new Date().toISOString(),
-    durationMs: 1000,
-  };
-
-  await engine.archiveTask('task-1', result);
-
-  // Result should exist
-  assert.ok(await backend.fileExists('results/task-1.json'));
-
-  // Archive should exist
-  assert.ok(await backend.fileExists('archive/task-1.json'));
-  const archived = JSON.parse(await backend.readFile('archive/task-1.json'));
-  assert.equal(archived.task.id, 'task-1');
-  assert.equal(archived.result.exitCode, 0);
-  assert.ok(archived.archivedAt);
-
-  // Original task should be deleted
-  assert.equal(await backend.fileExists('tasks/task-1.json'), false);
-
-  // Claims should be deleted
-  assert.equal(await backend.fileExists('claims/task-1/agent-a'), false);
-
-  // Heartbeat should be deleted
-  assert.equal(await backend.fileExists('heartbeats/task-1'), false);
-});
-
-// --- rejectTask tests ---
-
-test('rejectTask writes archive with rejected status', async () => {
-  const backend = new MockBackend();
-  await seedTask(backend, { id: 'task-1', status: 'pending' });
-  const engine = makeEngine(backend, 'agent-a');
-
-  await engine.rejectTask('task-1', 'missing required fields');
-
-  // Archive should exist
-  assert.ok(await backend.fileExists('archive/task-1.json'));
-  const archived = JSON.parse(await backend.readFile('archive/task-1.json'));
-  assert.equal(archived.task.status, 'rejected');
-  assert.equal(archived.result.error, 'missing required fields');
-
-  // Original task should be deleted
-  assert.equal(await backend.fileExists('tasks/task-1.json'), false);
-});
-
-test('rejectTask handles unreadable task file', async () => {
-  const backend = new MockBackend();
-  // Write invalid JSON as task
-  await backend.writeFile('tasks/bad-task.json', '{{{invalid');
-  const engine = makeEngine(backend, 'agent-a');
-
-  await engine.rejectTask('bad-task', 'malformed JSON');
-
-  assert.ok(await backend.fileExists('archive/bad-task.json'));
-  assert.equal(await backend.fileExists('tasks/bad-task.json'), false);
-});
-
-// --- resetTaskToPending tests ---
-
-test('resetTaskToPending changes status back to pending', async () => {
-  const backend = new MockBackend();
-  await seedTask(backend, { id: 'task-1', status: 'running' });
-  const engine = makeEngine(backend, 'agent-a');
-
-  await engine.resetTaskToPending('task-1');
-
-  const content = await backend.readFile('tasks/task-1.json');
-  const task = JSON.parse(content);
-  assert.equal(task.status, 'pending');
-});
-
-test('resetTaskToPending is no-op for missing task', async () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  // Should not throw
-  await engine.resetTaskToPending('nonexistent');
-});
-
-// --- getConvergenceWindowMs ---
-
-test('getConvergenceWindowMs returns backend default', () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  assert.equal(engine.getConvergenceWindowMs(), 5000);
-});
-
-test('getConvergenceWindowMs respects override', () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a', { convergenceWindowMs: 15000 });
-  assert.equal(engine.getConvergenceWindowMs(), 15000);
-});
-
-// --- getHeartbeatIntervalMs ---
-
-test('getHeartbeatIntervalMs returns default', () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-  assert.equal(engine.getHeartbeatIntervalMs(), 30000);
-});
-
-test('getHeartbeatIntervalMs respects override', () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a', { heartbeatIntervalMs: 10000 });
-  assert.equal(engine.getHeartbeatIntervalMs(), 10000);
-});
-
-// --- Multi-agent claim race simulation ---
-
-test('multi-agent claim race: lowest agentId wins', async () => {
-  const backend = new MockBackend();
-  await seedTask(backend, { id: 'task-1', status: 'pending' });
-
-  const agents = ['agent-c', 'agent-a', 'agent-b'].map((id) => makeEngine(backend, id));
-
-  // All agents claim
-  for (const engine of agents) {
-    await engine.attemptClaim('task-1');
-  }
-
-  // All agents resolve
-  const results = [];
-  for (const engine of agents) {
-    results.push(await engine.resolveClaimWinner('task-1'));
-  }
-
-  // Exactly one winner
-  const winners = results.filter((r) => r.won);
-  assert.equal(winners.length, 1);
-  assert.equal(winners[0].winnerId, 'agent-a');
-
-  // All agree on winner
-  for (const r of results) {
-    assert.equal(r.winnerId, 'agent-a');
-  }
-});
-
-// --- Full lifecycle ---
-
-test('full lifecycle: submit → claim → execute → archive', async () => {
-  const backend = new MockBackend();
-  const engine = makeEngine(backend, 'agent-a');
-
-  // 1. Submit task
-  await seedTask(backend, { id: 'lifecycle-1', status: 'pending' });
-
-  // 2. Scan
-  const { tasks } = await engine.scan();
-  assert.equal(tasks.length, 1);
-
-  // 3. Claim
-  const claimed = await engine.attemptClaim('lifecycle-1');
-  assert.equal(claimed, true);
-
-  // 4. Resolve
-  const { won } = await engine.resolveClaimWinner('lifecycle-1');
-  assert.equal(won, true);
-
-  // 5. Update status
-  await engine.updateTaskStatus('lifecycle-1', 'claimed');
-  await engine.updateTaskStatus('lifecycle-1', 'running');
-
-  // 6. Heartbeat
-  await engine.writeHeartbeat('lifecycle-1');
-
-  // 7. Archive
-  const result = {
-    taskId: 'lifecycle-1',
-    agentId: 'agent-a',
-    status: 'completed',
-    exitCode: 0,
-    completedAt: new Date().toISOString(),
-    durationMs: 500,
-  };
-  await engine.archiveTask('lifecycle-1', result);
-
-  // 8. Verify cleanup
-  const { tasks: remaining } = await engine.scan();
-  assert.equal(remaining.length, 0);
-  assert.ok(await backend.fileExists('archive/lifecycle-1.json'));
-  assert.ok(await backend.fileExists('results/lifecycle-1.json'));
+test('getPollIntervalMs returns custom value', () => {
+  const engine = new ProtocolEngine(new MockBackend(), 'a', { pollIntervalMs: 5000 });
+  assert.equal(engine.getPollIntervalMs(), 5000);
 });

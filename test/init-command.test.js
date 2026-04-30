@@ -29,7 +29,7 @@ test('init creates fleet directories', async () => {
 
   await initCommand({ backend: 'local-folder', path: fleetDir }, undefined, deps);
 
-  for (const dir of ['tasks', 'claims', 'heartbeats', 'results', 'archive', 'fleet']) {
+  for (const dir of ['tasks', 'results']) {
     const stat = await fs.stat(path.join(fleetDir, dir));
     assert.ok(stat.isDirectory(), `${dir} should exist`);
   }
@@ -45,7 +45,7 @@ test('init writes VERSION file', async () => {
   await initCommand({ backend: 'local-folder', path: fleetDir }, undefined, deps);
 
   const version = await fs.readFile(path.join(fleetDir, 'VERSION'), 'utf-8');
-  assert.equal(version, '3.0.0');
+  assert.equal(version, '3.1.0');
   await fs.rm(tmp, { recursive: true });
 });
 

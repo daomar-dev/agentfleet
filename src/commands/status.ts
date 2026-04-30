@@ -1,31 +1,29 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import { TaskFile, ResultFile } from '../types';
-import { SetupService } from '../services/setup';
 import { DaemonService } from '../services/daemon';
 import { AutoStartManager, createAutoStartManager } from '../services/auto-start';
 import { VersionChecker } from '../services/version-checker';
-import { bootstrap } from '../services/bootstrap';
-import { t, formatDate, formatRelativeTime } from '../services/i18n';
+import { loadConfig } from '../services/config';
+import { getBackend } from '../backends/index';
+import { ProtocolEngine } from '../services/protocol-engine';
+import { t, formatDate } from '../services/i18n';
+import type { AgentFleetConfigV3, ProtocolResultFile } from '../types';
+import type { SyncBackend } from '../backends/types';
+import * as fs from 'fs';
 
 interface StatusDependencies {
   daemonService?: DaemonService;
   autoStartManager?: Pick<AutoStartManager, 'queryState'>;
   versionChecker?: VersionChecker;
-  setup?: Pick<SetupService, 'loadConfig' | 'setup' | 'getTasksDir' | 'getOutputDir'>;
-  bootstrapFn?: (deps: { setup: Pick<SetupService, 'loadConfig' | 'setup'> }) => Promise<unknown>;
+  loadConfigFn?: () => Promise<AgentFleetConfigV3>;
+  createBackend?: (name: string, config: Record<string, unknown>) => SyncBackend;
+  createEngine?: (backend: SyncBackend, agentId: string) => ProtocolEngine;
+  exit?: (code: number) => void;
 }
 
 export async function statusCommand(taskId?: string, _cmdObj?: unknown, dependencies: StatusDependencies = {}): Promise<void> {
-  const setup = dependencies.setup ?? new SetupService();
   const daemonService = dependencies.daemonService ?? new DaemonService();
   const autoStartManager = dependencies.autoStartManager ?? createAutoStartManager();
   const versionChecker = dependencies.versionChecker ?? new VersionChecker();
-
-  await (dependencies.bootstrapFn ?? bootstrap)({ setup });
-
-  const tasksDir = setup.getTasksDir();
-  const outputDir = setup.getOutputDir();
+  const exit = dependencies.exit ?? ((code: number) => { process.exitCode = code; });
 
   // Show version info
   await showVersionInfo(versionChecker);
@@ -33,11 +31,33 @@ export async function statusCommand(taskId?: string, _cmdObj?: unknown, dependen
   // Show running process info
   showProcessInfo(daemonService, autoStartManager);
 
-  if (taskId) {
-    showTaskDetail(taskId, tasksDir, outputDir);
-  } else {
-    showAllTasks(tasksDir, outputDir);
+  // Load v3 config
+  let config: AgentFleetConfigV3;
+  try {
+    const loadConfigFn = dependencies.loadConfigFn ?? loadConfig;
+    config = await loadConfigFn();
+  } catch (err) {
+    console.error(`❌ ${t('run.no_config')}`);
+    exit(1);
+    return;
   }
+
+  // Create backend + engine
+  const createBackendFn = dependencies.createBackend ?? getBackend;
+  const backend = createBackendFn(config.backend, config.backendConfig);
+  await backend.initialize();
+
+  const engine = dependencies.createEngine
+    ? dependencies.createEngine(backend, config.agentId)
+    : new ProtocolEngine(backend, config.agentId);
+
+  if (taskId) {
+    await showTaskDetail(taskId, engine);
+  } else {
+    await showAllTasks(engine);
+  }
+
+  await backend.shutdown();
 }
 
 function showProcessInfo(
@@ -87,109 +107,88 @@ async function showVersionInfo(versionChecker: VersionChecker): Promise<void> {
   }
 }
 
-function showAllTasks(tasksDir: string, outputDir: string): void {
-  const taskFiles = fs.readdirSync(tasksDir).filter(f => f.endsWith('.json'));
+async function showAllTasks(engine: ProtocolEngine): Promise<void> {
+  const { tasks, errors } = await engine.listAllTasks();
 
-  if (taskFiles.length === 0) {
+  for (const err of errors) {
+    console.warn(`⚠️ ${err}`);
+  }
+
+  if (tasks.length === 0) {
     console.log(t('status.no_tasks'));
     return;
   }
 
-  console.log(`\n📋 ${t('status.tasks_header', { count: taskFiles.length })}\n`);
+  console.log(`\n📋 ${t('status.tasks_header', { count: tasks.length })}\n`);
   console.log(padRight(t('status.col_id'), 36) + padRight(t('status.col_title'), 30) + padRight(t('status.col_status'), 12) + t('status.col_results'));
   console.log('─'.repeat(90));
 
-  for (const file of taskFiles) {
+  for (const task of tasks) {
     try {
-      const content = fs.readFileSync(path.join(tasksDir, file), 'utf-8');
-      const task = JSON.parse(content) as TaskFile;
-
-      // Check for results
-      const taskOutputDir = path.join(outputDir, task.id);
-      let resultCount = 0;
-      let machines: string[] = [];
-
-      if (fs.existsSync(taskOutputDir)) {
-        const resultFiles = fs.readdirSync(taskOutputDir).filter(f => f.endsWith('-result.json'));
-        resultCount = resultFiles.length;
-        machines = resultFiles.map(f => f.replace('-result.json', ''));
-      }
-
-      const status = resultCount > 0 ? t('status.status_done', { count: resultCount }) : t('status.status_pending');
-      const machineStr = machines.length > 0 ? machines.join(', ') : '-';
+      const agents = await engine.listResults(task.id);
+      const status = agents.length > 0 ? t('status.status_done', { count: agents.length }) : t('status.status_pending');
+      const agentStr = agents.length > 0 ? agents.join(', ') : '-';
 
       console.log(
         padRight(task.id, 36) +
         padRight(task.title || t('status.untitled'), 30) +
         padRight(status, 12) +
-        machineStr
+        agentStr
       );
     } catch {
-      console.log(padRight(file, 36) + t('status.error_reading'));
+      console.log(padRight(task.id, 36) + t('status.error_reading'));
     }
   }
   console.log();
 }
 
-function showTaskDetail(taskId: string, tasksDir: string, outputDir: string): void {
-  // Find task file
-  const taskFiles = fs.readdirSync(tasksDir).filter(f => f.endsWith('.json'));
-  let task: TaskFile | null = null;
-
-  for (const file of taskFiles) {
-    try {
-      const content = fs.readFileSync(path.join(tasksDir, file), 'utf-8');
-      const parsed = JSON.parse(content) as TaskFile;
-      if (parsed.id === taskId) {
-        task = parsed;
-        break;
-      }
-    } catch { /* skip */ }
-  }
+async function showTaskDetail(taskId: string, engine: ProtocolEngine): Promise<void> {
+  const task = await engine.readTask(taskId);
 
   if (!task) {
     console.error(`❌ ${t('status.task_not_found', { taskId })}`);
-    process.exit(1);
+    process.exitCode = 1;
+    return;
   }
 
   console.log(`\n📋 ${t('status.task_header', { taskId: task.id })}`);
   console.log(`   ${t('status.task_title', { title: task.title || t('status.task_title_none') })}`);
   console.log(`   ${t('status.task_prompt', { prompt: task.prompt })}`);
-  console.log(`   ${t('status.task_working_dir', { path: task.workingDirectory || t('status.task_default') })}`);
-  console.log(`   ${t('status.task_agent', { agent: task.command || t('status.task_default') })}`);
+  if (task.workingDirectory) {
+    console.log(`   ${t('status.task_working_dir', { path: task.workingDirectory })}`);
+  }
+  if (task.command) {
+    console.log(`   ${t('status.task_agent', { agent: task.command })}`);
+  }
   console.log(`   ${t('status.task_created', { date: task.createdAt ? formatDate(task.createdAt) : t('status.task_unknown') })}`);
-  console.log(`   ${t('status.task_created_by', { hostname: task.createdBy || t('status.task_unknown') })}`);
 
   // Show results
-  const taskOutputDir = path.join(outputDir, task.id);
-  if (fs.existsSync(taskOutputDir)) {
-    const resultFiles = fs.readdirSync(taskOutputDir).filter(f => f.endsWith('-result.json'));
+  const agents = await engine.listResults(taskId);
 
-    if (resultFiles.length > 0) {
-      console.log(`\n📊 ${t('status.results_header', { count: resultFiles.length })}\n`);
+  if (agents.length > 0) {
+    console.log(`\n📊 ${t('status.results_header', { count: agents.length })}\n`);
 
-      for (const resultFile of resultFiles) {
-        try {
-          const content = fs.readFileSync(path.join(taskOutputDir, resultFile), 'utf-8');
-          const result = JSON.parse(content) as ResultFile;
-          const icon = result.status === 'completed' ? '✅' : result.status === 'timeout' ? '⏰' : '❌';
-          console.log(`   ${icon} ${result.hostname}`);
-          console.log(`      ${t('status.result_status', { status: result.status, exitCode: result.exitCode })}`);
-          console.log(`      ${t('status.result_started', { date: formatDate(result.startedAt) })}`);
+    for (const agentId of agents) {
+      try {
+        const result = await engine.readResult(taskId, agentId);
+        if (!result) continue;
+        const icon = result.status === 'completed' ? '✅' : '❌';
+        console.log(`   ${icon} ${agentId}`);
+        console.log(`      ${t('status.result_status', { status: result.status, exitCode: result.exitCode ?? 'N/A' })}`);
+        if (result.completedAt) {
           console.log(`      ${t('status.result_completed', { date: formatDate(result.completedAt) })}`);
-          if (result.error) console.log(`      ${t('status.result_error', { error: result.error })}`);
-        } catch { /* skip */ }
-      }
-    }
-
-    // List all output files
-    const allFiles = fs.readdirSync(taskOutputDir);
-    if (allFiles.length > 0) {
-      console.log(`\n📁 ${t('status.output_files')}`);
-      for (const f of allFiles) {
-        const stats = fs.statSync(path.join(taskOutputDir, f));
-        console.log(`   ${f} (${formatBytes(stats.size)})`);
-      }
+        }
+        if (result.durationMs) {
+          console.log(`      Duration: ${(result.durationMs / 1000).toFixed(1)}s`);
+        }
+        if (result.error) {
+          console.log(`      ${t('status.result_error', { error: result.error })}`);
+        }
+        if (result.stdout) {
+          const excerpt = result.stdout.substring(0, 200);
+          console.log(`      Output: ${excerpt}${result.stdout.length > 200 ? '...' : ''}`);
+        }
+      } catch { /* skip */ }
     }
   } else {
     console.log(`\n   ${t('status.no_results')}`);
@@ -199,10 +198,4 @@ function showTaskDetail(taskId: string, tasksDir: string, outputDir: string): vo
 
 function padRight(str: string, len: number): string {
   return str.length >= len ? str.substring(0, len - 1) + ' ' : str + ' '.repeat(len - str.length);
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes}B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }

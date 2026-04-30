@@ -248,7 +248,9 @@ test('run command shows submit hint with agentfleet when shortcut available', as
 
 test('run command picks up pending tasks in poll cycle', async () => {
   const { runCommand } = require('../dist/commands/run.js');
-  const { ProtocolEngine } = require('../dist/services/protocol-engine.js');
+  const os = require('os');
+  const path = require('path');
+  const fs = require('fs');
 
   const backend = new MockBackend();
   const task = {
@@ -263,6 +265,7 @@ test('run command picks up pending tasks in poll cycle', async () => {
   await backend.writeFile('tasks/task-abc.json', JSON.stringify(task));
 
   let executed = false;
+  const tmpProcessed = path.join(os.tmpdir(), `agentfleet-test-${Date.now()}-processed.json`);
   const deps = createMockDeps({
     backend,
     createExecutor: () => ({
@@ -273,17 +276,24 @@ test('run command picks up pending tasks in poll cycle', async () => {
       },
     }),
   });
+  deps.processedPath = tmpProcessed;
 
   await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
 
   assert.ok(executed, 'should have executed the pending task');
-  // Task should be archived
-  assert.ok(await backend.fileExists('archive/task-abc.json'), 'task should be archived');
-  assert.equal(await backend.fileExists('tasks/task-abc.json'), false, 'original task should be deleted');
+  // Result should be written to results/{taskId}/{agentId}.json
+  assert.ok(await backend.fileExists('results/task-abc/test-agent-001.json'), 'result should exist');
+  // Task file should still exist (broadcast: never deleted)
+  assert.ok(await backend.fileExists('tasks/task-abc.json'), 'task file should remain');
+
+  try { fs.unlinkSync(tmpProcessed); } catch {}
 });
 
 test('run command handles execution failure', async () => {
   const { runCommand } = require('../dist/commands/run.js');
+  const os = require('os');
+  const path = require('path');
+  const fs = require('fs');
 
   const backend = new MockBackend();
   const task = {
@@ -296,6 +306,7 @@ test('run command handles execution failure', async () => {
   };
   await backend.writeFile('tasks/fail-task.json', JSON.stringify(task));
 
+  const tmpProcessed = path.join(os.tmpdir(), `agentfleet-test-${Date.now()}-processed2.json`);
   const deps = createMockDeps({
     backend,
     createExecutor: () => ({
@@ -304,11 +315,16 @@ test('run command handles execution failure', async () => {
       },
     }),
   });
+  deps.processedPath = tmpProcessed;
 
   await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
 
-  // Task should still be archived (with failed status)
-  assert.ok(await backend.fileExists('archive/fail-task.json'));
+  // Failed result should be written
+  assert.ok(await backend.fileExists('results/fail-task/test-agent-001.json'));
+  const result = JSON.parse((await backend.readFile('results/fail-task/test-agent-001.json')));
+  assert.equal(result.status, 'failed');
+
+  try { fs.unlinkSync(tmpProcessed); } catch {}
 });
 
 test('run command graceful shutdown via signal', async () => {

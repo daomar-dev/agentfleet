@@ -66,7 +66,7 @@ export const DEFAULT_CONFIG: Omit<
 
 // --- v3 types (coexist with v2 types until full switchover) ---
 
-export type TaskStatus = 'pending' | 'claimed' | 'running' | 'completed' | 'failed' | 'rejected';
+export type TaskStatus = 'pending' | 'running' | 'completed' | 'failed' | 'rejected';
 
 /** v3 config shape */
 export interface AgentFleetConfigV3 {
@@ -100,21 +100,7 @@ export interface ProtocolTaskFile {
   protocol_version?: number;
 }
 
-/** Claim file written to claims/{task-id}/{agent-id} */
-export interface ClaimFile {
-  agentId: string;
-  claimedAt: string;
-}
-
-/** Heartbeat file written to heartbeats/{task-id} */
-export interface HeartbeatFile {
-  agentId: string;
-  taskId: string;
-  timestamp: string;
-  pid: number;
-}
-
-/** Protocol result written to results/{task-id}.json */
+/** Protocol result written to results/{task-id}/{agent-id}.json */
 export interface ProtocolResultFile {
   taskId: string;
   agentId: string;
@@ -124,13 +110,6 @@ export interface ProtocolResultFile {
   completedAt: string;
   durationMs: number;
   error?: string;
-}
-
-/** Archive envelope written to archive/{task-id}.json */
-export interface ArchivedTask {
-  task: ProtocolTaskFile;
-  result: ProtocolResultFile;
-  archivedAt: string;
 }
 
 /** Union config type for migration period */

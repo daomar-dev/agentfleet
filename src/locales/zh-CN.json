@@ -1,7 +1,7 @@
 {
   "cli.description": "分布式智能体编排，无需控制平面。",
 
-  "cli.run_description": "启动 AgentFleet：如需初始化则自动完成，然后监听任务",
+  "cli.run_description": "开始监听任务并执行",
   "cli.run_option_poll": "轮询间隔（秒）",
   "cli.run_option_concurrency": "最大并发代理进程数",
   "cli.run_option_daemon": "以后台守护进程方式运行",
@@ -169,6 +169,10 @@
   "init.description": "初始化新的 AgentFleet 工作区",
   "init.option_backend": "用于文件同步的后端",
   "init.option_path": "共享 Fleet 目录的路径",
+  "init.onedrive_detected": "已检测到 OneDrive: {path}",
+  "init.onedrive_not_found": "未找到个人 OneDrive 帐户。请安装 OneDrive 并登录。",
+  "init.onedrive_business_not_found": "未找到 OneDrive 企业版帐户。请安装 OneDrive 并使用工作帐户登录。",
+  "init.path_required_for_backend": "后端 '{backend}' 需要 --path 参数。",
 
   "protocol.claim_attempt": "正在尝试认领任务 {taskId}",
   "protocol.claim_won": "成功认领任务 {taskId}",
@@ -180,12 +184,15 @@
   "config.not_found": "未找到 AgentFleet 配置文件: {path}。请先运行 `agentfleet init`。",
   "config.v2_detected": "发现 v2 配置。请运行 `agentfleet init --force` 升级到 v3。",
 
+  "run.new_task": "新任务: {taskId}{title}",
+  "run.task_completed": "任务 {taskId} 已完成，耗时 {duration}秒",
   "run.task_rejected": "任务 {taskId} 已拒绝: {reason}",
   "run.heartbeat_failed": "任务 {taskId} 心跳失败: {message}",
   "run.execution_error": "任务 {taskId} 执行出错: {message}",
   "run.poll_error": "轮询周期出错: {message}",
   "run.no_config": "未找到 v3 配置。请先运行 `agentfleet init`。",
   "run.convergence_waiting": "正在等待任务 {taskId} 的 {seconds}秒 收敛窗口...",
+  "run.agent_id": "Agent ID: {agentId}",
 
   "submit.created": "任务 {taskId} 已通过 v3 协议创建",
   "submit.error": "提交任务失败: {message}",

@@ -8,6 +8,9 @@ import { loadConfig } from '../services/config';
 import { getBackend } from '../backends/index';
 import { ProtocolEngine } from '../services/protocol-engine';
 import type { SyncBackend } from '../backends/types';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 import { ShortcutResult } from '../services/shortcut';
 
@@ -32,6 +35,24 @@ interface RunDependencies {
   processArgv?: string[];
   getShortcutResult?: () => ShortcutResult | undefined;
   sleepFn?: (ms: number) => Promise<void>;
+  processedPath?: string;
+}
+
+const AGENTFLEET_DIR = path.join(os.homedir(), '.agentfleet');
+
+function loadProcessedIds(processedPath: string): Set<string> {
+  try {
+    if (fs.existsSync(processedPath)) {
+      const data = JSON.parse(fs.readFileSync(processedPath, 'utf-8'));
+      return new Set(data.processedIds ?? []);
+    }
+  } catch { /* ignore corrupt file */ }
+  return new Set();
+}
+
+function saveProcessedIds(processedPath: string, ids: Set<string>): void {
+  fs.mkdirSync(path.dirname(processedPath), { recursive: true });
+  fs.writeFileSync(processedPath, JSON.stringify({ processedIds: Array.from(ids) }, null, 2));
 }
 
 export async function runCommand(options: RunOptions, dependencies: RunDependencies = {}): Promise<void> {
@@ -121,8 +142,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
   const engine = dependencies.createEngine
     ? dependencies.createEngine(backend, config.agentId)
     : new ProtocolEngine(backend, config.agentId, {
-        convergenceWindowMs: config.convergenceWindowMs,
-        heartbeatIntervalMs: config.heartbeatIntervalMs,
+        pollIntervalMs: pollIntervalSeconds * 1000,
       });
 
   // Create executor with v2-compatible config shape
@@ -132,7 +152,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     onedriveAccountKey: '',
     onedriveAccountName: '',
     onedriveAccountType: 'personal',
-    hostname: require('os').hostname(),
+    hostname: os.hostname(),
     defaultAgent: config.defaultAgent ?? 'claude-code',
     defaultAgentCommand: config.defaultAgentCommand ?? 'claude -p {prompt}',
     pollIntervalSeconds,
@@ -144,129 +164,93 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     ? dependencies.createExecutor(executorConfig)
     : new AgentExecutor(executorConfig);
 
+  // Load local processed IDs
+  const processedPath = dependencies.processedPath ?? path.join(AGENTFLEET_DIR, 'processed.json');
+  const processedIds = loadProcessedIds(processedPath);
+
   let running = 0;
   let shuttingDown = false;
   let polling = false;
 
-  // Poll-claim loop
+  // Broadcast poll loop
   async function pollCycle(): Promise<void> {
     if (shuttingDown || polling) return;
     polling = true;
 
     try {
-      // 1. Check stale claims and heartbeats
-      const staleClaims = await engine.checkStaleClaims();
-      for (const taskId of staleClaims) {
-        console.log(`🔄 ${t('protocol.stale_claim_recovered', { taskId })}`);
-        await engine.resetTaskToPending(taskId);
-      }
-
-      const staleHeartbeats = await engine.checkStaleHeartbeats();
-      for (const taskId of staleHeartbeats) {
-        console.log(`🔄 ${t('protocol.stale_heartbeat_recovered', { taskId })}`);
-        await engine.resetTaskToPending(taskId);
-      }
-
-      // 2. Skip scan if at max concurrency
+      // Skip if at max concurrency
       if (running >= maxConcurrency) return;
 
-      // 3. Scan for pending tasks
+      // Scan for pending tasks
       const { tasks, errors } = await engine.scan();
 
-      // 4. Reject malformed tasks
       for (const err of errors) {
-        const match = err.match(/^tasks\/(.+)\.json:/);
-        if (match) {
-          console.log(`⛔ ${t('run.task_rejected', { taskId: match[1], reason: err })}`);
-          await engine.rejectTask(match[1], err);
-        }
+        console.warn(`⚠️ ${err}`);
       }
 
       if (tasks.length === 0) return;
 
-      // 5. Pick highest-priority task
-      const task = tasks[0];
+      // Process unprocessed tasks
+      for (const task of tasks) {
+        if (shuttingDown) break;
+        if (running >= maxConcurrency) break;
+        if (processedIds.has(task.id)) continue;
 
-      // 5a. Attempt claim
-      console.log(`🏁 ${t('protocol.claim_attempt', { taskId: task.id })}`);
-      const claimed = await engine.attemptClaim(task.id);
-      if (!claimed) return;
-
-      // 5b. Wait for convergence
-      const convergenceMs = engine.getConvergenceWindowMs();
-      console.log(`⏳ ${t('run.convergence_waiting', { seconds: (convergenceMs / 1000).toFixed(1), taskId: task.id })}`);
-      await sleepFn(convergenceMs);
-
-      // 5c. Resolve claim winner
-      const { won, winnerId } = await engine.resolveClaimWinner(task.id);
-      if (!won) {
-        console.log(`❌ ${t('protocol.claim_lost', { taskId: task.id, winnerId })}`);
-        return;
-      }
-      console.log(`✅ ${t('protocol.claim_won', { taskId: task.id })}`);
-
-      // 5d. Update status
-      await engine.updateTaskStatus(task.id, 'claimed');
-      await engine.updateTaskStatus(task.id, 'running');
-
-      // 5e. Start heartbeat timer
-      const heartbeatInterval = setInterval(async () => {
-        try {
-          await engine.writeHeartbeat(task.id);
-        } catch (err) {
-          console.warn(`⚠️ ${t('run.heartbeat_failed', { taskId: task.id, message: (err as Error).message })}`);
+        // Also check if we already have a result on the backend
+        const alreadyDone = await engine.hasResult(task.id);
+        if (alreadyDone) {
+          processedIds.add(task.id);
+          saveProcessedIds(processedPath, processedIds);
+          continue;
         }
-      }, engine.getHeartbeatIntervalMs());
 
-      running++;
+        console.log(`\n📋 ${t('run.new_task', { taskId: task.id, title: task.title ? ` - ${task.title}` : '' })}`);
 
-      // 5f. Execute via AgentExecutor
-      const startTime = Date.now();
-      try {
-        await engine.writeHeartbeat(task.id);
-        const execResult = await executor.execute({
-          id: task.id,
-          prompt: task.prompt,
-          command: task.command || executorConfig.defaultAgentCommand,
-          workingDirectory: task.workingDirectory,
-        });
+        running++;
+        const startTime = Date.now();
 
-        // 5g. Write protocol result
-        const result: ProtocolResultFile = {
-          taskId: task.id,
-          agentId: config.agentId,
-          status: execResult.status === 'completed' ? 'completed' : 'failed',
-          exitCode: execResult.exitCode,
-          stdout: execResult.stdout?.substring(0, 64 * 1024),
-          completedAt: new Date().toISOString(),
-          durationMs: Date.now() - startTime,
-          error: execResult.error,
-        };
-
-        // 5h. Archive task
-        await engine.archiveTask(task.id, result);
-      } catch (err) {
-        console.error(`❌ ${t('run.execution_error', { taskId: task.id, message: (err as Error).message })}`);
-        // Try to mark as failed
         try {
-          const failResult: ProtocolResultFile = {
+          const execResult = await executor.execute({
+            id: task.id,
+            prompt: task.prompt,
+            command: task.command || executorConfig.defaultAgentCommand,
+            workingDirectory: task.workingDirectory,
+          });
+
+          // Write per-agent result
+          const result: ProtocolResultFile = {
             taskId: task.id,
             agentId: config.agentId,
-            status: 'failed',
-            exitCode: null,
+            status: execResult.status === 'completed' ? 'completed' : 'failed',
+            exitCode: execResult.exitCode,
+            stdout: execResult.stdout?.substring(0, 64 * 1024),
             completedAt: new Date().toISOString(),
             durationMs: Date.now() - startTime,
-            error: (err as Error).message,
+            error: execResult.error,
           };
-          await engine.archiveTask(task.id, failResult);
-        } catch {
-          // Last resort: reset to pending
-          await engine.resetTaskToPending(task.id);
+
+          await engine.writeResult(task.id, result);
+          console.log(`✅ ${t('run.task_completed', { taskId: task.id, duration: ((Date.now() - startTime) / 1000).toFixed(1) })}`);
+        } catch (err) {
+          console.error(`❌ ${t('run.execution_error', { taskId: task.id, message: (err as Error).message })}`);
+          // Write failure result
+          try {
+            const failResult: ProtocolResultFile = {
+              taskId: task.id,
+              agentId: config.agentId,
+              status: 'failed',
+              exitCode: null,
+              completedAt: new Date().toISOString(),
+              durationMs: Date.now() - startTime,
+              error: (err as Error).message,
+            };
+            await engine.writeResult(task.id, failResult);
+          } catch { /* best effort */ }
+        } finally {
+          running--;
+          processedIds.add(task.id);
+          saveProcessedIds(processedPath, processedIds);
         }
-      } finally {
-        // 5i. Clear heartbeat timer
-        clearInterval(heartbeatInterval);
-        running--;
       }
     } catch (err) {
       console.error(`⚠️ ${t('run.poll_error', { message: (err as Error).message })}`);
@@ -275,7 +259,8 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     }
   }
 
-  console.log(`\n🟢 ${t('run.running_on', { hostname: require('os').hostname() })}`);
+  console.log(`\n🟢 ${t('run.running_on', { hostname: os.hostname() })}`);
+  console.log(`   ${t('run.agent_id', { agentId: config.agentId })}`);
   console.log(`   ${t('run.concurrency', { value: maxConcurrency })}`);
   console.log(`   ${t('run.poll_interval', { value: pollIntervalSeconds })}`);
   if (!isDaemonChild) {

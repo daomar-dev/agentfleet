@@ -13,8 +13,8 @@ async function createTestBackend() {
   const backend = new LocalFolderBackend({ path: rootPath });
   await backend.initialize();
 
-  // Create fleet directories
-  for (const dir of ['tasks', 'claims', 'heartbeats', 'results', 'archive', 'fleet']) {
+  // Create fleet directories (v3.1 broadcast model: only tasks + results)
+  for (const dir of ['tasks', 'results']) {
     await fs.mkdir(path.join(rootPath, dir), { recursive: true });
   }
 
@@ -31,10 +31,7 @@ async function createTestBackend() {
 async function createTestEngine(agentId, options = {}) {
   const { backend, rootPath, cleanup } = await createTestBackend();
   const engine = new ProtocolEngine(backend, agentId, {
-    convergenceWindowMs: 100,
-    heartbeatIntervalMs: 100,
-    claimAgeTimeoutMs: 200,
-    heartbeatStaleMs: 200,
+    pollIntervalMs: 1000,
     ...options,
   });
   return { engine, backend, rootPath, cleanup };
@@ -51,7 +48,6 @@ async function seedTask(backend, overrides = {}) {
     priority: 0,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    protocol_version: 1,
     ...overrides,
   };
   await backend.writeFile(`tasks/${task.id}.json`, JSON.stringify(task, null, 2));

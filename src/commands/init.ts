@@ -1,17 +1,19 @@
 import * as fs from 'fs/promises';
+import * as fsSync from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as crypto from 'crypto';
 import { getBackend, listBackends } from '../backends/index.js';
 import { t } from '../services/i18n.js';
+import { OneDriveDetector } from '../services/onedrive-detector.js';
 import type { AgentFleetConfigV3 } from '../types/index.js';
 
 const CONFIG_DIR = path.join(os.homedir(), '.agentfleet');
 const CONFIG_PATH = path.join(CONFIG_DIR, 'config.json');
 const LOGS_DIR = path.join(CONFIG_DIR, 'logs');
 
-const FLEET_DIRS = ['tasks', 'claims', 'heartbeats', 'results', 'archive', 'fleet'];
-const VERSION = '3.0.0';
+const FLEET_DIRS = ['tasks', 'results'];
+const VERSION = '3.1.0';
 
 function generateAgentId(): string {
   const hostname = os.hostname().replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 32);
@@ -26,6 +28,7 @@ export interface InitDeps {
   configDir?: string;
   configPath?: string;
   logsDir?: string;
+  detectOneDrive?: () => { path: string; name: string; isBusiness: boolean }[];
 }
 
 const defaultDeps: InitDeps = {
@@ -37,7 +40,7 @@ const defaultDeps: InitDeps = {
 };
 
 export async function initCommand(
-  options: { backend: string; path: string; force?: boolean },
+  options: { backend: string; path?: string; force?: boolean },
   _command?: unknown,
   deps: InitDeps = defaultDeps,
 ): Promise<void> {
@@ -45,12 +48,44 @@ export async function initCommand(
   const configPath = deps.configPath ?? CONFIG_PATH;
   const logsDir = deps.logsDir ?? LOGS_DIR;
   const backendName = options.backend;
-  const fleetPath = path.resolve(options.path);
 
   // Validate backend name
   const available = deps.listBackends();
   if (!available.includes(backendName)) {
     console.error(`❌ ${t('init.unknown_backend', { name: backendName, available: available.join(', ') })}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  // Resolve fleet path
+  let fleetPath: string;
+  const isOneDrive = backendName === 'onedrive' || backendName === 'onedrive-business';
+
+  if (options.path) {
+    fleetPath = path.resolve(options.path);
+  } else if (isOneDrive) {
+    // Auto-detect OneDrive path
+    const isBusiness = backendName === 'onedrive-business';
+    try {
+      const detectFn = deps.detectOneDrive ?? (() => new OneDriveDetector().detectAccounts());
+      const accounts = detectFn();
+      const account = accounts.find((a) => a.isBusiness === isBusiness);
+      if (!account) {
+        const key = isBusiness ? 'init.onedrive_business_not_found' : 'init.onedrive_not_found';
+        console.error(`❌ ${t(key)}`);
+        process.exitCode = 1;
+        return;
+      }
+      fleetPath = path.join(account.path, 'AgentFleet');
+      console.log(`📂 ${t('init.onedrive_detected', { path: fleetPath })}`);
+    } catch (err) {
+      const key = isBusiness ? 'init.onedrive_business_not_found' : 'init.onedrive_not_found';
+      console.error(`❌ ${t(key)}`);
+      process.exitCode = 1;
+      return;
+    }
+  } else {
+    console.error(`❌ ${t('init.path_required_for_backend', { backend: backendName })}`);
     process.exitCode = 1;
     return;
   }

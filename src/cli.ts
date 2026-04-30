@@ -79,7 +79,7 @@ program
   .command('init')
   .description(t('init.description'))
   .requiredOption('--backend <name>', t('init.option_backend'), 'local-folder')
-  .requiredOption('--path <dir>', t('init.option_path'))
+  .option('--path <dir>', t('init.option_path'))
   .option('--force', 'Overwrite existing configuration')
   .action(initCommand);
 

@@ -9,7 +9,7 @@ test('CLI help shows the AgentFleet brand and slogan', () => {
 
   assert.match(output, /Usage: agentfleet/);
   assert.match(output, /Distributed agent orchestration, without a control plane\./);
-  assert.match(output, /Start AgentFleet: auto-initialize if needed, then watch for\s+tasks/);
+  assert.match(output, /Start watching for tasks and execute them/);
   assert.ok(output.includes('install'), 'help should list the install command');
   assert.ok(output.includes('uninstall'), 'help should list the uninstall command');
   assert.ok(output.includes('stop'), 'help should list the stop command');

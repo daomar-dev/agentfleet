@@ -1,7 +1,7 @@
 {
   "cli.description": "Distributed agent orchestration, without a control plane.",
 
-  "cli.run_description": "Start AgentFleet: auto-initialize if needed, then watch for tasks",
+  "cli.run_description": "Start watching for tasks and execute them",
   "cli.run_option_poll": "Polling interval in seconds",
   "cli.run_option_concurrency": "Maximum concurrent agent processes",
   "cli.run_option_daemon": "Run as a background daemon process",
@@ -169,6 +169,10 @@
   "init.description": "Initialize a new AgentFleet workspace",
   "init.option_backend": "Backend to use for file sync",
   "init.option_path": "Path to the shared fleet directory",
+  "init.onedrive_detected": "OneDrive detected: {path}",
+  "init.onedrive_not_found": "No personal OneDrive account found. Please install OneDrive and sign in.",
+  "init.onedrive_business_not_found": "No OneDrive for Business account found. Please install OneDrive and sign in with your work account.",
+  "init.path_required_for_backend": "The --path option is required for backend '{backend}'.",
 
   "protocol.claim_attempt": "Attempting claim on task {taskId}",
   "protocol.claim_won": "Won claim for task {taskId}",
@@ -180,12 +184,15 @@
   "config.not_found": "No AgentFleet config found at {path}. Run `agentfleet init` first.",
   "config.v2_detected": "Found v2 config. Run `agentfleet init --force` to upgrade to v3.",
 
+  "run.new_task": "New task: {taskId}{title}",
+  "run.task_completed": "Task {taskId} completed in {duration}s",
   "run.task_rejected": "Task {taskId} rejected: {reason}",
   "run.heartbeat_failed": "Heartbeat failed for task {taskId}: {message}",
   "run.execution_error": "Execution error for task {taskId}: {message}",
   "run.poll_error": "Poll cycle error: {message}",
   "run.no_config": "No v3 config found. Run `agentfleet init` first.",
   "run.convergence_waiting": "Waiting {seconds}s for convergence on task {taskId}...",
+  "run.agent_id": "Agent ID: {agentId}",
 
   "submit.created": "Task {taskId} created via v3 protocol",
   "submit.error": "Failed to submit task: {message}",
