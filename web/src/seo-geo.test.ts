@@ -169,6 +169,37 @@ describe('SEO: sitemap.xml', () => {
     expect(content).not.toContain('#/tasks');
     expect(content).not.toContain('#/settings');
   });
+
+  it('contains hreflang alternates for English and Simplified Chinese pages', () => {
+    expect(content).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
+    expect(content).toContain('hreflang="en"');
+    expect(content).toContain('hreflang="zh-CN"');
+    expect(content).toContain('https://agentfleet.daomar.dev/about.html?lang=zh-CN');
+    expect(content).toContain('https://agentfleet.daomar.dev/donate.html?lang=en-US');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Static Pages: bilingual auto switching
+// ---------------------------------------------------------------------------
+describe('Static Pages bilingual support', () => {
+  it.each(['about.html', 'donate.html'])('%s contains both locales and the auto-switch script', (page) => {
+    const content = readPublicFile(page);
+    expect(content).toContain('data-locale="en-US"');
+    expect(content).toContain('data-locale="zh-CN"');
+    expect(content).toContain('data-set-lang="en-US"');
+    expect(content).toContain('data-set-lang="zh-CN"');
+    expect(content).toContain('/static-i18n.js');
+    expect(content).toContain('hreflang="en"');
+    expect(content).toContain('hreflang="zh-CN"');
+  });
+
+  it('static-i18n.js detects browser language and supports both locales', () => {
+    const content = readPublicFile('static-i18n.js');
+    expect(content).toContain('navigator.language');
+    expect(content).toContain('zh-CN');
+    expect(content).toContain('en-US');
+  });
 });
 
 // ---------------------------------------------------------------------------

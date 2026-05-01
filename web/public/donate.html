@@ -1,233 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-US">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Support AgentFleet</title>
+  <meta name="description" content="Support AgentFleet, a free open-source distributed coding-agent orchestration project." />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <link rel="canonical" href="https://agentfleet.daomar.dev/donate.html" />
+  <link rel="alternate" hreflang="en" href="https://agentfleet.daomar.dev/donate.html?lang=en-US" />
+  <link rel="alternate" hreflang="zh-CN" href="https://agentfleet.daomar.dev/donate.html?lang=zh-CN" />
+  <meta property="og:title" content="Support AgentFleet" />
+  <meta property="og:description" content="Help sustain a free open-source distributed coding-agent orchestration project." />
+  <meta property="og:url" content="https://agentfleet.daomar.dev/donate.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://agentfleet.daomar.dev/og-image.png" />
+  <link rel="stylesheet" href="/static-page.css" />
   <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "DonateAction",
-    "description": "Support AgentFleet — a free, open-source distributed agent orchestration tool",
-    "recipient": {
-      "@type": "Person",
-      "name": "Xizhang Chen",
-      "url": "https://github.com/chenxizhang"
-    },
-    "target": "https://paypal.me/chenxizhang2026"
-  }
+  {"@context":"https://schema.org","@type":"DonateAction","description":"Support AgentFleet — a free open-source distributed coding-agent orchestration project","recipient":{"@type":"Person","name":"Xizhang Chen","url":"https://github.com/chenxizhang"},"target":"https://paypal.me/chenxizhang2026"}
   </script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Microsoft YaHei', 'PingFang SC', Helvetica, Arial, sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    header {
-      background: #0078d4;
-      color: #fff;
-      text-align: center;
-      padding: 2.5rem 1rem 2rem;
-    }
-
-    header .logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      margin-bottom: 0.75rem;
-      text-decoration: none;
-      color: #fff;
-    }
-
-    header .logo img {
-      width: 36px;
-      height: 36px;
-      border-radius: 6px;
-    }
-
-    header .logo span {
-      font-size: 1.5rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-    }
-
-    header h1 {
-      font-size: 1.75rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    header p {
-      font-size: 1rem;
-      opacity: 0.9;
-      max-width: 540px;
-      margin: 0 auto;
-      line-height: 1.5;
-    }
-
-    .channels {
-      display: flex;
-      gap: 1.5rem;
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-      flex: 1;
-    }
-
-    .channel-card {
-      flex: 1 1 0;
-      min-width: 0;
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      padding: 2rem 1.5rem;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .channel-card h2 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .channel-card .desc {
-      font-size: 0.9rem;
-      color: #666;
-      line-height: 1.5;
-      white-space: nowrap;
-    }
-
-    .paypal-qr, .wechat-qr {
-      width: 240px;
-      max-width: 100%;
-      border-radius: 8px;
-      margin-top: 1rem;
-    }
-
-    .paypal-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #0070ba;
-      color: #fff;
-      text-decoration: none;
-      padding: 0.75rem 2rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      transition: background 0.15s;
-      margin-top: 1rem;
-    }
-
-    .paypal-btn:hover {
-      background: #005ea6;
-    }
-
-    .paypal-btn svg {
-      width: 20px;
-      height: 20px;
-      fill: currentColor;
-    }
-
-    .wechat-hint {
-      font-size: 0.85rem;
-      color: #888;
-      margin-top: 1rem;
-      line-height: 1.5;
-    }
-
-    footer {
-      text-align: center;
-      padding: 1.5rem 1rem;
-      font-size: 0.85rem;
-      color: #999;
-    }
-
-    footer a {
-      color: #0078d4;
-      text-decoration: none;
-    }
-
-    footer a:hover {
-      text-decoration: underline;
-    }
-
-    @media (max-width: 767px) {
-      .channels {
-        flex-direction: column;
-      }
-
-      header h1 {
-        font-size: 1.4rem;
-      }
-    }
-  </style>
 </head>
-<body>
-  <header>
-    <a class="logo" href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">
-      <img src="/icons/icon-192.png" alt="" />
-      <span>AgentFleet</span>
-    </a>
-    <h1 id="page-title">Support AgentFleet</h1>
-    <p id="page-subtitle">AgentFleet is free and open-source. If it helps your workflow, consider buying the author a coffee. Every contribution counts!</p>
+<body
+  data-title-en="Support AgentFleet"
+  data-title-zh="支持 AgentFleet"
+  data-description-en="Support AgentFleet, a free open-source distributed coding-agent orchestration project."
+  data-description-zh="支持 AgentFleet，一个免费的开源分布式编码智能体编排项目。"
+  data-og-title-en="Support AgentFleet"
+  data-og-title-zh="支持 AgentFleet"
+  data-og-description-en="Help sustain a free open-source distributed coding-agent orchestration project."
+  data-og-description-zh="帮助一个免费的开源分布式编码智能体编排项目持续发展。">
+  <header class="hero">
+    <a class="logo" href="/"><img src="/icons/icon-192.png" alt="" /><span>AgentFleet</span></a>
+    <div data-locale="en-US">
+      <h1>Support independent distributed-agent tooling</h1>
+      <p>AgentFleet is free and open source. If it helps your workflow or inspires your own agent fleet, consider supporting continued development.</p>
+    </div>
+    <div data-locale="zh-CN">
+      <h1>支持独立的分布式 Agent 工具</h1>
+      <p>AgentFleet 是免费的开源项目。如果它改善了你的工作流，或启发了你的 Agent 集群实践，欢迎支持持续开发。</p>
+    </div>
+    <div class="lang-switch" aria-label="Language">
+      <button type="button" data-set-lang="en-US">English</button>
+      <button type="button" data-set-lang="zh-CN">简体中文</button>
+    </div>
   </header>
 
-  <div class="channels">
-    <!-- PayPal (English, international users) -->
-    <div class="channel-card" id="paypal-card">
-      <h2>PayPal</h2>
-      <p class="desc" id="paypal-desc">Quick and easy for international supporters.</p>
-      <!-- PayPal QR code: generated from https://paypal.me/chenxizhang2026 with foreground #0070ba -->
-      <img class="paypal-qr" src="/paypal-donation.png" alt="PayPal QR Code" />
-      <a class="paypal-btn" href="https://paypal.me/chenxizhang2026" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24"><path d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 2.56A.774.774 0 0 1 5.71 1.9h5.903c2.757 0 4.693.867 5.353 3.036.196.648.263 1.37.196 2.14-.06.71-.222 1.5-.49 2.342C15.834 12.387 13.1 13.5 9.834 13.5H7.473l-.397 7.837zm13.35-15.53c-.06.69-.222 1.46-.49 2.28-.838 2.588-2.846 3.97-5.9 4.122l1.166-7.81c.197-.643.752-1.1 1.426-1.1h2.06c.867 0 1.584.197 2.14.593-.072.27-.159.567-.27.9l-.133.015z"/></svg>
-        Donate with PayPal
-      </a>
-    </div>
+  <main>
+    <section class="panel" data-locale="en-US">
+      <h2>Why donate?</h2>
+      <p>Stars help discovery. Forks help experimentation. Donations help fund the unglamorous work: compatibility fixes, documentation, testing, security review, and the public GitHub Pages dashboard.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+        <a class="btn" href="https://github.com/daomar-dev/agentfleet/fork" target="_blank" rel="noopener">Fork the repo</a>
+      </div>
+    </section>
 
-    <!-- WeChat Pay (Chinese, domestic users) -->
-    <div class="channel-card" id="wechat-card">
-      <h2>微信支付</h2>
-      <p class="desc">微信扫码赞赏，感谢您的支持！</p>
-      <img class="wechat-qr" src="/wechat-donation.jpg" alt="微信支付二维码" />
-      <p class="wechat-hint">请使用微信扫描上方二维码完成赞赏<br/>付款时可备注您的 GitHub 用户名</p>
-    </div>
-  </div>
+    <section class="panel" data-locale="zh-CN">
+      <h2>为什么赞助？</h2>
+      <p>Star 能帮助项目被更多人发现，Fork 能推动更多实验，而赞助可以支持那些不显眼但重要的工作：兼容性修复、文档、测试、安全审查，以及公开的 GitHub Pages 仪表板。</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">⭐ 在 GitHub Star</a>
+        <a class="btn" href="https://github.com/daomar-dev/agentfleet/fork" target="_blank" rel="noopener">Fork 仓库</a>
+      </div>
+    </section>
 
-  <footer id="page-footer">
-    All supporters will be recognized on the <a href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">project homepage</a>.
-  </footer>
+    <section class="donate-grid">
+      <div class="panel donate-card">
+        <h2>PayPal</h2>
+        <p data-locale="en-US">Quick support for international users.</p>
+        <p data-locale="zh-CN">海外用户可通过 PayPal 快捷赞赏。</p>
+        <img src="/paypal-donation.png" alt="PayPal QR Code" />
+        <div class="cta-row"><a class="btn btn-primary" href="https://paypal.me/chenxizhang2026" target="_blank" rel="noopener">PayPal</a></div>
+      </div>
+      <div class="panel donate-card">
+        <h2>微信支付</h2>
+        <p data-locale="en-US">Scan with WeChat Pay. You may include your GitHub username in the note.</p>
+        <p data-locale="zh-CN">微信扫码赞赏，付款时可备注您的 GitHub 用户名。</p>
+        <img src="/wechat-donation.jpg" alt="微信支付二维码" />
+      </div>
+    </section>
+  </main>
 
-  <script>
-    (function () {
-      var isZh = navigator.language && navigator.language.startsWith('zh');
-      if (isZh) {
-        document.documentElement.lang = 'zh-CN';
-        document.title = '支持 AgentFleet';
-        document.getElementById('page-title').textContent = '支持 AgentFleet';
-        document.getElementById('page-subtitle').textContent =
-          'AgentFleet 是免费的开源项目。如果它对您的工作有帮助，欢迎请作者喝杯咖啡，每一份支持都是莫大的鼓励！';
-        document.getElementById('paypal-desc').textContent =
-          '海外用户可通过 PayPal 快捷赞赏。';
-        document.getElementById('page-footer').innerHTML =
-          '所有赞赏者将在<a href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">项目主页</a>上获得致谢。';
-        // Reorder: WeChat first for Chinese users
-        document.getElementById('wechat-card').style.order = '-1';
-      }
-    })();
-  </script>
+  <footer data-locale="en-US">Supporters may be recognized on the <a href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">project homepage</a>.</footer>
+  <footer data-locale="zh-CN">赞赏者可在 <a href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">项目主页</a> 获得致谢。</footer>
+  <script src="/static-i18n.js" defer></script>
 </body>
 </html>

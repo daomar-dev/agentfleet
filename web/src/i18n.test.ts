@@ -6,12 +6,12 @@ import zhCN from './locales/zh-CN.json';
 describe('createI18n', () => {
   it('returns English string for known key with en-US locale', () => {
     const i18n = createI18n('en-US');
-    expect(i18n.t('login.tagline')).toBe('Distributed agent orchestration');
+    expect(i18n.t('login.tagline')).toBe(enUS['login.tagline']);
   });
 
   it('returns Chinese string for known key with zh-CN locale', () => {
     const i18n = createI18n('zh-CN');
-    expect(i18n.t('login.tagline')).toBe('分布式智能体编排');
+    expect(i18n.t('login.tagline')).toBe(zhCN['login.tagline']);
   });
 
   it('performs parameter interpolation', () => {
@@ -24,12 +24,9 @@ describe('createI18n', () => {
     expect(i18n.t('home.nodesTitleCount', { count: 3 })).toBe('节点（3）');
   });
 
-  it('falls back to en-US when key is missing in zh-CN', () => {
+  it('returns localized meta title for zh-CN', () => {
     const i18n = createI18n('zh-CN');
-    // If a key existed only in en-US, the fallback would be used.
-    // We test with a known key that exists in both to verify the mechanism.
-    // The raw key fallback is tested separately.
-    expect(i18n.t('meta.title')).toBe('AgentFleet');
+    expect(i18n.t('meta.title')).toBe(zhCN['meta.title']);
   });
 
   it('returns raw key when key is missing in all locales', () => {
@@ -187,6 +184,6 @@ describe('initI18n', () => {
 
   it('sets document.title from the message catalog', () => {
     initI18n();
-    expect(document.title).toBe('AgentFleet');
+    expect(document.title).toBe(enUS['meta.title']);
   });
 });

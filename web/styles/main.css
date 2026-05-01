@@ -411,6 +411,16 @@ h3 { margin-bottom: var(--spacing-sm); font-size: 1.1rem; }
   text-align: center;
   padding: var(--spacing-xl) 0;
 }
+.landing-eyebrow {
+  display: inline-block;
+  color: var(--color-primary);
+  background: rgba(0,120,212,0.08);
+  border-radius: 999px;
+  padding: var(--spacing-xs) var(--spacing-md);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: var(--spacing-md);
+}
 .landing-logo { margin-bottom: var(--spacing-md); }
 .landing-title {
   font-size: 2.5rem;
@@ -442,6 +452,11 @@ h3 { margin-bottom: var(--spacing-sm); font-size: 1.1rem; }
   font-family: var(--font-mono);
   font-size: 0.95rem;
   color: var(--color-primary);
+}
+.landing-command-hint {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+  margin-top: calc(-1 * var(--spacing-md));
 }
 .landing-demo {
   margin-bottom: var(--spacing-lg);
@@ -487,6 +502,34 @@ h3 { margin-bottom: var(--spacing-sm); font-size: 1.1rem; }
   text-align: left;
   font-size: 0.8rem;
   overflow-x: auto;
+}
+.landing-examples {
+  margin-bottom: var(--spacing-xl);
+  text-align: center;
+}
+.landing-examples h2 {
+  margin-bottom: var(--spacing-md);
+}
+.landing-example-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--spacing-md);
+}
+.landing-example-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--spacing-lg);
+  text-align: left;
+}
+.landing-example-card h3 {
+  color: var(--color-primary);
+  font-size: 1rem;
+  margin-bottom: var(--spacing-sm);
+}
+.landing-example-card p {
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
 }
 .landing-cta {
   display: flex;
@@ -594,6 +637,7 @@ h3 { margin-bottom: var(--spacing-sm); font-size: 1.1rem; }
   .landing-title { font-size: 1.75rem; }
   .landing-hook { font-size: 1.1rem; }
   .landing-value-props { grid-template-columns: 1fr; }
+  .landing-example-grid { grid-template-columns: 1fr; }
   .landing-cta { flex-direction: column; align-items: center; }
   .landing-cta-btn { width: 100%; max-width: 300px; }
 }
