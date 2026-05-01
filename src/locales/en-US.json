@@ -14,6 +14,8 @@
   "cli.submit_option_agent": "Agent command template. Use {prompt} as placeholder (e.g. \"claude -p {prompt} --allowed-tools WebSearch\")",
 
   "cli.status_description": "Show status of all tasks or a specific task",
+  "cli.results_description": "Aggregate and summarize results across all tasks",
+  "cli.results_option_json": "Output results as machine-readable JSON",
   "cli.stop_description": "Stop the running AgentFleet instance",
   "cli.install_description": "Install AgentFleet auto-start on login",
   "cli.uninstall_description": "Remove AgentFleet auto-start and stop running instance",
@@ -198,6 +200,17 @@
   "submit.error": "Failed to submit task: {message}",
 
   "config.unsupported_version": "Config at {path} has an unsupported version. Run `agentfleet init --force` to recreate.",
+
+  "results.error": "Failed to load results: {message}",
+  "results.no_tasks": "No tasks found.",
+  "results.header": "Results: {total} task(s) — {completed} completed, {failed} failed, {pending} pending",
+  "results.no_agent_results": "No agent results yet.",
+  "results.agent_status": "status: {status} (exit: {exitCode})",
+  "results.agent_completed_at": "completed {date}",
+  "results.agent_summary": "Summary: {summary}",
+  "results.agent_artifacts": "Artifacts: {artifacts}",
+  "results.agent_error": "Error: {error}",
+  "results.footer": "Total: {total}  ✅ {completed}  ❌ {failed}  ⏳ {pending}",
 
   "logger.no_user_facing_strings": ""
 }

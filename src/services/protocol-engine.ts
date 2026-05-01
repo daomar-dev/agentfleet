@@ -1,5 +1,5 @@
 import type { SyncBackend } from '../backends/types';
-import type { ProtocolTaskFile, ProtocolResultFile } from '../types';
+import type { ProtocolTaskFile, ProtocolResultFile, AggregatedResults, TaskResultSummary, AgentResultSummary } from '../types';
 import { NotFoundError } from '../backends/errors';
 
 export interface ProtocolEngineOptions {
@@ -184,5 +184,85 @@ export class ProtocolEngine {
    */
   async hasResult(taskId: string): Promise<boolean> {
     return this.backend.fileExists(`results/${taskId}/${this.agentId}.json`);
+  }
+
+  /**
+   * Aggregate all task results into a single summary.
+   * Collects every task and its per-agent results, counts by status.
+   */
+  async aggregateResults(): Promise<AggregatedResults> {
+    const errors: string[] = [];
+    const { tasks, errors: taskErrors } = await this.listAllTasks();
+    errors.push(...taskErrors);
+
+    const taskSummaries: TaskResultSummary[] = [];
+    let completedTasks = 0;
+    let failedTasks = 0;
+    let pendingTasks = 0;
+
+    for (const task of tasks) {
+      let agentIds: string[] = [];
+      try {
+        agentIds = await this.listResults(task.id);
+      } catch (err) {
+        errors.push(`results/${task.id}: ${(err as Error).message}`);
+      }
+
+      const agentSummaries: AgentResultSummary[] = [];
+      for (const agentId of agentIds) {
+        try {
+          const result = await this.readResult(task.id, agentId);
+          if (!result) continue;
+          agentSummaries.push({
+            agentId: result.agentId,
+            status: result.status,
+            exitCode: result.exitCode,
+            startedAt: result.startedAt,
+            completedAt: result.completedAt,
+            durationMs: result.durationMs,
+            summary: result.summary,
+            artifacts: result.artifacts,
+            error: result.error,
+          });
+        } catch (err) {
+          errors.push(`results/${task.id}/${agentId}: ${(err as Error).message}`);
+        }
+      }
+
+      // Determine task-level status from agent results
+      let taskStatus = task.status;
+      if (agentSummaries.length > 0) {
+        const anyCompleted = agentSummaries.some((a) => a.status === 'completed');
+        const allFailed = agentSummaries.every((a) => a.status === 'failed');
+        if (anyCompleted) {
+          taskStatus = 'completed';
+          completedTasks++;
+        } else if (allFailed) {
+          taskStatus = 'failed';
+          failedTasks++;
+        } else {
+          pendingTasks++;
+        }
+      } else {
+        pendingTasks++;
+      }
+
+      taskSummaries.push({
+        taskId: task.id,
+        title: task.title,
+        taskStatus,
+        agents: agentSummaries,
+      });
+    }
+
+    return {
+      generatedAt: new Date().toISOString(),
+      totalTasks: tasks.length,
+      completedTasks,
+      failedTasks,
+      pendingTasks,
+      tasks: taskSummaries,
+      errors,
+    };
   }
 }

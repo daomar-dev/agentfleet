@@ -106,10 +106,51 @@ export interface ProtocolResultFile {
   agentId: string;
   status: 'completed' | 'failed';
   exitCode: number | null;
-  stdout?: string;
+  /** ISO timestamp when the agent started executing this task */
+  startedAt?: string;
   completedAt: string;
   durationMs: number;
+  /** Brief human-readable summary of what was accomplished */
+  summary?: string;
+  /** File paths or URLs produced as output artifacts */
+  artifacts?: string[];
+  /** Extensible key-value metadata for downstream automation */
+  metadata?: Record<string, unknown>;
+  /** Raw stdout (truncated to 64 KB) – kept for debugging/backward compat */
+  stdout?: string;
   error?: string;
+}
+
+/** Per-agent result summary used in aggregation */
+export interface AgentResultSummary {
+  agentId: string;
+  status: 'completed' | 'failed';
+  exitCode: number | null;
+  startedAt?: string;
+  completedAt: string;
+  durationMs: number;
+  summary?: string;
+  artifacts?: string[];
+  error?: string;
+}
+
+/** Per-task result summary used in aggregation */
+export interface TaskResultSummary {
+  taskId: string;
+  title?: string;
+  taskStatus: TaskStatus;
+  agents: AgentResultSummary[];
+}
+
+/** Aggregated results across all tasks */
+export interface AggregatedResults {
+  generatedAt: string;
+  totalTasks: number;
+  completedTasks: number;
+  failedTasks: number;
+  pendingTasks: number;
+  tasks: TaskResultSummary[];
+  errors: string[];
 }
 
 /** Union config type for migration period */
