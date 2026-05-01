@@ -3,7 +3,9 @@ name: Deploy Web Dashboard
 on:
   push:
     branches: [main]
-    paths: ['web/**']
+    paths:
+      - 'web/**'
+      - '.github/workflows/deploy-pages.yml'
   workflow_dispatch:
 
 permissions:
@@ -29,6 +31,9 @@ jobs:
 
       - name: Install dependencies
         run: cd web && npm ci
+
+      - name: Verify static Pages templates
+        run: cd web && npm run verify:static-pages
 
       - name: Test
         run: cd web && npm test

@@ -19,7 +19,7 @@ describe('renderLanding', () => {
     container = document.createElement('div');
   });
 
-  it('renders hero section with logo, tagline, CLI command, and demo media', () => {
+  it('renders hero section with logo, tagline, CLI command, and quick-start hint', () => {
     renderLanding(container);
     const hero = container.querySelector('.landing-hero');
     expect(hero).not.toBeNull();
@@ -27,7 +27,7 @@ describe('renderLanding', () => {
     expect(hero!.querySelector('.landing-title')).not.toBeNull();
     expect(hero!.querySelector('.landing-hook')).not.toBeNull();
     expect(hero!.querySelector('.landing-command code')).not.toBeNull();
-    expect(hero!.querySelector('.landing-demo')).not.toBeNull();
+    expect(hero!.querySelector('.landing-command-hint')).not.toBeNull();
   });
 
   it('renders at least three value proposition blocks with headings and descriptions', () => {
@@ -48,12 +48,27 @@ describe('renderLanding', () => {
     expect(arch!.querySelector('.landing-arch-diagram')).not.toBeNull();
   });
 
-  it('renders CTA links with GitHub link having target="_blank" and a sign-in button', () => {
+  it('renders concrete usage examples', () => {
+    renderLanding(container);
+    const examples = container.querySelector('.landing-examples');
+    expect(examples).not.toBeNull();
+    expect(examples!.querySelectorAll('.landing-example-card').length).toBe(3);
+  });
+
+  it('renders CTA links with GitHub, fork, donate, architecture, and sign-in actions', () => {
     renderLanding(container);
     const githubLink = container.querySelector('#landing-github-btn') as HTMLAnchorElement;
     expect(githubLink).not.toBeNull();
     expect(githubLink.getAttribute('target')).toBe('_blank');
     expect(githubLink.getAttribute('href')).toContain('github.com/daomar-dev/agentfleet');
+
+    const forkLink = container.querySelector('#landing-fork-btn') as HTMLAnchorElement;
+    expect(forkLink).not.toBeNull();
+    expect(forkLink.getAttribute('href')).toContain('github.com/daomar-dev/agentfleet/fork');
+
+    const donateLink = container.querySelector('#landing-donate-btn') as HTMLAnchorElement;
+    expect(donateLink).not.toBeNull();
+    expect(donateLink.getAttribute('href')).toBe('/donate.html');
 
     const signInBtn = container.querySelector('#landing-signin-btn');
     expect(signInBtn).not.toBeNull();
