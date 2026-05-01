@@ -241,6 +241,7 @@ export class ProtocolEngine {
           taskStatus = 'failed';
           failedTasks++;
         } else {
+          // Defensive fallback: status is not determinable (e.g. empty results list from type coercion)
           pendingTasks++;
         }
       } else {
