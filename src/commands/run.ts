@@ -7,6 +7,7 @@ import { t } from '../services/i18n';
 import { loadConfig } from '../services/config';
 import { getBackend } from '../backends/index';
 import { ProtocolEngine } from '../services/protocol-engine';
+import { extractFileReferences } from '../services/artifact-extractor';
 import type { SyncBackend } from '../backends/types';
 import { initCommand } from './init';
 import * as fs from 'fs';
@@ -236,7 +237,10 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
             workingDirectory: task.workingDirectory,
           });
 
-          // Write per-agent result
+          // Extract file references from stdout and rewrite paths
+          const { rewrittenStdout, detectedFiles } = extractFileReferences(execResult.stdout ?? '');
+
+          // Write per-agent result as directory
           const result: ProtocolResultFile = {
             taskId: task.id,
             agentId: config.agentId,
@@ -245,11 +249,11 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
             startedAt: execResult.startedAt,
             completedAt: new Date().toISOString(),
             durationMs: Date.now() - startTime,
-            stdout: execResult.stdout?.substring(0, 64 * 1024),
+            artifacts: detectedFiles.map((f) => f.targetName),
             error: execResult.error,
           };
 
-          await engine.writeResult(task.id, result);
+          await engine.writeResultDir(task.id, result, rewrittenStdout, detectedFiles);
           console.log(`✅ ${t('run.task_completed', { taskId: task.id, duration: ((Date.now() - startTime) / 1000).toFixed(1) })}`);
         } catch (err) {
           console.error(`❌ ${t('run.execution_error', { taskId: task.id, message: (err as Error).message })}`);
@@ -264,7 +268,7 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
               durationMs: Date.now() - startTime,
               error: (err as Error).message,
             };
-            await engine.writeResult(task.id, failResult);
+            await engine.writeResultDir(task.id, failResult, '', []);
           } catch { /* best effort */ }
         } finally {
           running--;

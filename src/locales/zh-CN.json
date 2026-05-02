@@ -89,6 +89,7 @@
   "status.result_duration": "耗时: {duration}秒",
   "status.result_summary": "摘要: {summary}",
   "status.result_artifacts": "产物: {artifacts}",
+  "status.result_stdout_file": "输出文件: {path}",
   "status.result_error": "错误: {error}",
   "status.result_output": "输出: {output}",
   "status.output_files": "输出文件:",
@@ -204,6 +205,7 @@
   "run.auto_init_hint": "请手动运行 `agentfleet init --backend onedrive`，或使用 `--backend local-folder --path <目录>` 创建本地工作区。",
 
   "submit.created": "任务 {taskId} 已通过 v3 协议创建",
+  "submit.status_hint": "运行: agentfleet status {taskId}",
   "submit.error": "提交任务失败: {message}",
   "submit.auto_init": "未找到配置。正在使用 OneDrive 初始化 AgentFleet...",
   "submit.auto_init_failed": "自动初始化失败: {message}",

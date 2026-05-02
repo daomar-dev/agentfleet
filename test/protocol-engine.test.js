@@ -52,6 +52,7 @@ class MockBackend {
     if (!this.files.has(path)) return null;
     return new Date();
   }
+  getRootPath() { return '/tmp/mock-fleet'; }
   async watchDirectory() { return { close: async () => {} }; }
 }
 

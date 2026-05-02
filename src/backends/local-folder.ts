@@ -177,4 +177,8 @@ export class LocalFolderBackend implements SyncBackend {
       throw mapError(err, relativePath);
     }
   }
+
+  getRootPath(): string {
+    return this.rootPath;
+  }
 }

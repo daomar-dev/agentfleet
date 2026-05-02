@@ -42,6 +42,7 @@ class MockBackend {
   }
   getRecommendedConvergenceWindow() { return 100; }
   async getFileModifiedTime(p) { return this.files.has(p) ? new Date() : null; }
+  getRootPath() { return '/tmp/mock-fleet'; }
   async watchDirectory() { return { close: async () => {} }; }
 }
 
@@ -285,7 +286,8 @@ test('status shows task detail summary and artifacts', async () => {
     assert.ok(output.includes('task-structured'), 'should show task ID');
     assert.ok(output.includes('agent-x'), 'should show agent ID');
     assert.ok(output.includes('Done'), 'should show summary');
-    assert.ok(output.includes('out.txt, report.md'), 'should show artifacts');
+    assert.ok(output.includes('out.txt'), 'should show artifacts');
+    assert.ok(output.includes('report.md'), 'should show artifacts');
   } finally {
     console.log = origLog;
   }

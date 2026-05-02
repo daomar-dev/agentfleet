@@ -26,6 +26,10 @@ interface StatusDependencies {
 interface TaskDetail {
   task: NonNullable<Awaited<ReturnType<ProtocolEngine['readTask']>>>;
   results: ProtocolResultFile[];
+  /** stdout content per agent (loaded from stdout.txt or inline) */
+  stdoutMap: Map<string, string>;
+  /** artifact filenames per agent */
+  artifactsMap: Map<string, string[]>;
   errors: string[];
 }
 
@@ -173,7 +177,7 @@ async function showTaskDetail(
     return;
   }
 
-  printTaskDetail(detail);
+  printTaskDetail(detail, engine);
 }
 
 async function readTaskDetail(taskId: string, engine: ProtocolEngine): Promise<TaskDetail | null> {
@@ -185,6 +189,8 @@ async function readTaskDetail(taskId: string, engine: ProtocolEngine): Promise<T
 
   const errors: string[] = [];
   const results: ProtocolResultFile[] = [];
+  const stdoutMap = new Map<string, string>();
+  const artifactsMap = new Map<string, string[]>();
   const agents = await engine.listResults(taskId);
 
   for (const agentId of agents) {
@@ -192,17 +198,32 @@ async function readTaskDetail(taskId: string, engine: ProtocolEngine): Promise<T
       const result = await engine.readResult(taskId, agentId);
       if (result) {
         results.push({ ...result, agentId: result.agentId ?? agentId });
+
+        // Try to read stdout.txt (new format)
+        const stdout = await engine.readResultStdout(taskId, agentId);
+        if (stdout !== null) {
+          stdoutMap.set(agentId, stdout);
+        } else if (result.stdout) {
+          // Fallback to inline stdout (old format)
+          stdoutMap.set(agentId, result.stdout);
+        }
+
+        // List artifact files (new format)
+        const artifacts = await engine.listResultArtifacts(taskId, agentId);
+        if (artifacts.length > 0) {
+          artifactsMap.set(agentId, artifacts);
+        }
       }
     } catch (err) {
       errors.push(`results/${taskId}/${agentId}: ${(err as Error).message}`);
     }
   }
 
-  return { task, results, errors };
+  return { task, results, stdoutMap, artifactsMap, errors };
 }
 
-function printTaskDetail(detail: TaskDetail): void {
-  const { task, results, errors } = detail;
+function printTaskDetail(detail: TaskDetail, engine: ProtocolEngine): void {
+  const { task, results, stdoutMap, artifactsMap, errors } = detail;
 
   console.log(`\n📋 ${t('status.task_header', { taskId: task.id })}`);
   console.log(`   ${t('status.task_title', { title: task.title || t('status.task_title_none') })}`);
@@ -220,6 +241,7 @@ function printTaskDetail(detail: TaskDetail): void {
 
     for (const result of results) {
       const icon = result.status === 'completed' ? '✅' : '❌';
+      const resultDirPath = engine.resolveAbsolutePath(`results/${task.id}/${result.agentId}`);
       console.log(`   ${icon} ${result.agentId}`);
       console.log(`      ${t('status.result_status', { status: result.status, exitCode: result.exitCode ?? 'N/A' })}`);
       if (result.startedAt) {
@@ -234,13 +256,30 @@ function printTaskDetail(detail: TaskDetail): void {
       if (result.summary) {
         console.log(`      ${t('status.result_summary', { summary: result.summary })}`);
       }
-      if (result.artifacts && result.artifacts.length > 0) {
-        console.log(`      ${t('status.result_artifacts', { artifacts: result.artifacts.join(', ') })}`);
+
+      // Show stdout file path
+      const stdoutContent = stdoutMap.get(result.agentId);
+      if (stdoutContent !== undefined) {
+        const stdoutPath = `${resultDirPath}/stdout.txt`;
+        console.log(`      ${t('status.result_stdout_file', { path: stdoutPath })}`);
       }
+
+      // Show artifacts with full paths
+      const artifacts = artifactsMap.get(result.agentId) ?? result.artifacts;
+      if (artifacts && artifacts.length > 0) {
+        const fullPaths = artifacts.map((a) => `${resultDirPath}/${a}`);
+        console.log(`      ${t('status.result_artifacts', { artifacts: fullPaths.join(', ') })}`);
+      }
+
       if (result.error) {
         console.log(`      ${t('status.result_error', { error: result.error })}`);
       }
-      if (result.stdout) {
+
+      // Show stdout excerpt
+      if (stdoutContent) {
+        const excerpt = stdoutContent.substring(0, 200);
+        console.log(`      ${t('status.result_output', { output: `${excerpt}${stdoutContent.length > 200 ? '...' : ''}` })}`);
+      } else if (result.stdout) {
         const excerpt = result.stdout.substring(0, 200);
         console.log(`      ${t('status.result_output', { output: `${excerpt}${result.stdout.length > 200 ? '...' : ''}` })}`);
       }

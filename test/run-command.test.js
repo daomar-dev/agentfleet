@@ -51,6 +51,7 @@ class MockBackend {
     this.files.set(p, { content: data, mtime: new Date() });
   }
   getRecommendedConvergenceWindow() { return 100; } // Fast for tests
+  getRootPath() { return '/tmp/mock-fleet'; }
   async getFileModifiedTime(p) {
     const e = this.files.get(p);
     return e ? e.mtime : null;
@@ -281,8 +282,9 @@ test('run command picks up pending tasks in poll cycle', async () => {
   await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
 
   assert.ok(executed, 'should have executed the pending task');
-  // Result should be written to results/{taskId}/{agentId}.json
-  assert.ok(await backend.fileExists('results/task-abc/test-agent-001.json'), 'result should exist');
+  // Result should be written to results/{taskId}/{agentId}/result.json (new directory format)
+  assert.ok(await backend.fileExists('results/task-abc/test-agent-001/result.json'), 'result.json should exist');
+  assert.ok(await backend.fileExists('results/task-abc/test-agent-001/stdout.txt'), 'stdout.txt should exist');
   // Task file should still exist (broadcast: never deleted)
   assert.ok(await backend.fileExists('tasks/task-abc.json'), 'task file should remain');
 
@@ -319,9 +321,9 @@ test('run command handles execution failure', async () => {
 
   await runCommand({ pollInterval: '10', concurrency: '1', daemon: false }, deps);
 
-  // Failed result should be written
-  assert.ok(await backend.fileExists('results/fail-task/test-agent-001.json'));
-  const result = JSON.parse((await backend.readFile('results/fail-task/test-agent-001.json')));
+  // Failed result should be written (new directory format)
+  assert.ok(await backend.fileExists('results/fail-task/test-agent-001/result.json'));
+  const result = JSON.parse((await backend.readFile('results/fail-task/test-agent-001/result.json')));
   assert.equal(result.status, 'failed');
 
   try { fs.unlinkSync(tmpProcessed); } catch {}

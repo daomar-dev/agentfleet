@@ -62,4 +62,7 @@ export interface SyncBackend {
 
   /** Returns the file's mtime as a Date, or null if file doesn't exist. */
   getFileModifiedTime(relativePath: string): Promise<Date | null>;
+
+  /** Returns the absolute root path of the fleet directory. */
+  getRootPath(): string;
 }

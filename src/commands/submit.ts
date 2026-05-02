@@ -85,5 +85,5 @@ export async function submitCommand(
   console.log(`   ${t('submit.title', { title: options.title || t('submit.title_none') })}`);
   console.log(`   ${t('submit.prompt', { prompt: options.prompt.substring(0, 80) + (options.prompt.length > 80 ? '...' : '') })}`);
   console.log(`   ${t('submit.working_dir', { path: task.workingDirectory || '' })}`);
-  console.log(`   ${t('submit.created', { taskId })}`);
+  console.log(`   ${t('submit.status_hint', { taskId })}`);
 }
