@@ -223,9 +223,10 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
             agentId: config.agentId,
             status: execResult.status === 'completed' ? 'completed' : 'failed',
             exitCode: execResult.exitCode,
-            stdout: execResult.stdout?.substring(0, 64 * 1024),
+            startedAt: execResult.startedAt,
             completedAt: new Date().toISOString(),
             durationMs: Date.now() - startTime,
+            stdout: execResult.stdout?.substring(0, 64 * 1024),
             error: execResult.error,
           };
 

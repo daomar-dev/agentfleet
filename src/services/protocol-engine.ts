@@ -185,4 +185,5 @@ export class ProtocolEngine {
   async hasResult(taskId: string): Promise<boolean> {
     return this.backend.fileExists(`results/${taskId}/${this.agentId}.json`);
   }
+
 }

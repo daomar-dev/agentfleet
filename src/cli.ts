@@ -58,6 +58,7 @@ program
 program
   .command('status [taskId]')
   .description(t('cli.status_description'))
+  .option('--json', t('cli.status_option_json'))
   .action(statusCommand);
 
 program

@@ -106,9 +106,18 @@ export interface ProtocolResultFile {
   agentId: string;
   status: 'completed' | 'failed';
   exitCode: number | null;
-  stdout?: string;
+  /** ISO timestamp when the agent started executing this task */
+  startedAt?: string;
   completedAt: string;
   durationMs: number;
+  /** Brief human-readable summary of what was accomplished */
+  summary?: string;
+  /** File paths or URLs produced as output artifacts */
+  artifacts?: string[];
+  /** Extensible key-value metadata for downstream automation */
+  metadata?: Record<string, unknown>;
+  /** Raw stdout (truncated to 64 KB) – kept for debugging/backward compat */
+  stdout?: string;
   error?: string;
 }
 

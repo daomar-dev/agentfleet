@@ -9,6 +9,10 @@ import type { AgentFleetConfigV3, ProtocolResultFile } from '../types';
 import type { SyncBackend } from '../backends/types';
 import * as fs from 'fs';
 
+interface StatusOptions {
+  json?: boolean;
+}
+
 interface StatusDependencies {
   daemonService?: DaemonService;
   autoStartManager?: Pick<AutoStartManager, 'queryState'>;
@@ -19,17 +23,26 @@ interface StatusDependencies {
   exit?: (code: number) => void;
 }
 
-export async function statusCommand(taskId?: string, _cmdObj?: unknown, dependencies: StatusDependencies = {}): Promise<void> {
+interface TaskDetail {
+  task: NonNullable<Awaited<ReturnType<ProtocolEngine['readTask']>>>;
+  results: ProtocolResultFile[];
+  errors: string[];
+}
+
+export async function statusCommand(taskId?: string, options: StatusOptions = {}, dependencies: StatusDependencies = {}): Promise<void> {
   const daemonService = dependencies.daemonService ?? new DaemonService();
   const autoStartManager = dependencies.autoStartManager ?? createAutoStartManager();
   const versionChecker = dependencies.versionChecker ?? new VersionChecker();
   const exit = dependencies.exit ?? ((code: number) => { process.exitCode = code; });
+  const json = options.json === true;
 
   // Show version info
-  await showVersionInfo(versionChecker);
+  if (!json) {
+    await showVersionInfo(versionChecker);
 
-  // Show running process info
-  showProcessInfo(daemonService, autoStartManager);
+    // Show running process info
+    showProcessInfo(daemonService, autoStartManager);
+  }
 
   // Load v3 config
   let config: AgentFleetConfigV3;
@@ -52,7 +65,7 @@ export async function statusCommand(taskId?: string, _cmdObj?: unknown, dependen
     : new ProtocolEngine(backend, config.agentId);
 
   if (taskId) {
-    await showTaskDetail(taskId, engine);
+    await showTaskDetail(taskId, engine, { json, exit });
   } else {
     await showAllTasks(engine);
   }
@@ -142,14 +155,54 @@ async function showAllTasks(engine: ProtocolEngine): Promise<void> {
   console.log();
 }
 
-async function showTaskDetail(taskId: string, engine: ProtocolEngine): Promise<void> {
+async function showTaskDetail(
+  taskId: string,
+  engine: ProtocolEngine,
+  options: { json: boolean; exit: (code: number) => void }
+): Promise<void> {
+  const detail = await readTaskDetail(taskId, engine);
+
+  if (!detail) {
+    console.error(`❌ ${t('status.task_not_found', { taskId })}`);
+    options.exit(1);
+    return;
+  }
+
+  if (options.json) {
+    console.log(JSON.stringify(detail, null, 2));
+    return;
+  }
+
+  printTaskDetail(detail);
+}
+
+async function readTaskDetail(taskId: string, engine: ProtocolEngine): Promise<TaskDetail | null> {
   const task = await engine.readTask(taskId);
 
   if (!task) {
-    console.error(`❌ ${t('status.task_not_found', { taskId })}`);
-    process.exitCode = 1;
-    return;
+    return null;
   }
+
+  const errors: string[] = [];
+  const results: ProtocolResultFile[] = [];
+  const agents = await engine.listResults(taskId);
+
+  for (const agentId of agents) {
+    try {
+      const result = await engine.readResult(taskId, agentId);
+      if (result) {
+        results.push({ ...result, agentId: result.agentId ?? agentId });
+      }
+    } catch (err) {
+      errors.push(`results/${taskId}/${agentId}: ${(err as Error).message}`);
+    }
+  }
+
+  return { task, results, errors };
+}
+
+function printTaskDetail(detail: TaskDetail): void {
+  const { task, results, errors } = detail;
 
   console.log(`\n📋 ${t('status.task_header', { taskId: task.id })}`);
   console.log(`   ${t('status.task_title', { title: task.title || t('status.task_title_none') })}`);
@@ -162,37 +215,44 @@ async function showTaskDetail(taskId: string, engine: ProtocolEngine): Promise<v
   }
   console.log(`   ${t('status.task_created', { date: task.createdAt ? formatDate(task.createdAt) : t('status.task_unknown') })}`);
 
-  // Show results
-  const agents = await engine.listResults(taskId);
+  if (results.length > 0) {
+    console.log(`\n📊 ${t('status.results_header', { count: results.length })}\n`);
 
-  if (agents.length > 0) {
-    console.log(`\n📊 ${t('status.results_header', { count: agents.length })}\n`);
-
-    for (const agentId of agents) {
-      try {
-        const result = await engine.readResult(taskId, agentId);
-        if (!result) continue;
-        const icon = result.status === 'completed' ? '✅' : '❌';
-        console.log(`   ${icon} ${agentId}`);
-        console.log(`      ${t('status.result_status', { status: result.status, exitCode: result.exitCode ?? 'N/A' })}`);
-        if (result.completedAt) {
-          console.log(`      ${t('status.result_completed', { date: formatDate(result.completedAt) })}`);
-        }
-        if (result.durationMs) {
-          console.log(`      Duration: ${(result.durationMs / 1000).toFixed(1)}s`);
-        }
-        if (result.error) {
-          console.log(`      ${t('status.result_error', { error: result.error })}`);
-        }
-        if (result.stdout) {
-          const excerpt = result.stdout.substring(0, 200);
-          console.log(`      Output: ${excerpt}${result.stdout.length > 200 ? '...' : ''}`);
-        }
-      } catch { /* skip */ }
+    for (const result of results) {
+      const icon = result.status === 'completed' ? '✅' : '❌';
+      console.log(`   ${icon} ${result.agentId}`);
+      console.log(`      ${t('status.result_status', { status: result.status, exitCode: result.exitCode ?? 'N/A' })}`);
+      if (result.startedAt) {
+        console.log(`      ${t('status.result_started', { date: formatDate(result.startedAt) })}`);
+      }
+      if (result.completedAt) {
+        console.log(`      ${t('status.result_completed', { date: formatDate(result.completedAt) })}`);
+      }
+      if (typeof result.durationMs === 'number') {
+        console.log(`      ${t('status.result_duration', { duration: (result.durationMs / 1000).toFixed(1) })}`);
+      }
+      if (result.summary) {
+        console.log(`      ${t('status.result_summary', { summary: result.summary })}`);
+      }
+      if (result.artifacts && result.artifacts.length > 0) {
+        console.log(`      ${t('status.result_artifacts', { artifacts: result.artifacts.join(', ') })}`);
+      }
+      if (result.error) {
+        console.log(`      ${t('status.result_error', { error: result.error })}`);
+      }
+      if (result.stdout) {
+        const excerpt = result.stdout.substring(0, 200);
+        console.log(`      ${t('status.result_output', { output: `${excerpt}${result.stdout.length > 200 ? '...' : ''}` })}`);
+      }
     }
   } else {
     console.log(`\n   ${t('status.no_results')}`);
   }
+
+  for (const err of errors) {
+    console.warn(`⚠️ ${err}`);
+  }
+
   console.log();
 }
 

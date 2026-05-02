@@ -14,6 +14,7 @@
   "cli.submit_option_agent": "Agent command template. Use {prompt} as placeholder (e.g. \"claude -p {prompt} --allowed-tools WebSearch\")",
 
   "cli.status_description": "Show status of all tasks or a specific task",
+  "cli.status_option_json": "Output a specific task status as machine-readable JSON",
   "cli.stop_description": "Stop the running AgentFleet instance",
   "cli.install_description": "Install AgentFleet auto-start on login",
   "cli.uninstall_description": "Remove AgentFleet auto-start and stop running instance",
@@ -85,7 +86,11 @@
   "status.result_status": "Status: {status} (exit code: {exitCode})",
   "status.result_started": "Started: {date}",
   "status.result_completed": "Completed: {date}",
+  "status.result_duration": "Duration: {duration}s",
+  "status.result_summary": "Summary: {summary}",
+  "status.result_artifacts": "Artifacts: {artifacts}",
   "status.result_error": "Error: {error}",
+  "status.result_output": "Output: {output}",
   "status.output_files": "Output files:",
   "status.no_results": "No results yet.",
 
