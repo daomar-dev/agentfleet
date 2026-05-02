@@ -133,7 +133,7 @@ async function showAllTasks(engine: ProtocolEngine): Promise<void> {
   }
 
   console.log(`\n📋 ${t('status.tasks_header', { count: tasks.length })}\n`);
-  console.log(padRight(t('status.col_id'), 36) + padRight(t('status.col_title'), 30) + padRight(t('status.col_status'), 12) + t('status.col_results'));
+  console.log(padRight(t('status.col_id'), 37) + padRight(t('status.col_title'), 30) + padRight(t('status.col_status'), 12) + t('status.col_results'));
   console.log('─'.repeat(90));
 
   for (const task of tasks) {
@@ -143,13 +143,13 @@ async function showAllTasks(engine: ProtocolEngine): Promise<void> {
       const agentStr = agents.length > 0 ? agents.join(', ') : '-';
 
       console.log(
-        padRight(task.id, 36) +
+        padRight(task.id, 37) +
         padRight(task.title || t('status.untitled'), 30) +
         padRight(status, 12) +
         agentStr
       );
     } catch {
-      console.log(padRight(task.id, 36) + t('status.error_reading'));
+      console.log(padRight(task.id, 37) + t('status.error_reading'));
     }
   }
   console.log();
