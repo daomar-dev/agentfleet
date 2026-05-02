@@ -4,7 +4,6 @@ import { Command, Option } from 'commander';
 import { runCommand } from './commands/run';
 import { submitCommand } from './commands/submit';
 import { statusCommand } from './commands/status';
-import { resultsCommand } from './commands/results';
 import { stopCommand } from './commands/stop';
 import { installCommand } from './commands/install';
 import { uninstallCommand } from './commands/uninstall';
@@ -59,13 +58,8 @@ program
 program
   .command('status [taskId]')
   .description(t('cli.status_description'))
+  .option('--json', t('cli.status_option_json'))
   .action(statusCommand);
-
-program
-  .command('results')
-  .description(t('cli.results_description'))
-  .option('--json', t('cli.results_option_json'))
-  .action(resultsCommand);
 
 program
   .command('stop')

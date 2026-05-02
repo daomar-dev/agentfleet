@@ -14,8 +14,7 @@
   "cli.submit_option_agent": "代理命令模板。使用 {prompt} 作为占位符（例如 \"claude -p {prompt} --allowed-tools WebSearch\"）",
 
   "cli.status_description": "显示所有任务或指定任务的状态",
-  "cli.results_description": "汇总所有任务的结果",
-  "cli.results_option_json": "以机器可读的 JSON 格式输出结果",
+  "cli.status_option_json": "以机器可读的 JSON 格式输出指定任务状态",
   "cli.stop_description": "停止正在运行的 AgentFleet 实例",
   "cli.install_description": "安装 AgentFleet 登录自启动",
   "cli.uninstall_description": "移除 AgentFleet 自启动并停止运行中的实例",
@@ -87,7 +86,11 @@
   "status.result_status": "状态: {status}（退出码: {exitCode}）",
   "status.result_started": "开始时间: {date}",
   "status.result_completed": "完成时间: {date}",
+  "status.result_duration": "耗时: {duration}秒",
+  "status.result_summary": "摘要: {summary}",
+  "status.result_artifacts": "产物: {artifacts}",
   "status.result_error": "错误: {error}",
+  "status.result_output": "输出: {output}",
   "status.output_files": "输出文件:",
   "status.no_results": "暂无结果。",
 
@@ -200,17 +203,6 @@
   "submit.error": "提交任务失败: {message}",
 
   "config.unsupported_version": "{path} 的配置版本不受支持。请运行 `agentfleet init --force` 重新创建。",
-
-  "results.error": "加载结果失败: {message}",
-  "results.no_tasks": "未找到任务。",
-  "results.header": "结果汇总: 共 {total} 个任务 — {completed} 已完成, {failed} 已失败, {pending} 等待中",
-  "results.no_agent_results": "暂无代理结果。",
-  "results.agent_status": "状态: {status}（退出码: {exitCode}）",
-  "results.agent_completed_at": "完成于 {date}",
-  "results.agent_summary": "摘要: {summary}",
-  "results.agent_artifacts": "产物: {artifacts}",
-  "results.agent_error": "错误: {error}",
-  "results.footer": "合计: {total}  ✅ {completed}  ❌ {failed}  ⏳ {pending}",
 
   "logger.no_user_facing_strings": ""
 }

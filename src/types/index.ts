@@ -121,37 +121,5 @@ export interface ProtocolResultFile {
   error?: string;
 }
 
-/** Per-agent result summary used in aggregation */
-export interface AgentResultSummary {
-  agentId: string;
-  status: 'completed' | 'failed';
-  exitCode: number | null;
-  startedAt?: string;
-  completedAt: string;
-  durationMs: number;
-  summary?: string;
-  artifacts?: string[];
-  error?: string;
-}
-
-/** Per-task result summary used in aggregation */
-export interface TaskResultSummary {
-  taskId: string;
-  title?: string;
-  taskStatus: TaskStatus;
-  agents: AgentResultSummary[];
-}
-
-/** Aggregated results across all tasks */
-export interface AggregatedResults {
-  generatedAt: string;
-  totalTasks: number;
-  completedTasks: number;
-  failedTasks: number;
-  pendingTasks: number;
-  tasks: TaskResultSummary[];
-  errors: string[];
-}
-
 /** Union config type for migration period */
 export type AnyAgentFleetConfig = AgentFleetConfig | AgentFleetConfigV3;

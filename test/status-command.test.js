@@ -74,6 +74,64 @@ function createMockDeps(overrides = {}) {
   };
 }
 
+function seedTask(backend, id, overrides = {}) {
+  const task = {
+    id,
+    prompt: `Do ${id}`,
+    status: 'pending',
+    priority: 0,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    title: `Task ${id}`,
+    ...overrides,
+  };
+  backend.files.set(`tasks/${id}.json`, JSON.stringify(task));
+  return task;
+}
+
+function seedResult(backend, taskId, agentId, overrides = {}) {
+  const result = {
+    taskId,
+    agentId,
+    status: 'completed',
+    exitCode: 0,
+    startedAt: new Date().toISOString(),
+    completedAt: new Date().toISOString(),
+    durationMs: 1234,
+    ...overrides,
+  };
+  backend.files.set(`results/${taskId}/${agentId}.json`, JSON.stringify(result));
+  return result;
+}
+
+test('ProtocolResultFile includes startedAt in serialized JSON', async () => {
+  const { ProtocolEngine } = require('../dist/services/protocol-engine.js');
+  const backend = new MockBackend();
+  const engine = new ProtocolEngine(backend, 'agent-a');
+
+  const now = new Date().toISOString();
+  const result = {
+    taskId: 'task-1',
+    agentId: 'agent-a',
+    status: 'completed',
+    exitCode: 0,
+    startedAt: now,
+    completedAt: now,
+    durationMs: 1000,
+    summary: 'Implemented feature X',
+    artifacts: ['/path/to/file.ts'],
+    metadata: { commits: 3 },
+  };
+
+  await engine.writeResult('task-1', result);
+
+  const written = JSON.parse(backend.files.get('results/task-1/agent-a.json'));
+  assert.equal(written.startedAt, now);
+  assert.equal(written.summary, 'Implemented feature X');
+  assert.deepEqual(written.artifacts, ['/path/to/file.ts']);
+  assert.deepEqual(written.metadata, { commits: 3 });
+});
+
 test('status shows "not running" when no PID file exists', async () => {
   const { statusCommand } = require('../dist/commands/status.js');
   const logs = [];
@@ -200,6 +258,65 @@ test('status shows task detail with results', async () => {
     assert.ok(output.includes('agent-x'), 'should show agent');
     assert.ok(output.includes('completed'), 'should show status');
     assert.ok(output.includes('hello world'), 'should show output excerpt');
+  } finally {
+    console.log = origLog;
+  }
+});
+
+test('status shows task detail summary and artifacts', async () => {
+  const { statusCommand } = require('../dist/commands/status.js');
+  const logs = [];
+  const origLog = console.log;
+  console.log = (...args) => logs.push(args.join(' '));
+
+  const backend = new MockBackend();
+  seedTask(backend, 'task-structured', { title: 'Structured Task' });
+  seedResult(backend, 'task-structured', 'agent-x', {
+    status: 'completed',
+    exitCode: 0,
+    durationMs: 5000,
+    summary: 'Done',
+    artifacts: ['out.txt', 'report.md'],
+  });
+
+  try {
+    await statusCommand('task-structured', undefined, createMockDeps({ backend }));
+    const output = logs.join('\n');
+    assert.ok(output.includes('task-structured'), 'should show task ID');
+    assert.ok(output.includes('agent-x'), 'should show agent ID');
+    assert.ok(output.includes('Done'), 'should show summary');
+    assert.ok(output.includes('out.txt, report.md'), 'should show artifacts');
+  } finally {
+    console.log = origLog;
+  }
+});
+
+test('status --json outputs a single task with complete results', async () => {
+  const { statusCommand } = require('../dist/commands/status.js');
+  const logs = [];
+  const origLog = console.log;
+  console.log = (...args) => logs.push(args.join(' '));
+
+  const backend = new MockBackend();
+  seedTask(backend, 'task-json', { title: 'JSON Task', status: 'completed' });
+  seedResult(backend, 'task-json', 'agent-1', {
+    status: 'completed',
+    exitCode: 0,
+    durationMs: 2000,
+    summary: 'Done',
+    artifacts: ['out.txt'],
+  });
+
+  try {
+    await statusCommand('task-json', { json: true }, createMockDeps({ backend }));
+    const data = JSON.parse(logs.join(''));
+    assert.equal(data.task.id, 'task-json');
+    assert.equal(data.task.title, 'JSON Task');
+    assert.equal(data.results.length, 1);
+    assert.equal(data.results[0].agentId, 'agent-1');
+    assert.equal(data.results[0].summary, 'Done');
+    assert.deepEqual(data.results[0].artifacts, ['out.txt']);
+    assert.deepEqual(data.errors, []);
   } finally {
     console.log = origLog;
   }
