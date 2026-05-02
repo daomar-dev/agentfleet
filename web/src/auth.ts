@@ -26,7 +26,7 @@ function getConfig(): Configuration {
     auth: {
       clientId: cfg.clientId,
       authority: cfg.authority || 'https://login.microsoftonline.com/common',
-      redirectUri: cfg.redirectUri || window.location.origin + '/',
+      redirectUri: cfg.redirectUri || window.location.origin + '/web/',
       navigateToLoginRequestUrl: true,
     },
     cache: {
@@ -84,7 +84,7 @@ export async function logout(): Promise<void> {
     try {
       await msalInstance.logoutPopup({
         account: account || undefined,
-        mainWindowRedirectUri: '/',
+        mainWindowRedirectUri: '/web/',
       });
       return;
     } catch {
@@ -98,7 +98,7 @@ export async function logout(): Promise<void> {
 
   await msalInstance.logoutRedirect({
     account: account || undefined,
-    postLogoutRedirectUri: window.location.origin + '/',
+    postLogoutRedirectUri: window.location.origin + '/web/',
   });
 }
 
