@@ -199,8 +199,15 @@
   "run.convergence_waiting": "正在等待任务 {taskId} 的 {seconds}秒 收敛窗口...",
   "run.agent_id": "Agent ID: {agentId}",
 
+  "run.auto_init": "未找到配置。正在使用 OneDrive 初始化 AgentFleet...",
+  "run.auto_init_failed": "自动初始化失败: {message}",
+  "run.auto_init_hint": "请手动运行 `agentfleet init --backend onedrive`，或使用 `--backend local-folder --path <目录>` 创建本地工作区。",
+
   "submit.created": "任务 {taskId} 已通过 v3 协议创建",
   "submit.error": "提交任务失败: {message}",
+  "submit.auto_init": "未找到配置。正在使用 OneDrive 初始化 AgentFleet...",
+  "submit.auto_init_failed": "自动初始化失败: {message}",
+  "submit.auto_init_hint": "请手动运行 `agentfleet init --backend onedrive`，或使用 `--backend local-folder --path <目录>` 创建本地工作区。",
 
   "config.unsupported_version": "{path} 的配置版本不受支持。请运行 `agentfleet init --force` 重新创建。",
 

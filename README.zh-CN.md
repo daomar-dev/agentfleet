@@ -5,11 +5,11 @@
 <h1 align="center">AgentFleet</h1>
 
 <p align="center">
-  <strong>把你自己的笔记本、台式机、实验室机器变成一个分布式编码智能体集群。</strong>
+  <strong>在你的所有设备上编排 AI 编码智能体。</strong>
 </p>
 
 <p align="center">
-  在多台设备上并行运行同一个提示词 — 不需要服务器、不需要 SSH 组网、不需要控制平面。AgentFleet 直接使用你已有的 OneDrive 同步来协调任务。
+  提交一次提示词，让每台设备使用自己的本地 agent 独立执行，然后横向比较结果 — 不需要服务器、不需要 SSH 组网、不需要控制平面。
 </p>
 
 <p align="center">
@@ -21,33 +21,36 @@
 
 <p align="center">
   <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a> ·
-  <a href="https://agentfleet.daomar.dev/">在线仪表板</a> ·
+  <a href="https://agentfleet.daomar.dev/web/">在线仪表板</a> ·
   <a href="https://agentfleet.daomar.dev/donate.html">支持项目</a>
 </p>
 
 ---
 
-## 为什么值得 Star？
+## 为 Agent 开发者而生
 
-很多有经验的开发者现在并不缺算力，而是缺少一种轻量的编排方式：工作笔记本、台式机、迷你主机、家用服务器，也许还装着不同能力的 agent CLI。AgentFleet 的目标就是把这些机器变成一个共享任务网络，让它们同时处理同一个任务，并返回可比较的结果。
+AgentFleet 专为使用 AI 编码智能体的开发者设计 — Claude Code、GitHub Copilot CLI、Cursor、Aider，或任何接受提示词并生成代码的命令行工具。如果你有不止一台机器，AgentFleet 可以让它们并行处理同一个任务，并返回独立的结果。
 
 你可以用它来：
 
-- **横向比较不同智能体** — 用 Claude Code、Copilot CLI、Cursor 或任意本地命令模板执行同一个安全审查提示词。
+- **横向比较不同智能体** — 在一台机器上用 Claude Code、另一台上用 Copilot CLI 执行同一个提示词，然后比较输出质量。
 - **并行探索复杂问题** — 让多台机器同时检查不同 clone、分支、配置或方案。
-- **让数据留在本地环境** — 任务和结果只通过你的 OneDrive 同步；AgentFleet 不运行托管后端。
+- **基准测试提示词** — 在不同模型、工具、硬件和仓库状态下评估同一个提示词。
+- **让数据留在本地** — 任务和结果只通过你的 OneDrive 同步；AgentFleet 不运行托管后端。
 - **适合防火墙内环境** — 不需要入站端口、隧道、SSH 堡垒机、队列或控制平面凭据。
-- **像个人 CI 实验室一样工作** — 通过 CLI 或浏览器提交任务，观察每个节点回传结果。
 
-如果你也希望分布式智能体工作流变得更成熟，欢迎 **Star**、**Fork**，并分享你的真实使用场景。
+## 快速开始
 
-## 60 秒上手
-
-在每台要加入集群的机器上运行：
+**一条命令启动。** 在每台要加入集群的机器上运行：
 
 ```bash
 npx -y @daomar/agentfleet run
 ```
+
+就这样。AgentFleet 会自动：
+1. 检测你的 OneDrive 并初始化工作区（仅首次运行）。
+2. 注册 `agentfleet` 快捷命令，之后可以直接使用。
+3. 开始监听任务。
 
 然后从任意一台机器提交任务：
 
@@ -64,10 +67,36 @@ agentfleet submit \
 
 ```bash
 agentfleet status
-agentfleet status task-20260402-abc123
 ```
 
-更喜欢浏览器？打开 **[agentfleet.daomar.dev](https://agentfleet.daomar.dev/)**，用拥有该 OneDrive 的 Microsoft 账户登录，即可提交任务、监控节点、查看结果。
+更喜欢浏览器？打开 **[agentfleet.daomar.dev/web/](https://agentfleet.daomar.dev/web/)**，用拥有该 OneDrive 的 Microsoft 账户登录，即可提交任务、监控节点、查看结果。
+
+## 智能体兼容性
+
+AgentFleet 可以与任何接受提示词的命令行工具配合使用。默认智能体为 **Claude Code**：
+
+| 智能体 | 命令模板 | 说明 |
+|---|---|---|
+| Claude Code | `claude -p {prompt}` | 默认，开箱即用 |
+| GitHub Copilot CLI | `gh copilot suggest "{prompt}"` | 需要安装 `gh` CLI + Copilot 扩展 |
+| Cursor | `cursor --prompt "{prompt}"` | 需要 Cursor CLI |
+| Aider | `aider --message "{prompt}"` | 需要安装 aider |
+| 自定义 | 任何包含 `{prompt}` 的命令 | 通过配置 `defaultAgentCommand` |
+
+单次任务覆盖 agent：
+
+```bash
+agentfleet submit --prompt "修复登录 bug" --agent 'aider --message "{prompt}"'
+```
+
+或在 `~/.agentfleet/config.json` 中更改全局默认：
+
+```json
+{
+  "defaultAgent": "claude-code",
+  "defaultAgentCommand": "claude -p {prompt}"
+}
+```
 
 ## 具体使用案例
 
@@ -122,10 +151,10 @@ agentfleet run         agentfleet run         agentfleet submit
                  output/ → 每台机器独立结果文件
 ```
 
-1. AgentFleet 自动检测 OneDrive，并在 `~/.agentfleet/` 下创建稳定本地路径。
+1. `agentfleet run` 检测 OneDrive 并初始化共享工作区（首次运行自动完成）。
 2. `tasks/` 和 `output/` 由同步的 OneDrive 工作区承载。
 3. `agentfleet submit` 写入不可变任务文件。
-4. 每个 `agentfleet run` 进程发现新任务并在本机执行。
+4. 每个 `agentfleet run` 进程发现新任务并使用本地编码智能体执行。
 5. 结果文件带主机名前缀，多台机器不会互相覆盖。
 
 ## AgentFleet 与常见替代方案
@@ -142,18 +171,17 @@ agentfleet run         agentfleet run         agentfleet submit
 ## CLI 参考
 
 <details>
-<summary><strong>安装与运行</strong></summary>
+<summary><strong>运行</strong></summary>
 
 ```bash
-# 推荐：无需全局安装
+# 启动任务监听（首次运行自动初始化）
 npx -y @daomar/agentfleet run
 
-# 或全局安装
-npm install -g @daomar/agentfleet
+# 首次运行后，快捷命令即可使用：
 agentfleet run
 ```
 
-常用运行选项：
+选项：
 
 - `--poll-interval <seconds>` — 轮询间隔，默认 `10`
 - `--concurrency <number>` — 最大并发 agent 进程数，默认 `1`
@@ -179,17 +207,42 @@ agentfleet submit --prompt "..." --title "..." --working-dir /path
 </details>
 
 <details>
+<summary><strong>状态与停止</strong></summary>
+
+```bash
+agentfleet status              # 所有任务概览
+agentfleet status <task-id>    # 查看指定任务详情
+agentfleet stop                # 停止运行中的实例
+```
+
+</details>
+
+<details>
 <summary><strong>守护进程与自启动</strong></summary>
 
 ```bash
 agentfleet run --daemon
-npx -y @daomar/agentfleet install    # 安装自启动
-npx -y @daomar/agentfleet uninstall  # 移除自启动
+agentfleet install    # 安装登录自启动
+agentfleet uninstall  # 移除自启动
 agentfleet stop
 ```
 
 - **Windows：** 名为 `AgentFleet` 的计划任务，登录和唤醒时触发
 - **macOS：** 名为 `dev.daomar.agentfleet` 的 LaunchAgent
+
+</details>
+
+<details>
+<summary><strong>初始化（高级）</strong></summary>
+
+通常 `run` 和 `submit` 会使用 OneDrive 自动初始化。如需手动控制：
+
+```bash
+agentfleet init                                    # 默认使用 OneDrive
+agentfleet init --backend onedrive-business        # OneDrive 企业版
+agentfleet init --backend local-folder --path /shared/fleet  # 本地文件夹
+agentfleet init --force                            # 重新初始化
+```
 
 </details>
 
@@ -216,7 +269,7 @@ agentfleet stop
 
 ## Web 仪表板
 
-托管在 **[agentfleet.daomar.dev](https://agentfleet.daomar.dev/)** 的 GitHub Pages 应用是一个 PWA，可用于：
+托管在 **[agentfleet.daomar.dev/web/](https://agentfleet.daomar.dev/web/)** 的 GitHub Pages 应用是一个 PWA，可用于：
 
 - 从桌面或移动端提交任务；
 - 监控已注册节点和最近活动；
@@ -270,7 +323,7 @@ AgentFleet 是免费的开源项目。如果它节省了你的时间，或者启
 
 - [GitHub](https://github.com/daomar-dev/agentfleet) — 源码、Issues、讨论
 - [npm](https://www.npmjs.com/package/@daomar/agentfleet) — npm 安装包
-- [Web 仪表板](https://agentfleet.daomar.dev/) — 提交和监控任务
+- [Web 仪表板](https://agentfleet.daomar.dev/web/) — 提交和监控任务
 - [关于](https://agentfleet.daomar.dev/about.html) — 架构概览
 - [贡献指南](CONTRIBUTING.md) — 开发环境
 - [更新日志](CHANGELOG.md) — 版本记录

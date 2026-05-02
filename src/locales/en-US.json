@@ -199,8 +199,15 @@
   "run.convergence_waiting": "Waiting {seconds}s for convergence on task {taskId}...",
   "run.agent_id": "Agent ID: {agentId}",
 
+  "run.auto_init": "No configuration found. Initializing AgentFleet with OneDrive...",
+  "run.auto_init_failed": "Auto-initialization failed: {message}",
+  "run.auto_init_hint": "Run `agentfleet init --backend onedrive` manually, or use `--backend local-folder --path <dir>` for a local workspace.",
+
   "submit.created": "Task {taskId} created via v3 protocol",
   "submit.error": "Failed to submit task: {message}",
+  "submit.auto_init": "No configuration found. Initializing AgentFleet with OneDrive...",
+  "submit.auto_init_failed": "Auto-initialization failed: {message}",
+  "submit.auto_init_hint": "Run `agentfleet init --backend onedrive` manually, or use `--backend local-folder --path <dir>` for a local workspace.",
 
   "config.unsupported_version": "Config at {path} has an unsupported version. Run `agentfleet init --force` to recreate.",
 

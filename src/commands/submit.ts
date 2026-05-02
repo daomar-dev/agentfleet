@@ -5,6 +5,7 @@ import { ProtocolTaskFile } from '../types';
 import { t } from '../services/i18n';
 import { loadConfig } from '../services/config';
 import { getBackend } from '../backends/index';
+import { initCommand } from './init';
 import type { AgentFleetConfigV3 } from '../types';
 import type { SyncBackend } from '../backends/types';
 
@@ -31,9 +32,24 @@ export async function submitCommand(
   try {
     config = await loadConfigFn();
   } catch (err) {
-    console.error(`❌ ${t('submit.error', { message: (err as Error).message })}`);
-    process.exitCode = 1;
-    return;
+    const msg = (err as Error).message;
+    // Auto-init if config not found
+    if (msg.includes('agentfleet init')) {
+      console.log(`\n🔧 ${t('submit.auto_init')}`);
+      try {
+        await initCommand({ backend: 'onedrive' });
+        config = await loadConfigFn();
+      } catch (initErr) {
+        console.error(`\n❌ ${t('submit.auto_init_failed', { message: (initErr as Error).message })}`);
+        console.log(`   ${t('submit.auto_init_hint')}`);
+        process.exitCode = 1;
+        return;
+      }
+    } else {
+      console.error(`❌ ${t('submit.error', { message: msg })}`);
+      process.exitCode = 1;
+      return;
+    }
   }
 
   // Create backend

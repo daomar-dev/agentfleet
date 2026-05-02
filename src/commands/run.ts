@@ -8,6 +8,7 @@ import { loadConfig } from '../services/config';
 import { getBackend } from '../backends/index';
 import { ProtocolEngine } from '../services/protocol-engine';
 import type { SyncBackend } from '../backends/types';
+import { initCommand } from './init';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
@@ -122,11 +123,29 @@ export async function runCommand(options: RunOptions, dependencies: RunDependenc
     const loadConfigFn = dependencies.loadConfigFn ?? loadConfig;
     config = await loadConfigFn();
   } catch (err) {
-    console.error(`\n❌ ${t('run.error', { message: (err as Error).message })}`);
-    daemonService.removePid();
-    if (logger) logger.restore();
-    exit(1);
-    return undefined as never;
+    const msg = (err as Error).message;
+    // Auto-init if config not found
+    if (msg.includes('agentfleet init')) {
+      console.log(`\n🔧 ${t('run.auto_init')}`);
+      try {
+        await initCommand({ backend: 'onedrive' });
+        const loadConfigFn = dependencies.loadConfigFn ?? loadConfig;
+        config = await loadConfigFn();
+      } catch (initErr) {
+        console.error(`\n❌ ${t('run.auto_init_failed', { message: (initErr as Error).message })}`);
+        console.log(`   ${t('run.auto_init_hint')}`);
+        daemonService.removePid();
+        if (logger) logger.restore();
+        exit(1);
+        return undefined as never;
+      }
+    } else {
+      console.error(`\n❌ ${t('run.error', { message: msg })}`);
+      daemonService.removePid();
+      if (logger) logger.restore();
+      exit(1);
+      return undefined as never;
+    }
   }
 
   // Apply CLI overrides

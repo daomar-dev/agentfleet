@@ -5,11 +5,11 @@
 <h1 align="center">AgentFleet</h1>
 
 <p align="center">
-  <strong>Turn your own laptops, desktops, and lab machines into a distributed coding-agent fleet.</strong>
+  <strong>Orchestrate AI coding agents across every machine you own.</strong>
 </p>
 
 <p align="center">
-  Run one prompt across many devices in parallel — no server, no SSH mesh, no control plane. AgentFleet coordinates through your existing OneDrive sync.
+  Submit one prompt, let every enrolled device run it with its own local agent, and compare results side by side — no server, no SSH mesh, no control plane.
 </p>
 
 <p align="center">
@@ -21,35 +21,38 @@
 
 <p align="center">
   <a href="README.md">English</a> | <a href="README.zh-CN.md">简体中文</a> ·
-  <a href="https://agentfleet.daomar.dev/">Live dashboard</a> ·
+  <a href="https://agentfleet.daomar.dev/web/">Dashboard</a> ·
   <a href="https://agentfleet.daomar.dev/donate.html">Support the project</a>
 </p>
 
 ---
 
-## Why star AgentFleet?
+## Built for agent developers
 
-Experienced developers increasingly have more compute than orchestration: a work laptop, a desktop, a mini PC, a home server, maybe several agent CLIs with different strengths. AgentFleet gives those machines a shared task fabric so they can all attack the same prompt independently and return comparable results.
+AgentFleet is designed for developers who work with AI coding agents — Claude Code, GitHub Copilot CLI, Cursor, Aider, or any command-line tool that accepts a prompt and produces code. If you have more than one machine, AgentFleet lets them all work in parallel on the same task and return independent results.
 
 Use it when you want to:
 
-- **Compare agents side by side** — run the same security review with Claude Code, Copilot CLI, Cursor, or any local command template.
+- **Compare agents side by side** — run the same prompt with Claude Code on one machine and Copilot CLI on another, then compare output quality.
 - **Parallelize exploratory work** — ask multiple machines to inspect different clones, branches, or configurations at the same time.
+- **Benchmark prompts** — evaluate the same prompt across different models, tools, hardware, or repository states.
 - **Keep data local** — tasks and results sync through your OneDrive; AgentFleet runs no hosted backend.
 - **Work behind firewalls** — no inbound ports, tunnels, SSH bastions, queues, or control-plane credentials.
-- **Operate like a personal CI lab** — submit tasks from CLI or browser and watch every enrolled node report back.
 
-If this is the kind of distributed-agent workflow you want to see mature, please **star**, **fork**, and share your use cases.
+## Quick start
 
-## 60-second start
-
-Run this on every machine you want in the fleet:
+**One command to start.** Run this on every machine you want in the fleet:
 
 ```bash
 npx -y @daomar/agentfleet run
 ```
 
-Then submit a task from any one machine:
+That's it. AgentFleet will:
+1. Automatically detect your OneDrive and initialize the workspace (first run only).
+2. Register the `agentfleet` shortcut command so you can use it directly next time.
+3. Start watching for tasks.
+
+Then submit a task from any machine:
 
 ```bash
 agentfleet submit \
@@ -64,10 +67,36 @@ Check progress:
 
 ```bash
 agentfleet status
-agentfleet status task-20260402-abc123
 ```
 
-Prefer a browser? Open **[agentfleet.daomar.dev](https://agentfleet.daomar.dev/)**, sign in with the Microsoft account that owns the OneDrive, submit tasks, monitor nodes, and inspect results.
+Prefer a browser? Open **[agentfleet.daomar.dev/web/](https://agentfleet.daomar.dev/web/)**, sign in with the Microsoft account that owns the OneDrive, submit tasks, monitor nodes, and inspect results.
+
+## Agent compatibility
+
+AgentFleet works with any command-line tool that accepts a prompt. The default agent is **Claude Code**:
+
+| Agent | Command template | Notes |
+|---|---|---|
+| Claude Code | `claude -p {prompt}` | Default, works out of the box |
+| GitHub Copilot CLI | `gh copilot suggest "{prompt}"` | Requires `gh` CLI with Copilot extension |
+| Cursor | `cursor --prompt "{prompt}"` | Requires Cursor CLI |
+| Aider | `aider --message "{prompt}"` | Requires aider installed |
+| Custom | Any command with `{prompt}` | Set via `defaultAgentCommand` in config |
+
+Override per-task with `--agent`:
+
+```bash
+agentfleet submit --prompt "Fix the login bug" --agent 'aider --message "{prompt}"'
+```
+
+Or change the default globally in `~/.agentfleet/config.json`:
+
+```json
+{
+  "defaultAgent": "claude-code",
+  "defaultAgentCommand": "claude -p {prompt}"
+}
+```
 
 ## Concrete workflows
 
@@ -122,10 +151,10 @@ agentfleet run         agentfleet run         agentfleet submit
                  output/ → per-machine result files
 ```
 
-1. AgentFleet detects OneDrive and creates stable local paths under `~/.agentfleet/`.
+1. `agentfleet run` detects OneDrive and initializes the shared workspace (auto-init on first run).
 2. `tasks/` and `output/` are backed by the synced OneDrive workspace.
 3. `agentfleet submit` writes an immutable task file.
-4. Each `agentfleet run` process sees new tasks and executes them locally.
+4. Each `agentfleet run` process sees new tasks and executes them with the local coding agent.
 5. Results are written with hostname prefixes, so multiple machines never overwrite each other.
 
 ## AgentFleet vs. common alternatives
@@ -142,18 +171,17 @@ agentfleet run         agentfleet run         agentfleet submit
 ## CLI reference
 
 <details>
-<summary><strong>Install and run</strong></summary>
+<summary><strong>Run</strong></summary>
 
 ```bash
-# Recommended: run without installing globally
+# Start watching for tasks (auto-initializes on first run)
 npx -y @daomar/agentfleet run
 
-# Or install globally
-npm install -g @daomar/agentfleet
+# After first run, the shortcut is available:
 agentfleet run
 ```
 
-Useful run options:
+Options:
 
 - `--poll-interval <seconds>` — polling interval, default `10`
 - `--concurrency <number>` — max concurrent agent processes, default `1`
@@ -179,17 +207,42 @@ Options:
 </details>
 
 <details>
+<summary><strong>Status and stop</strong></summary>
+
+```bash
+agentfleet status              # overview of all tasks
+agentfleet status <task-id>    # details for a specific task
+agentfleet stop                # stop the running instance
+```
+
+</details>
+
+<details>
 <summary><strong>Daemon and auto-start</strong></summary>
 
 ```bash
 agentfleet run --daemon
-npx -y @daomar/agentfleet install    # install auto-start
-npx -y @daomar/agentfleet uninstall  # remove auto-start
+agentfleet install    # install auto-start on login
+agentfleet uninstall  # remove auto-start
 agentfleet stop
 ```
 
 - **Windows:** Scheduled Task named `AgentFleet`, triggered on login and wake
 - **macOS:** LaunchAgent named `dev.daomar.agentfleet`
+
+</details>
+
+<details>
+<summary><strong>Initialize (advanced)</strong></summary>
+
+Normally `run` and `submit` auto-initialize with OneDrive. For manual control:
+
+```bash
+agentfleet init                                    # default: OneDrive
+agentfleet init --backend onedrive-business        # OneDrive for Business
+agentfleet init --backend local-folder --path /shared/fleet  # local folder
+agentfleet init --force                            # reinitialize
+```
 
 </details>
 
@@ -216,7 +269,7 @@ Prerequisites: Node.js 18+, OneDrive sync, Windows with PowerShell or macOS, and
 
 ## Web dashboard
 
-The hosted Pages app at **[agentfleet.daomar.dev](https://agentfleet.daomar.dev/)** is a PWA for:
+The hosted Pages app at **[agentfleet.daomar.dev/web/](https://agentfleet.daomar.dev/web/)** is a PWA for:
 
 - submitting tasks from desktop or mobile;
 - monitoring enrolled nodes and last activity;
@@ -270,7 +323,7 @@ AgentFleet is free and open source. If it saves you time or inspires your distri
 
 - [GitHub](https://github.com/daomar-dev/agentfleet) — source, issues, discussions
 - [npm](https://www.npmjs.com/package/@daomar/agentfleet) — package install
-- [Web dashboard](https://agentfleet.daomar.dev/) — submit and monitor tasks
+- [Web dashboard](https://agentfleet.daomar.dev/web/) — submit and monitor tasks
 - [About](https://agentfleet.daomar.dev/about.html) — architecture overview
 - [Contributing](CONTRIBUTING.md) — development setup
 - [Changelog](CHANGELOG.md) — release notes
