@@ -8,7 +8,7 @@ function swBuildHashPlugin(): Plugin {
     name: 'sw-build-hash',
     apply: 'build',
     closeBundle() {
-      const swPath = resolve(__dirname, 'dist', 'sw.js');
+      const swPath = resolve(__dirname, 'dist', 'web', 'sw.js');
       const content = readFileSync(swPath, 'utf-8');
       const hash = Date.now().toString(36);
       writeFileSync(swPath, content.replace('__BUILD_HASH__', hash), 'utf-8');
@@ -26,7 +26,7 @@ function wellKnownPlugin(): Plugin {
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
         if (req.url?.startsWith('/.well-known/')) {
-          const filePath = join(__dirname, 'public', req.url);
+          const filePath = join(__dirname, 'static-root', req.url);
           if (existsSync(filePath)) {
             const content = readFileSync(filePath, 'utf-8');
             res.setHeader('Content-Type', 'application/json');
@@ -42,10 +42,10 @@ function wellKnownPlugin(): Plugin {
 
 export default defineConfig({
   root: '.',
-  base: '/',
+  base: '/web/',
   plugins: [wellKnownPlugin(), swBuildHashPlugin()],
   build: {
-    outDir: 'dist',
+    outDir: 'dist/web',
     emptyOutDir: true,
   },
   server: {

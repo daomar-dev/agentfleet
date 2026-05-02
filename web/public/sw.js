@@ -1,8 +1,8 @@
 const CACHE_NAME = 'agentfleet-__BUILD_HASH__';
 const SHELL_FILES = [
-  '/',
-  '/manifest.json',
-  '/config.js',
+  '/web/',
+  '/web/manifest.json',
+  '/web/config.js',
   '/favicon.svg',
   '/icons/icon-192.png',
   '/icons/icon-512.png',

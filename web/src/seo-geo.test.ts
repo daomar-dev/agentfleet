@@ -3,9 +3,9 @@ import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { JSDOM } from 'jsdom';
 
-/** Helper: read a public file relative to the web root. */
-function readPublicFile(relativePath: string): string {
-  return readFileSync(resolve(__dirname, '..', 'public', relativePath), 'utf-8');
+/** Helper: read a static-root file relative to the web root. */
+function readStaticFile(relativePath: string): string {
+  return readFileSync(resolve(__dirname, '..', 'static-root', relativePath), 'utf-8');
 }
 
 /** Helper: read index.html from the web root. */
@@ -54,7 +54,7 @@ describe('SEO: index.html meta tags', () => {
   it('contains a canonical link', () => {
     const link = dom.window.document.querySelector('link[rel="canonical"]');
     expect(link).not.toBeNull();
-    expect(link!.getAttribute('href')).toBe('https://agentfleet.daomar.dev/');
+    expect(link!.getAttribute('href')).toBe('https://agentfleet.daomar.dev/web/');
   });
 });
 
@@ -85,7 +85,7 @@ describe('SEO: JSON-LD structured data', () => {
 
   it('has correct name and url', () => {
     expect(jsonLd['name']).toBe('AgentFleet');
-    expect(jsonLd['url']).toBe('https://agentfleet.daomar.dev/');
+    expect(jsonLd['url']).toBe('https://agentfleet.daomar.dev/web/');
   });
 
   it('has applicationCategory DeveloperApplication', () => {
@@ -123,7 +123,7 @@ describe('SEO: robots.txt', () => {
   let content: string;
 
   beforeEach(() => {
-    content = readPublicFile('robots.txt');
+    content = readStaticFile('robots.txt');
   });
 
   it('contains User-agent: *', () => {
@@ -146,7 +146,7 @@ describe('SEO: sitemap.xml', () => {
   let content: string;
 
   beforeEach(() => {
-    content = readPublicFile('sitemap.xml');
+    content = readStaticFile('sitemap.xml');
   });
 
   it('has urlset root with sitemaps.org namespace', () => {
@@ -184,7 +184,7 @@ describe('SEO: sitemap.xml', () => {
 // ---------------------------------------------------------------------------
 describe('Static Pages bilingual support', () => {
   it.each(['about.html', 'donate.html'])('%s contains both locales and the auto-switch script', (page) => {
-    const content = readPublicFile(page);
+    const content = readStaticFile(page);
     expect(content).toContain('data-locale="en-US"');
     expect(content).toContain('data-locale="zh-CN"');
     expect(content).toContain('data-set-lang="en-US"');
@@ -195,7 +195,7 @@ describe('Static Pages bilingual support', () => {
   });
 
   it('static-i18n.js detects browser language and supports both locales', () => {
-    const content = readPublicFile('static-i18n.js');
+    const content = readStaticFile('static-i18n.js');
     expect(content).toContain('navigator.language');
     expect(content).toContain('zh-CN');
     expect(content).toContain('en-US');
@@ -209,7 +209,7 @@ describe('GEO: llms.txt', () => {
   let content: string;
 
   beforeEach(() => {
-    content = readPublicFile('llms.txt');
+    content = readStaticFile('llms.txt');
   });
 
   it('is non-empty', () => {
@@ -251,7 +251,7 @@ describe('GEO: .well-known/agent.json', () => {
   let data: Record<string, unknown>;
 
   beforeEach(() => {
-    const raw = readPublicFile('.well-known/agent.json');
+    const raw = readStaticFile('.well-known/agent.json');
     data = JSON.parse(raw);
   });
 
@@ -299,7 +299,7 @@ describe('GEO: about.html structured data', () => {
   let jsonLd: Record<string, unknown>;
 
   beforeEach(() => {
-    dom = new JSDOM(readPublicFile('about.html'));
+    dom = new JSDOM(readStaticFile('about.html'));
     const script = dom.window.document.querySelector('script[type="application/ld+json"]');
     expect(script).not.toBeNull();
     jsonLd = JSON.parse(script!.textContent!);
@@ -343,7 +343,7 @@ describe('GEO: about.html structured data', () => {
 // ---------------------------------------------------------------------------
 describe('GEO: donate.html DonateAction', () => {
   it('contains DonateAction JSON-LD with target', () => {
-    const dom = new JSDOM(readPublicFile('donate.html'));
+    const dom = new JSDOM(readStaticFile('donate.html'));
     const script = dom.window.document.querySelector('script[type="application/ld+json"]');
     expect(script).not.toBeNull();
     const data = JSON.parse(script!.textContent!);

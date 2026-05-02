@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentFleet — Distributed Agent Orchestration</title>
+  <meta name="description" content="Run one prompt across every device you own. AgentFleet turns laptops, desktops, and lab machines into a parallel coding-agent fabric using OneDrive — no server, no control plane." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
+  <link rel="canonical" href="https://agentfleet.daomar.dev/" />
+  <link rel="alternate" hreflang="en" href="https://agentfleet.daomar.dev/?lang=en-US" />
+  <link rel="alternate" hreflang="zh-CN" href="https://agentfleet.daomar.dev/?lang=zh-CN" />
+  <meta property="og:title" content="AgentFleet — Distributed Agent Orchestration" />
+  <meta property="og:description" content="Submit coding tasks to all your machines simultaneously. No servers, no control plane — just distributed coordination through OneDrive sync." />
+  <meta property="og:url" content="https://agentfleet.daomar.dev/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://agentfleet.daomar.dev/og-image.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AgentFleet — Distributed Agent Orchestration" />
+  <meta name="twitter:description" content="Submit coding tasks to all your machines simultaneously. No servers, no control plane — just distributed coordination through OneDrive sync." />
+  <meta name="twitter:image" content="https://agentfleet.daomar.dev/og-image.png" />
+  <link rel="stylesheet" href="/static-page.css" />
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"SoftwareApplication","name":"AgentFleet","description":"Distributed agent orchestration — submit coding tasks to all your machines simultaneously, monitor nodes, and view results. Built on OneDrive sync with zero infrastructure.","applicationCategory":"DeveloperApplication","operatingSystem":"Windows","url":"https://agentfleet.daomar.dev/","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},"author":{"@type":"Person","name":"Xizhang Chen","url":"https://github.com/chenxizhang"}}
+  </script>
+</head>
+<body
+  data-title-en="AgentFleet — Distributed Agent Orchestration"
+  data-title-zh="AgentFleet — 分布式智能体编排"
+  data-description-en="Run one prompt across every device you own. AgentFleet turns laptops, desktops, and lab machines into a parallel coding-agent fabric using OneDrive — no server, no control plane."
+  data-description-zh="一次提交，让所有设备并行处理。AgentFleet 使用 OneDrive 作为协调层，把笔记本、台式机、实验室机器变成并行编码智能体网络——无需服务器或控制平面。"
+  data-og-title-en="AgentFleet — Distributed Agent Orchestration"
+  data-og-title-zh="AgentFleet — 分布式智能体编排"
+  data-og-description-en="Submit coding tasks to all your machines simultaneously. No servers, no control plane — just distributed coordination through OneDrive sync."
+  data-og-description-zh="向所有机器同时提交编码任务。无需服务器、无需控制平面——通过 OneDrive 同步实现分布式协调。">
+  <header class="hero">
+    <a class="logo" href="/"><img src="/icons/icon-192.png" alt="" /><span>AgentFleet</span></a>
+    <div data-locale="en-US">
+      <p class="eyebrow">For developers running agents on more than one machine</p>
+      <h1>Run one prompt across every device you own.</h1>
+      <p>AgentFleet turns laptops, desktops, and lab machines into a parallel coding-agent fabric using OneDrive as the coordination layer — no server, queue, SSH mesh, or control plane.</p>
+      <div class="command-block"><code>npx -y @daomar/agentfleet run</code></div>
+      <p class="hint">Start this on each machine, then submit once from CLI or browser.</p>
+    </div>
+    <div data-locale="zh-CN">
+      <p class="eyebrow">为拥有多台机器并运行 AI Agent 的技术人员设计</p>
+      <h1>一次提交，让所有设备并行处理。</h1>
+      <p>AgentFleet 使用 OneDrive 作为协调层，把笔记本、台式机、实验室机器变成并行编码智能体网络——无需服务器、队列、SSH 组网或控制平面。</p>
+      <div class="command-block"><code>npx -y @daomar/agentfleet run</code></div>
+      <p class="hint">在每台机器启动它，然后通过 CLI 或浏览器提交一次任务。</p>
+    </div>
+    <div class="lang-switch" aria-label="Language">
+      <button type="button" data-set-lang="en-US">English</button>
+      <button type="button" data-set-lang="zh-CN">简体中文</button>
+    </div>
+  </header>
+
+  <main>
+    <article data-locale="en-US">
+      <section>
+        <div class="grid">
+          <div class="card"><h3>No control plane</h3><p>No backend, scheduler, database, queue, or inbound port. If OneDrive sync works, the fleet can coordinate.</p></div>
+          <div class="card"><h3>Parallel agent output</h3><p>Every node runs its own local agent command and writes hostname-scoped results, so you can compare outputs side by side.</p></div>
+          <div class="card"><h3>Firewall-friendly</h3><p>Tasks and results stay in your Microsoft 365 / OneDrive environment. The web app calls Microsoft Graph directly.</p></div>
+        </div>
+      </section>
+      <section>
+        <h2>How it works</h2>
+        <p>Submit a task once. Each running machine sees the immutable task file, executes locally, and writes back a separate result file.</p>
+        <pre><code>Machine A          Machine B          Machine C
+agentfleet run     agentfleet run     agentfleet submit
+     │                  │                   │
+     └──────────┬───────┴──────────┬────────┘
+                ▼                  ▼
+        OneDrive / AgentFleet shared workspace
+           tasks/  → immutable task JSON
+           output/ → per-machine results</code></pre>
+      </section>
+      <section>
+        <h2>Try it on real agent work</h2>
+        <div class="grid">
+          <div class="card"><h3>Multi-agent code review</h3><p>Ask every machine to inspect the same repository for security, reliability, or architecture risks.</p></div>
+          <div class="card"><h3>Distributed refactor rehearsal</h3><p>Let separate machines attempt the same migration on separate clones, then compare patch quality.</p></div>
+          <div class="card"><h3>Prompt benchmark lab</h3><p>Run one prompt across different local agents, models, branches, or hardware profiles.</p></div>
+        </div>
+      </section>
+      <section>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/web/">Open Dashboard</a>
+          <a class="btn btn-primary" href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+          <a class="btn" href="https://github.com/daomar-dev/agentfleet/fork" target="_blank" rel="noopener">Fork the repo</a>
+          <a class="btn" href="/donate.html">Support development</a>
+        </div>
+      </section>
+    </article>
+
+    <article data-locale="zh-CN">
+      <section>
+        <div class="grid">
+          <div class="card"><h3>无控制平面</h3><p>没有后端、调度器、数据库、队列或入站端口。只要 OneDrive 能同步，集群就能协调。</p></div>
+          <div class="card"><h3>并行 Agent 输出</h3><p>每个节点运行自己的本地 agent 命令，并写入带主机名前缀的结果，方便横向比较。</p></div>
+          <div class="card"><h3>适合防火墙内环境</h3><p>任务和结果留在你的 Microsoft 365 / OneDrive 环境中。Web 应用直接调用 Microsoft Graph。</p></div>
+        </div>
+      </section>
+      <section>
+        <h2>工作原理</h2>
+        <p>提交一次任务。每台运行中的机器读取不可变任务文件，在本机执行，并写回独立结果文件。</p>
+        <pre><code>机器 A             机器 B             机器 C
+agentfleet run     agentfleet run     agentfleet submit
+     │                  │                   │
+     └──────────┬───────┴──────────┬────────┘
+                ▼                  ▼
+        OneDrive / AgentFleet 共享工作区
+           tasks/  → 不可变任务 JSON
+           output/ → 每台机器独立结果</code></pre>
+      </section>
+      <section>
+        <h2>直接用于真实 Agent 工作流</h2>
+        <div class="grid">
+          <div class="card"><h3>多智能体代码审查</h3><p>让所有机器同时审查同一个仓库的安全、可靠性或架构风险。</p></div>
+          <div class="card"><h3>分布式重构预演</h3><p>让不同机器在不同 clone 上尝试同一次迁移，然后比较补丁质量。</p></div>
+          <div class="card"><h3>提示词基准实验室</h3><p>在不同本地 agent、模型、分支或硬件配置上运行同一个提示词。</p></div>
+        </div>
+      </section>
+      <section>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="/web/">打开仪表板</a>
+          <a class="btn btn-primary" href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">⭐ 在 GitHub Star</a>
+          <a class="btn" href="https://github.com/daomar-dev/agentfleet/fork" target="_blank" rel="noopener">Fork 仓库</a>
+          <a class="btn" href="/donate.html">支持开发</a>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer><a href="/about.html">Architecture</a> · <a href="https://github.com/daomar-dev/agentfleet" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.npmjs.com/package/@daomar/agentfleet" target="_blank" rel="noopener">npm</a></footer>
+  <script src="/static-i18n.js" defer></script>
+</body>
+</html>

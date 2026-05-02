@@ -12,7 +12,7 @@
   <meta property="og:title" content="AgentFleet — Distributed Agent Orchestration" />
   <meta property="og:description" content="Submit coding tasks to all your machines simultaneously. No servers, no control plane — just distributed coordination through OneDrive sync." />
   <meta property="og:image" content="https://agentfleet.daomar.dev/og-image.png" />
-  <meta property="og:url" content="https://agentfleet.daomar.dev/" />
+  <meta property="og:url" content="https://agentfleet.daomar.dev/web/" />
   <meta property="og:type" content="website" />
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -20,11 +20,11 @@
   <meta name="twitter:description" content="Submit coding tasks to all your machines simultaneously. No servers, no control plane — just distributed coordination through OneDrive sync." />
   <meta name="twitter:image" content="https://agentfleet.daomar.dev/og-image.png" />
   <!-- Canonical -->
-  <link rel="canonical" href="https://agentfleet.daomar.dev/" />
+  <link rel="canonical" href="https://agentfleet.daomar.dev/web/" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/png" href="/icons/icon-192.png" />
   <link rel="apple-touch-icon" href="/icons/icon-192.png" />
-  <link rel="manifest" href="/manifest.json" />
+  <link rel="manifest" href="/web/manifest.json" />
   <link rel="stylesheet" href="/styles/main.css" />
   <title>AgentFleet</title>
   <!-- Structured Data: SoftwareApplication + potentialAction -->
@@ -36,7 +36,7 @@
     "description": "Distributed agent orchestration dashboard — submit coding tasks to all your machines simultaneously, monitor nodes, and view results. Built on OneDrive sync with zero infrastructure.",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Windows",
-    "url": "https://agentfleet.daomar.dev/",
+    "url": "https://agentfleet.daomar.dev/web/",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -50,14 +50,14 @@
     "potentialAction": [
       {
         "@type": "SearchAction",
-        "target": "https://agentfleet.daomar.dev/#/tasks?q={search_term_string}",
+        "target": "https://agentfleet.daomar.dev/web/#/tasks?q={search_term_string}",
         "query-input": "required name=search_term_string"
       },
       {
         "@type": "Action",
         "name": "Submit Task",
         "description": "Submit a coding task to all enrolled AgentFleet machines",
-        "target": "https://agentfleet.daomar.dev/#/"
+        "target": "https://agentfleet.daomar.dev/web/#/"
       }
     ]
   }
